@@ -1,0 +1,30 @@
+# Dependências
+node_modules/
+
+# Build de produção
+dist/
+dist-ssr/
+
+# Cache do Vite
+.vite/
+
+# Variáveis de ambiente (NUNCA versionar)
+.env
+.env.local
+.env.*.local
+
+# Logs (gerados pelo Pino/Fastify)
+*.log
+logs/
+
+# IDEs
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# Sistema operacional
+.DS_Store
+Thumbs.d
