@@ -1,3 +1,4 @@
+
 <template>
   <div class="login-page">
 
@@ -32,6 +33,7 @@
 </template>
 
 <script setup>
+import { login } from '../../services/auth.js'
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 
@@ -46,14 +48,12 @@ async function entrar() {
   erro.value = ''
   carregando.value = true
 
-  // Simulando o back por enquanto
-  await new Promise(resolve => setTimeout(resolve, 1000))
-
-  if (email.value === 'admin@checkobra.com' && senha.value === '123456') {
-    localStorage.setItem('token', 'token-falso-123')
+  try {
+    const data = await login(email.value, senha.value)
+    localStorage.setItem('token', data.token)
     router.push('/dashboard')
-  } else {
-    erro.value = 'E-mail ou senha incorretos.'
+  } catch (e) {
+    erro.value = e.response?.data?.message || 'E-mail ou senha incorretos.'
   }
 
   carregando.value = false
