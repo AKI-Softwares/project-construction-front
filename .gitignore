@@ -1,0 +1,31 @@
+GITIGNORE
+# Dependências
+node_modules/
+.npm
+ 
+# Build
+dist/
+dist-ssr/
+ 
+# Ambiente — NUNCA suba isso pro Git
+.env
+.env.local
+.env.*.local
+ 
+# Logs
+logs/
+*.log
+npm-debug.log*
+ 
+# Editor
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+ 
+# Sistema operacional
+.DS_Store
+Thumbs.dbnpm install
