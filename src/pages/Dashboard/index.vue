@@ -1,74 +1,66 @@
 <template>
   <MainLayout titulo="Dashboard">
+    <div v-if="loading" class="state">Loading...</div>
+    <div v-if="error" class="state error">{{ error }}</div>
 
-    <div v-if="carregando" class="estado">Carregando...</div>
-    <div v-if="erro" class="estado erro">{{ erro }}</div>
+    <div v-if="!loading && !error">
 
-    <div v-if="!carregando && !erro">
-
-      <!-- Cards de resumo -->
       <div class="cards">
         <div class="card card-dark">
           <div class="card-header">
             <span>Total de Empreendimentos</span>
             <FontAwesomeIcon :icon="['fas', 'building-circle-arrow-right']" />
           </div>
-          <div class="card-numero">{{ totalBuildings }}</div>
+          <div class="card-number">{{ totalBuildings }}</div>
         </div>
-
         <div class="card card-orange">
           <div class="card-header">
-            <span>Empreendimentos pendentes</span>
+            <span>Aptos com Pendências</span>
             <FontAwesomeIcon :icon="['fas', 'circle-exclamation']" />
           </div>
-          <div class="card-numero">{{ resumo.buildingsPendentes }}</div>
+          <div class="card-number">{{ summary.pending }}</div>
+          <div class="card-sub">de {{ summary.total }} apartamentos</div>
         </div>
-
         <div class="card card-yellow">
           <div class="card-header">
-            <span>Aguardando</span>
+            <span>Aguardando Vistoria</span>
             <FontAwesomeIcon :icon="['fas', 'clock']" />
           </div>
-          <div class="card-numero">{{ resumo.buildingsAguardando }}</div>
+          <div class="card-number">{{ summary.waiting }}</div>
+          <div class="card-sub">de {{ summary.total }} apartamentos</div>
         </div>
-
         <div class="card card-teal">
           <div class="card-header">
-            <span>Aprovados</span>
+            <span>Aptos Aprovados</span>
             <FontAwesomeIcon :icon="['fas', 'circle-check']" />
           </div>
-          <div class="card-numero">{{ resumo.buildingsAprovados }}</div>
+          <div class="card-number">{{ summary.approved }}</div>
+          <div class="card-sub">{{ summary.approvedPct }}% do total</div>
         </div>
       </div>
 
-      <!-- Gráficos -->
-      <div class="graficos">
-
-        <!-- Barras -->
-        <div class="grafico-card grafico-barras">
-          <div class="grafico-titulo">Status por Empreendimento</div>
-          <Bar :data="dadosBarras" :options="opcoesBarras" />
+      <div class="charts">
+        <div class="chart-card chart-bars">
+          <div class="chart-title">Status por Empreendimento (apartamentos)</div>
+          <Bar :data="barData" :options="barOptions" />
         </div>
-
-        <!-- Rosca -->
-        <div class="grafico-card grafico-rosca">
-          <Doughnut :data="dadosRosca" :options="opcoesRosca" />
-          <div class="legenda">
-            <div class="legenda-item">
-              <span class="legenda-cor" style="background:#00e5cc"></span>
-              Aprovados {{ resumo.pctAprovados }}%
+        <div class="chart-card chart-doughnut">
+          <Doughnut :data="doughnutData" :options="doughnutOptions" />
+          <div class="legend">
+            <div class="legend-item">
+              <span class="legend-color" style="background:#00e5cc"></span>
+              Aprovados {{ summary.approvedPct }}%
             </div>
-            <div class="legenda-item">
-              <span class="legenda-cor" style="background:#f99f56"></span>
-              Pendentes {{ resumo.pctPendentes }}%
+            <div class="legend-item">
+              <span class="legend-color" style="background:#f99f56"></span>
+              Pendentes {{ summary.pendingPct }}%
             </div>
-            <div class="legenda-item">
-              <span class="legenda-cor" style="background:#f5a623"></span>
-              Aguardando {{ resumo.pctAguardando }}%
+            <div class="legend-item">
+              <span class="legend-color" style="background:#f5a623"></span>
+              Aguardando {{ summary.waitingPct }}%
             </div>
           </div>
         </div>
-
       </div>
 
     </div>
@@ -78,126 +70,63 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { Bar, Doughnut } from 'vue-chartjs'
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  ArcElement,
-  Tooltip,
-  Legend
-} from 'chart.js'
+import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, ArcElement, Tooltip, Legend } from 'chart.js'
 import MainLayout from '../../components/Layout/MainLayout.vue'
 import { getBuildings } from '../../services/buildings.js'
 import { mockChecklists, mockApartments } from '../../mocks/buildings.js'
+import { getApartmentsSummary } from '../../utils/checklist.js'
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, ArcElement, Tooltip, Legend)
 
-const carregando = ref(true)
-const erro = ref('')
+const loading = ref(true)
+const error = ref('')
 const buildings = ref([])
-
-function calcularStatus(checklist) {
-  if (!checklist) return 'waiting'
-  const itens = checklist.rooms.flatMap(r => r.items)
-  if (!itens.length) return 'waiting'
-  if (itens.some(i => i.status === 'PENDING')) return 'pending'
-  if (itens.every(i => i.status === 'APPROVED')) return 'approved'
-  return 'waiting'
-}
 
 const totalBuildings = computed(() => buildings.value.length)
 
-const resumo = computed(() => {
-  const todosItens = mockApartments.flatMap(apt => {
-    const c = mockChecklists[apt.id]
-    return c ? c.rooms.flatMap(r => r.items) : []
+const summary = computed(() =>
+  getApartmentsSummary(mockApartments, mockChecklists)
+)
+
+const buildingSummaries = computed(() =>
+  buildings.value.map(b => {
+    const apts = mockApartments.filter(a => a.buildingId === b.id)
+    return {
+      name: b.name.replace('Residencial ', ''),
+      ...getApartmentsSummary(apts, mockChecklists)
+    }
   })
-  const total = todosItens.length || 1
-  const aprovados = todosItens.filter(i => i.status === 'APPROVED').length
-  const pendentes = todosItens.filter(i => i.status === 'PENDING').length
-  const aguardando = todosItens.filter(i => i.status === 'WAITING').length
+)
 
-  const buildingsPendentes = buildings.value.filter(b => {
-    const apts = mockApartments.filter(a => a.buildingId === b.id)
-    return apts.some(a => calcularStatus(mockChecklists[a.id]) === 'pending')
-  }).length
+const barData = computed(() => ({
+  labels: buildingSummaries.value.map(b => b.name),
+  datasets: [
+    { label: 'Approved', data: buildingSummaries.value.map(b => b.approved), backgroundColor: '#00e5cc', borderRadius: 4 },
+    { label: 'Pending', data: buildingSummaries.value.map(b => b.pending), backgroundColor: '#f99f56', borderRadius: 4 },
+    { label: 'Waiting', data: buildingSummaries.value.map(b => b.waiting), backgroundColor: '#f5a623', borderRadius: 4 },
+  ]
+}))
 
-  const buildingsAprovados = buildings.value.filter(b => {
-    const apts = mockApartments.filter(a => a.buildingId === b.id)
-    return apts.length > 0 && apts.every(a => calcularStatus(mockChecklists[a.id]) === 'approved')
-  }).length
-
-  const buildingsAguardando = buildings.value.length - buildingsPendentes - buildingsAprovados
-
-  return {
-    buildingsPendentes,
-    buildingsAprovados,
-    buildingsAguardando,
-    pctAprovados: Math.round((aprovados / total) * 100),
-    pctPendentes: Math.round((pendentes / total) * 100),
-    pctAguardando: Math.round((aguardando / total) * 100),
-  }
-})
-
-// Dados para o gráfico de barras
-const dadosBarras = computed(() => {
-  const labels = buildings.value.map(b => b.name.replace('Residencial ', ''))
-  const aprovados = buildings.value.map(b => {
-    const apts = mockApartments.filter(a => a.buildingId === b.id)
-    const itens = apts.flatMap(a => mockChecklists[a.id]?.rooms.flatMap(r => r.items) || [])
-    const total = itens.length || 1
-    return Math.round((itens.filter(i => i.status === 'APPROVED').length / total) * 100)
-  })
-  const pendentes = buildings.value.map(b => {
-    const apts = mockApartments.filter(a => a.buildingId === b.id)
-    const itens = apts.flatMap(a => mockChecklists[a.id]?.rooms.flatMap(r => r.items) || [])
-    const total = itens.length || 1
-    return Math.round((itens.filter(i => i.status === 'PENDING').length / total) * 100)
-  })
-  const aguardando = buildings.value.map(b => {
-    const apts = mockApartments.filter(a => a.buildingId === b.id)
-    const itens = apts.flatMap(a => mockChecklists[a.id]?.rooms.flatMap(r => r.items) || [])
-    const total = itens.length || 1
-    return Math.round((itens.filter(i => i.status === 'WAITING').length / total) * 100)
-  })
-
-  return {
-    labels,
-    datasets: [
-      { label: 'Aprovados', data: aprovados, backgroundColor: '#00e5cc', borderRadius: 4 },
-      { label: 'Pendentes', data: pendentes, backgroundColor: '#f99f56', borderRadius: 4 },
-      { label: 'Aguardando', data: aguardando, backgroundColor: '#f5a623', borderRadius: 4 },
-    ]
-  }
-})
-
-const opcoesBarras = {
+const barOptions = {
   responsive: true,
   plugins: { legend: { display: false } },
   scales: {
-    y: {
-      beginAtZero: true,
-      max: 100,
-      ticks: { callback: v => v + '%' },
-      grid: { color: 'rgba(0,0,0,0.05)' }
-    },
+    y: { beginAtZero: true, ticks: { stepSize: 10 }, grid: { color: 'rgba(0,0,0,0.05)' } },
     x: { grid: { display: false } }
   }
 }
 
-// Dados para o gráfico de rosca
-const dadosRosca = computed(() => ({
-  labels: ['Aprovados', 'Pendentes', 'Aguardando'],
+const doughnutData = computed(() => ({
+  labels: ['Approved', 'Pending', 'Waiting'],
   datasets: [{
-    data: [resumo.value.pctAprovados, resumo.value.pctPendentes, resumo.value.pctAguardando],
+    data: [summary.value.approved, summary.value.pending, summary.value.waiting],
     backgroundColor: ['#00e5cc', '#f99f56', '#f5a623'],
     borderWidth: 0,
     hoverOffset: 8,
   }]
 }))
 
-const opcoesRosca = {
+const doughnutOptions = {
   responsive: true,
   cutout: '70%',
   plugins: { legend: { display: false } }
@@ -207,91 +136,30 @@ onMounted(async () => {
   try {
     buildings.value = await getBuildings()
   } catch (e) {
-    erro.value = 'Erro ao carregar dados.'
+    error.value = 'Error loading data.'
   } finally {
-    carregando.value = false
+    loading.value = false
   }
 })
 </script>
 
 <style scoped>
-.estado { text-align: center; padding: 40px; color: #555; }
-.erro { color: red; }
-
-.cards {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 20px;
-  margin-bottom: 32px;
-}
-.card {
-  border-radius: 12px;
-  padding: 20px;
-  background: #fff;
-  border-left: 6px solid transparent;
-}
+.state { text-align: center; padding: 40px; color: #555; }
+.error { color: red; }
+.cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 32px; }
+.card { border-radius: 12px; padding: 20px; background: #fff; border-left: 6px solid transparent; }
 .card-dark { border-left-color: #1a1a2e; }
 .card-orange { border-left-color: #f99f56; }
 .card-yellow { border-left-color: #f5a623; }
 .card-teal { border-left-color: #00e5cc; }
-
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 0.85rem;
-  color: #555;
-  margin-bottom: 8px;
-}
-.card-numero { font-size: 2.5rem; font-weight: bold; color: #1a1a2e; }
-
-.graficos {
-  display: grid;
-  grid-template-columns: 1fr 320px;
-  gap: 24px;
-}
-
-.grafico-card {
-  background: #fff;
-  border-radius: 12px;
-  padding: 24px;
-  border: 1px solid #eee;
-}
-
-.grafico-titulo {
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: #333;
-  margin-bottom: 16px;
-}
-
-.grafico-rosca {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 24px;
-}
-
-.legenda {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  width: 100%;
-}
-
-.legenda-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 0.88rem;
-  color: #333;
-}
-
-.legenda-cor {
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
+.card-header { display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; color: #555; margin-bottom: 8px; }
+.card-number { font-size: 2.5rem; font-weight: bold; color: #1a1a2e; }
+.card-sub { font-size: 0.8rem; color: #888; margin-top: 4px; }
+.charts { display: grid; grid-template-columns: 1fr 320px; gap: 24px; }
+.chart-card { background: #fff; border-radius: 12px; padding: 24px; border: 1px solid #eee; }
+.chart-title { font-size: 0.9rem; font-weight: 600; color: #333; margin-bottom: 16px; }
+.chart-doughnut { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 24px; }
+.legend { display: flex; flex-direction: column; gap: 10px; width: 100%; }
+.legend-item { display: flex; align-items: center; gap: 8px; font-size: 0.88rem; color: #333; }
+.legend-color { width: 14px; height: 14px; border-radius: 50%; flex-shrink: 0; }
 </style>
