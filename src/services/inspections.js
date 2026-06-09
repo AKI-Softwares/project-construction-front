@@ -1,6 +1,6 @@
 import api from './api.js'
 
-const USE_MOCK = true
+const USE_MOCK = false
 
 const mockInspections = [
   { id: 1, status: 'APPROVED' },
