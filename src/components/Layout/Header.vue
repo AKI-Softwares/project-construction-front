@@ -4,33 +4,46 @@
     <!-- Título da página -->
     <h1 class="titulo">{{ titulo }}</h1>
 
-    <!-- Lado direito -->
-    <div class="header-direita">
-
-      <!-- Busca -->
-      <div class="busca">
-        <span>🔍</span>
-        <input type="text" placeholder="Buscar..." />
+    <!-- Perfil do usuário logado -->
+    <div class="perfil">
+      <div class="perfil-info">
+        <span class="perfil-nome">{{ user.name || '...' }}</span>
+        <span class="perfil-cargo">{{ user.role?.name || '...' }}</span>
       </div>
-
-      <!-- Perfil -->
-      <div class="perfil">
-        <div class="perfil-info">
-          <span class="perfil-nome">Maria Clara</span>
-          <span class="perfil-cargo">Administradora</span>
-        </div>
-        <div class="perfil-avatar">MC</div>
-      </div>
-
+      <div class="perfil-avatar">{{ initials }}</div>
     </div>
+
   </div>
 </template>
 
 <script setup>
+import { ref, computed, onMounted } from 'vue'
+import { me } from '../../services/auth.js'
+
 defineProps({
   titulo: {
     type: String,
     default: 'Dashboard'
+  }
+})
+
+const user = ref({ name: '', role: null })
+
+const initials = computed(() => {
+  if (!user.value.name) return '?'
+  return user.value.name
+    .split(' ')
+    .slice(0, 2)
+    .map(n => n[0])
+    .join('')
+    .toUpperCase()
+})
+
+onMounted(async () => {
+  try {
+    user.value = await me()
+  } catch (e) {
+    console.error('Error loading user profile', e)
   }
 })
 </script>
@@ -54,34 +67,6 @@ defineProps({
   color: #00e5cc;
   font-size: 1.4rem;
   font-weight: 600;
-}
-
-.header-direita {
-  display: flex;
-  align-items: center;
-  gap: 24px;
-}
-
-.busca {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background-color: rgba(255,255,255,0.08);
-  border-radius: 20px;
-  padding: 8px 16px;
-}
-
-.busca input {
-  background: none;
-  border: none;
-  outline: none;
-  color: #ffffff;
-  font-size: 0.9rem;
-  width: 200px;
-}
-
-.busca input::placeholder {
-  color: rgba(255,255,255,0.4);
 }
 
 .perfil {
