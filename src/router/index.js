@@ -10,27 +10,26 @@ import TeamRegister from '../pages/Team/Register.vue'
 const routes = [
   { path: '/', redirect: '/login' },
   { path: '/login', component: Login, meta: { public: true } },
+
+  // Password flows — public
+  { path: '/forgot-password', component: () => import('../pages/ForgotPassword/index.vue'), meta: { public: true } },
+  { path: '/forgot-password/sent', component: () => import('../pages/ForgotPassword/Sent.vue'), meta: { public: true } },
+  { path: '/reset-password', component: () => import('../pages/ResetPassword/index.vue'), meta: { public: true } },
+  { path: '/reset-password/success', component: () => import('../pages/ResetPassword/Success.vue'), meta: { public: true } },
+
+  // Change password — requires auth (mustChangePassword flow)
+  { path: '/change-password', component: () => import('../pages/ChangePassword/index.vue'), meta: { requiresAuth: true } },
+
+  // App routes
   { path: '/dashboard', component: Dashboard, meta: { requiresAuth: true } },
   { path: '/buildings/:id', component: Buildings, meta: { requiresAuth: true } },
   { path: '/cadastro', component: Register, meta: { requiresAuth: true } },
   { path: '/team', component: Team, meta: { requiresAuth: true } },
   { path: '/team/register', component: TeamRegister, meta: { requiresAuth: true } },
   { path: '/equipe', redirect: '/team' },
-  {
-    path: '/calendario',
-    component: () => import('../pages/EmConstrucao/index.vue'),
-    meta: { requiresAuth: true }
-  },
-  {
-    path: '/relatorios',
-    component: () => import('../pages/EmConstrucao/index.vue'),
-    meta: { requiresAuth: true }
-  },
-  {
-    path: '/configuracoes',
-    component: () => import('../pages/EmConstrucao/index.vue'),
-    meta: { requiresAuth: true }
-  },
+  { path: '/calendario', component: () => import('../pages/EmConstrucao/index.vue'), meta: { requiresAuth: true } },
+  { path: '/relatorios', component: () => import('../pages/EmConstrucao/index.vue'), meta: { requiresAuth: true } },
+  { path: '/configuracoes', component: () => import('../pages/EmConstrucao/index.vue'), meta: { requiresAuth: true } },
 ]
 
 const router = createRouter({
@@ -38,14 +37,31 @@ const router = createRouter({
   routes,
 })
 
-router.beforeEach((to, from, next) => {
+// router.beforeEach((to, from, next) => {
+//   const token = localStorage.getItem('token')
+
+//   if (to.meta.requiresAuth && !token) {
+//     next('/login')
+//     return
+//   }
+
+//   if (to.path === '/login' && token) {
+//     next('/dashboard')
+//     return
+//   }
+
+//   next()
+// })
+
+router.beforeEach((to, from) => {
   const token = localStorage.getItem('token')
+
   if (to.meta.requiresAuth && !token) {
-    next('/login')
-  } else if (to.path === '/login' && token) {
-    next('/dashboard')
-  } else {
-    next()
+    return '/login'
+  }
+
+  if (to.path === '/login' && token) {
+    return '/dashboard'
   }
 })
 
