@@ -3,9 +3,12 @@ import { createPinia } from 'pinia'
 import router from './router'
 import App from './App.vue'
 
+// FontAwesome
 import { library } from '@fortawesome/fontawesome-svg-core'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { faBuilding as farBuilding } from '@fortawesome/free-regular-svg-icons'
+import {
+  faBuilding as farBuilding
+} from '@fortawesome/free-regular-svg-icons'
 import {
   faBuildingCircleArrowRight,
   faChartSimple,
@@ -26,7 +29,7 @@ import {
   faEyeSlash,
   faLock,
   faTrash,
-  faTriangleExclamation,
+  faTriangleExclamation
 } from '@fortawesome/free-solid-svg-icons'
 
 library.add(
@@ -50,7 +53,7 @@ library.add(
   faEyeSlash,
   faLock,
   faTrash,
-  faTriangleExclamation,
+  faTriangleExclamation
 )
 
 const app = createApp(App)
