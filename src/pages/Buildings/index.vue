@@ -243,8 +243,8 @@ import { ref, reactive, computed, onMounted } from 'vue'
 import MainLayout from '../../components/Layout/MainLayout.vue'
 import { getBuildings, createBuilding } from '../../services/buildings.js'
 import { getApartments, createApartment } from '../../services/apartments.js'
-import { getApartmentTypes } from '../../services/apartments.js'
 import { useAuthStore } from '../../store/auth.js'
+import { getApartmentTypes } from '../../services/apartments.js'
 
 const authStore = useAuthStore()
 
