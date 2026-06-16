@@ -6,6 +6,17 @@ import Buildings from '../pages/Buildings/index.vue'
 const routes = [
   { path: '/', redirect: '/login' },
   { path: '/login', component: Login, meta: { public: true } },
+
+  // Password flows — public
+  { path: '/forgot-password', component: () => import('../pages/ForgotPassword/index.vue'), meta: { public: true } },
+  { path: '/forgot-password/sent', component: () => import('../pages/ForgotPassword/Sent.vue'), meta: { public: true } },
+  { path: '/reset-password', component: () => import('../pages/ResetPassword/index.vue'), meta: { public: true } },
+  { path: '/reset-password/success', component: () => import('../pages/ResetPassword/Success.vue'), meta: { public: true } },
+
+  // Change password — requires auth (mustChangePassword flow)
+  { path: '/change-password', component: () => import('../pages/ChangePassword/index.vue'), meta: { requiresAuth: true } },
+
+  // App routes
   { path: '/dashboard', component: Dashboard, meta: { requiresAuth: true } },
   { path: '/buildings/:id', component: Buildings, meta: { requiresAuth: true } },
   // rotas ainda não feitas — mostram tela em construção
@@ -24,12 +35,13 @@ const router = createRouter({
 // Guard global
 router.beforeEach((to, from, next) => {
   const token = localStorage.getItem('token')
+
   if (to.meta.requiresAuth && !token) {
-    next('/login')
-  } else if (to.path === '/login' && token) {
-    next('/dashboard')
-  } else {
-    next()
+    return '/login'
+  }
+
+  if (to.path === '/login' && token) {
+    return '/dashboard'
   }
 })
 

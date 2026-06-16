@@ -1,14 +1,10 @@
-
 <template>
   <div class="login-page">
-
-    <!-- Lado esquerdo -->
     <div class="left-panel">
       <h1 class="brand-name">CheckObra</h1>
       <p class="brand-slogan">Transformando a vistoria de obras em processo digital</p>
     </div>
 
-    <!-- Lado direito -->
     <div class="right-panel">
       <h2 class="form-title">Login</h2>
 
@@ -16,9 +12,9 @@
       <input type="email" v-model="email" />
 
       <label>Senha</label>
-      <input type="password" v-model="senha" />
+      <input type="password" v-model="senha" @keyup.enter="entrar" />
 
-      <a href="#">Esqueceu a senha?</a>
+      <router-link to="/forgot-password" class="forgot-link">Esqueceu a senha?</router-link>
 
       <p class="erro" v-if="erro">{{ erro }}</p>
 
@@ -28,38 +24,43 @@
 
       <p>Não tem uma conta? <a href="#">Cadastre-se</a></p>
     </div>
-
   </div>
 </template>
 
 <script setup>
-import { login } from '../../services/auth.js'
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { login } from '../../services/auth.js'
 
 const router = useRouter()
-
 const email = ref('')
 const senha = ref('')
 const erro = ref('')
 const carregando = ref(false)
 
+function decodeToken(token) {
+  try {
+    const payload = token.split('.')[1]
+    return JSON.parse(atob(payload))
+  } catch {
+    return {}
+  }
+}
+
 async function entrar() {
   erro.value = ''
   carregando.value = true
-
   try {
-    // Mock temporário — remove quando CORS liberar
-    if (email.value === 'admin@checkobra.com' && senha.value === '123456') {
-      localStorage.setItem('token', 'token-mock-123')
-      router.push('/dashboard')
-      return
-    }
-
-    // Chamada real ao back
     const data = await login(email.value, senha.value)
     localStorage.setItem('token', data.token)
-    router.push('/dashboard')
+
+    // Verifica se precisa trocar senha
+    const payload = decodeToken(data.token)
+    if (payload.mustChangePassword) {
+      router.push('/change-password')
+    } else {
+      router.push('/dashboard')
+    }
   } catch (e) {
     erro.value = e.response?.data?.message || 'E-mail ou senha incorretos.'
   } finally {
@@ -69,17 +70,8 @@ async function entrar() {
 </script>
 
 <style scoped>
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-
-.login-page {
-  display: flex;
-  height: 100vh;
-}
-
+* { box-sizing: border-box; margin: 0; padding: 0; }
+.login-page { display: flex; height: 100vh; }
 .left-panel {
   width: 40%;
   background-color: #0d0d2b;
@@ -90,19 +82,8 @@ async function entrar() {
   padding: 40px;
   text-align: center;
 }
-
-.brand-name {
-  color: #00e5cc;
-  font-size: 2rem;
-  margin-bottom: 16px;
-}
-
-.brand-slogan {
-  color: #ffffff;
-  font-size: 1rem;
-  line-height: 1.6;
-}
-
+.brand-name { color: #00e5cc; font-size: 2rem; margin-bottom: 16px; }
+.brand-slogan { color: #ffffff; font-size: 1rem; line-height: 1.6; }
 .right-panel {
   width: 60%;
   display: flex;
@@ -110,19 +91,8 @@ async function entrar() {
   justify-content: center;
   padding: 60px 80px;
 }
-
-.form-title {
-  font-size: 2rem;
-  margin-bottom: 32px;
-  color: #1a1a2e;
-}
-
-label {
-  font-size: 0.9rem;
-  margin-bottom: 6px;
-  color: #333;
-}
-
+.form-title { font-size: 2rem; margin-bottom: 32px; color: #1a1a2e; }
+label { font-size: 0.9rem; margin-bottom: 6px; color: #333; }
 input {
   width: 100%;
   padding: 14px 20px;
@@ -133,13 +103,8 @@ input {
   font-size: 1rem;
   outline: none;
 }
-
-a {
-  color: #00e5cc;
-  text-decoration: none;
-  font-size: 0.9rem;
-}
-
+.forgot-link { color: #00e5cc; text-decoration: none; font-size: 0.9rem; margin-bottom: 4px; display: block; text-align: right; }
+a { color: #00e5cc; text-decoration: none; font-size: 0.9rem; }
 button {
   width: 100%;
   padding: 16px;
@@ -152,22 +117,7 @@ button {
   cursor: pointer;
   margin: 20px 0;
 }
-
-button:disabled {
-  opacity: 0.7;
-  cursor: not-allowed;
-}
-
-.erro {
-  color: red;
-  font-size: 0.85rem;
-  text-align: left;
-  margin-bottom: 8px;
-}
-
-p {
-  text-align: center;
-  font-size: 0.9rem;
-  color: #555;
-}
+button:disabled { opacity: 0.7; cursor: not-allowed; }
+.erro { color: red; font-size: 0.85rem; text-align: left; margin-bottom: 8px; }
+p { text-align: center; font-size: 0.9rem; color: #555; }
 </style>
