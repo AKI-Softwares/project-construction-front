@@ -1,7 +1,7 @@
 // src/services/auth.js
 import api from './api.js'
 
-const USE_MOCK = true
+const USE_MOCK = false
 
 // JWT falso — payload com usuário admin mockado
 const MOCK_TOKEN = 'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJtb2NrLXVzZXItaWQiLCJjb21wYW55SWQiOjEsImlzUGxhdGZvcm1BZG1pbiI6ZmFsc2UsImlzQ29tcGFueUFkbWluIjp0cnVlLCJyb2xlSWQiOjEsInBlcm1pc3Npb25zIjpbXSwibXVzdENoYW5nZVBhc3N3b3JkIjpmYWxzZX0.mock-signature'

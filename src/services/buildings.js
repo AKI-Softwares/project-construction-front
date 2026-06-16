@@ -1,7 +1,7 @@
 import api from './api.js'
 import { mockBuildings } from '../mocks/buildings.js'
 
-const USE_MOCK = true // muda para false quando o CORS liberar
+const USE_MOCK = false // muda para false quando o CORS liberar
 
 export async function getBuildings() {
   if (USE_MOCK) return mockBuildings
