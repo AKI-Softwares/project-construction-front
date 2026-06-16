@@ -20,6 +20,16 @@ import {
   faCircleExclamation,
   faClock,
   faCircleCheck,
+  faUserPlus,
+  faUser,
+  faChevronDown,
+  faArrowLeft,
+  faEnvelopeCircleCheck,
+  faEye,
+  faEyeSlash,
+  faLock,
+  faTrash,
+  faTriangleExclamation
 } from '@fortawesome/free-solid-svg-icons'
 
 library.add(
@@ -34,6 +44,16 @@ library.add(
   faCircleExclamation,
   faClock,
   faCircleCheck,
+  faUserPlus,
+  faUser,
+  faChevronDown,
+  faArrowLeft,
+  faEnvelopeCircleCheck,
+  faEye,
+  faEyeSlash,
+  faLock,
+  faTrash,
+  faTriangleExclamation
 )
 
 const app = createApp(App)
