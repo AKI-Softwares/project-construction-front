@@ -10,83 +10,82 @@
 
     <hr class="divider" />
 
-    <!-- Success message -->
-    <div v-if="success" class="alert success">
-      <FontAwesomeIcon :icon="['fas', 'circle-check']" />
-      Usuário cadastrado com sucesso!
-    </div>
+    <div v-if="loadingRoles" class="state">Carregando funções...</div>
 
-    <!-- Error message -->
-    <div v-if="error" class="alert error">
-      <FontAwesomeIcon :icon="['fas', 'circle-exclamation']" />
-      {{ error }}
-    </div>
+    <div v-else>
 
-    <!-- Form -->
-    <div class="form-card">
-      <div class="form-group">
-        <label>Nome</label>
-        <input
-          v-model="form.name"
-          type="text"
-          placeholder=""
-          :class="{ invalid: errors.name }"
-        />
-        <span v-if="errors.name" class="field-error">{{ errors.name }}</span>
+      <div v-if="success" class="alert success">
+        <FontAwesomeIcon :icon="['fas', 'circle-check']" />
+        Usuário cadastrado com sucesso!
       </div>
 
-      <div class="form-group">
-        <label>E-mail</label>
-        <input
-          v-model="form.email"
-          type="email"
-          placeholder=""
-          :class="{ invalid: errors.email }"
-        />
-        <span v-if="errors.email" class="field-error">{{ errors.email }}</span>
+      <div v-if="error" class="alert error">
+        <FontAwesomeIcon :icon="['fas', 'circle-exclamation']" />
+        {{ error }}
       </div>
 
-      <div class="form-group">
-        <label>Senha</label>
-        <input
-          v-model="form.password"
-          type="password"
-          placeholder=""
-          :class="{ invalid: errors.password }"
-        />
-        <span v-if="errors.password" class="field-error">{{ errors.password }}</span>
-      </div>
+      <div class="form-card">
 
-      <div class="form-group">
-        <label>Função</label>
-        <div class="select-wrapper">
-          <select
-            v-model="form.roleId"
-            :class="{ invalid: errors.roleId }"
-          >
-            <option value="" disabled>Selecionar</option>
-            <option
-              v-for="role in roles"
-              :key="role.id"
-              :value="role.id"
-            >
-              {{ translateRole(role.name) }}
-            </option>
-          </select>
-          <FontAwesomeIcon :icon="['fas', 'chevron-down']" class="select-icon" />
+        <div class="form-group">
+          <label>Nome</label>
+          <input
+            v-model="form.name"
+            type="text"
+            :class="{ invalid: errors.name }"
+          />
+          <span v-if="errors.name" class="field-error">{{ errors.name }}</span>
         </div>
-        <span v-if="errors.roleId" class="field-error">{{ errors.roleId }}</span>
-      </div>
-    </div>
 
-    <!-- Actions -->
-    <div class="form-actions">
-      <button class="btn-save" :disabled="submitting" @click="submit">
-        {{ submitting ? 'Salvando...' : 'Salvar' }}
-      </button>
-      <button class="btn-cancel" @click="cancel">
-        Cancelar
-      </button>
+        <div class="form-group">
+          <label>E-mail</label>
+          <input
+            v-model="form.email"
+            type="email"
+            :class="{ invalid: errors.email }"
+          />
+          <span v-if="errors.email" class="field-error">{{ errors.email }}</span>
+        </div>
+
+        <div class="form-group">
+          <label>Senha</label>
+          <input
+            v-model="form.password"
+            type="password"
+            :class="{ invalid: errors.password }"
+          />
+          <span v-if="errors.password" class="field-error">{{ errors.password }}</span>
+        </div>
+
+        <div class="form-group">
+          <label>Função</label>
+          <div class="select-wrapper">
+            <select
+              v-model="form.roleId"
+              :class="{ invalid: errors.roleId }"
+            >
+              <option value="" disabled>Selecionar função</option>
+              <option
+                v-for="role in roles"
+                :key="role.id"
+                :value="role.id"
+              >
+                {{ role.name }}
+              </option>
+            </select>
+            <FontAwesomeIcon :icon="['fas', 'chevron-down']" class="select-icon" />
+          </div>
+          <span v-if="errors.roleId" class="field-error">{{ errors.roleId }}</span>
+        </div>
+
+      </div>
+
+      <div class="form-actions">
+        <button class="btn-save" :disabled="submitting" @click="submit">
+          {{ submitting ? 'Salvando...' : 'Salvar' }}
+        </button>
+        <button class="btn-cancel" @click="cancel">Cancelar</button>
+      </div>
+
     </div>
 
   </MainLayout>
@@ -102,6 +101,7 @@ import { getRoles } from '../../services/roles.js'
 const router = useRouter()
 
 const roles = ref([])
+const loadingRoles = ref(true)
 const submitting = ref(false)
 const success = ref(false)
 const error = ref('')
@@ -119,15 +119,6 @@ const errors = reactive({
   password: '',
   roleId: '',
 })
-
-function translateRole(name) {
-  const map = {
-    ADMIN: 'Administrador',
-    MANAGER: 'Gestor de Sistema',
-    INSPECTOR: 'Avaliador',
-  }
-  return map[name] || name
-}
 
 function validate() {
   let valid = true
@@ -170,7 +161,6 @@ function resetForm() {
 async function submit() {
   error.value = ''
   success.value = false
-
   if (!validate()) return
 
   submitting.value = true
@@ -183,13 +173,12 @@ async function submit() {
     })
     success.value = true
     resetForm()
-    // Scroll to top to show success message
     window.scrollTo({ top: 0, behavior: 'smooth' })
   } catch (e) {
     if (e.response?.status === 409) {
       errors.email = 'E-mail já cadastrado.'
     } else {
-      error.value = e.response?.data?.message || 'Error creating user.'
+      error.value = e.response?.data?.message || 'Erro ao cadastrar usuário.'
     }
   } finally {
     submitting.value = false
@@ -204,12 +193,16 @@ onMounted(async () => {
   try {
     roles.value = await getRoles()
   } catch (e) {
-    error.value = 'Error loading roles.'
+    error.value = 'Erro ao carregar funções.'
+  } finally {
+    loadingRoles.value = false
   }
 })
 </script>
 
 <style scoped>
+.state { text-align: center; padding: 40px; color: #555; }
+
 .page-header {
   display: flex;
   justify-content: flex-end;
@@ -251,18 +244,8 @@ onMounted(async () => {
   font-size: 0.95rem;
   font-weight: 500;
 }
-
-.alert.success {
-  background: #e0faf6;
-  color: #00897b;
-  border: 1px solid #00e5cc;
-}
-
-.alert.error {
-  background: #fff3f0;
-  color: #c0392b;
-  border: 1px solid #f99f56;
-}
+.alert.success { background: #e0faf6; color: #00897b; border: 1px solid #00e5cc; }
+.alert.error { background: #fff3f0; color: #c0392b; border: 1px solid #f99f56; }
 
 .form-card {
   background: #fff;
@@ -304,9 +287,7 @@ input.invalid, select.invalid {
   background-color: #fff3f0;
 }
 
-.select-wrapper {
-  position: relative;
-}
+.select-wrapper { position: relative; }
 
 .select-icon {
   position: absolute;
@@ -340,22 +321,17 @@ input.invalid, select.invalid {
   font-weight: bold;
   color: #0d0d2b;
   cursor: pointer;
-  transition: opacity 0.2s;
 }
-
-.btn-save:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
+.btn-save:disabled { opacity: 0.6; cursor: not-allowed; }
 
 .btn-cancel {
   padding: 14px 40px;
-  background: #00e5cc;
+  background: #e8e8e8;
   border: none;
   border-radius: 30px;
   font-size: 1rem;
   font-weight: bold;
-  color: #0d0d2b;
+  color: #333;
   cursor: pointer;
 }
 </style>

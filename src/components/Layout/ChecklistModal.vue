@@ -1,6 +1,6 @@
 <template>
   <div class="modal-overlay" @click.self="$emit('fechar')">
-    <div class="modal">
+    <<div class="modal" @click.stop>>
 
       <!-- Header -->
       <div class="modal-header">
@@ -8,6 +8,7 @@
           <div class="modal-titulo">CHECKLIST DE INSPEÇÃO - Apartamento</div>
           <div class="modal-subtitulo">{{ checklist.identifier }} - {{ checklist.block }}</div>
           <div class="modal-desc">Itens de verificação de Obra</div>
+          <button class="btn-fechar" @click="$emit('fechar')">✕</button>
         </div>
         <div class="progresso-wrapper">
           <div class="progresso-topo">
@@ -339,6 +340,16 @@ function downloadFoto(item) {
   align-items: center;
   justify-content: center;
   gap: 4px;
+}
+.btn-fechar {
+  background: transparent;
+  border: none;
+  color: #fff;
+  font-size: 1.4rem;
+  cursor: pointer;
+  align-self: flex-start;
+  padding: 0;
+  line-height: 1;
 }
 .btn-download-foto:disabled { background: #ccc; cursor: not-allowed; }
 

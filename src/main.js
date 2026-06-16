@@ -25,6 +25,8 @@ import {
   faEye,
   faEyeSlash,
   faLock,
+  faTrash,
+  faTriangleExclamation,
 } from '@fortawesome/free-solid-svg-icons'
 
 library.add(
@@ -47,6 +49,8 @@ library.add(
   faEye,
   faEyeSlash,
   faLock,
+  faTrash,
+  faTriangleExclamation,
 )
 
 const app = createApp(App)

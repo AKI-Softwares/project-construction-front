@@ -2,7 +2,7 @@
 import api from './api.js'
 import { mockApartments } from '../mocks/buildings.js'
 
-const USE_MOCK = false
+const USE_MOCK = true
 
 export async function getApartments(buildingId) {
   if (USE_MOCK) {
