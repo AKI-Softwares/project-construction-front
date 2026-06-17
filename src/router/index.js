@@ -33,16 +33,17 @@ const router = createRouter({
 })
 
 // Guard global
-router.beforeEach((to, from, next) => {
+router.beforeEach((to) => {
   const token = localStorage.getItem('token')
-
   if (to.meta.requiresAuth && !token) {
-    return '/login'
+    return { path: '/login' }
   }
-
   if (to.path === '/login' && token) {
-    return '/dashboard'
+    return { path: '/dashboard' }
   }
+  return true
 })
+
+export default router
 
 export default router
