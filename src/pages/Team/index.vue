@@ -2,11 +2,7 @@
   <MainLayout titulo="Equipe">
 
     <div class="team-header">
-      <button
-        v-if="authStore.hasPermission('users:create')"
-        class="btn-register"
-        @click="goToRegister"
-      >
+      <button class="btn-register" @click="goToRegister">
         <FontAwesomeIcon :icon="['fas', 'user-plus']" />
         Cadastrar usuário
       </button>
@@ -16,7 +12,6 @@
 
     <div v-if="loading" class="state">Carregando...</div>
     <div v-if="error" class="state error">{{ error }}</div>
-    <div v-if="resetSuccess" class="state success">{{ resetSuccess }}</div>
 
     <div v-if="!loading && !error" class="user-list">
 
@@ -27,16 +22,6 @@
         <span class="user-role">{{ user.role?.name || '—' }}</span>
 
         <button
-          v-if="authStore.hasPermission('users:update')"
-          class="btn-reset"
-          @click="confirmReset(user)"
-          title="Resetar senha"
-        >
-          <FontAwesomeIcon :icon="['fas', 'key']" />
-        </button>
-
-        <button
-          v-if="authStore.hasPermission('users:delete')"
           class="btn-delete"
           @click="confirmDelete(user)"
           title="Excluir usuário"
@@ -50,9 +35,9 @@
       </div>
     </div>
 
-    <!-- Modal de confirmação de exclusão -->
+    <!-- Modal de confirmação -->
     <div v-if="userToDelete" class="modal-overlay" @click.self="userToDelete = null">
-      <div class="modal" @click.stop>
+      <div class="modal">
         <div class="modal-icon">
           <FontAwesomeIcon :icon="['fas', 'triangle-exclamation']" />
         </div>
@@ -67,23 +52,6 @@
       </div>
     </div>
 
-    <!-- Modal de confirmação de reset de senha -->
-    <div v-if="userToReset" class="modal-overlay" @click.self="userToReset = null">
-      <div class="modal" @click.stop>
-        <div class="modal-icon">
-          <FontAwesomeIcon :icon="['fas', 'key']" />
-        </div>
-        <h3>Resetar senha</h3>
-        <p>Deseja resetar a senha de <strong>{{ userToReset.name }}</strong>? Uma senha temporária será enviada por e-mail e o usuário será obrigado a alterá-la no próximo login.</p>
-        <div class="modal-actions">
-          <button class="btn-confirm-reset" :disabled="resetting" @click="doReset">
-            {{ resetting ? 'Enviando...' : 'Sim, resetar' }}
-          </button>
-          <button class="btn-cancel" @click="userToReset = null">Cancelar</button>
-        </div>
-      </div>
-    </div>
-
   </MainLayout>
 </template>
 
@@ -91,22 +59,14 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import MainLayout from '../../components/Layout/MainLayout.vue'
-import { getUsers, deleteUser, resetUserPassword } from '../../services/users.js'
-import { useAuthStore } from '../../store/auth.js'
+import { getUsers, deleteUser } from '../../services/users.js'
 
 const router = useRouter()
-const authStore = useAuthStore()
-
 const loading = ref(true)
 const error = ref('')
 const users = ref([])
-
 const userToDelete = ref(null)
 const deleting = ref(false)
-
-const userToReset = ref(null)
-const resetting = ref(false)
-const resetSuccess = ref('')
 
 function goToRegister() {
   router.push('/team/register')
@@ -131,31 +91,11 @@ async function doDelete() {
   }
 }
 
-function confirmReset(user) {
-  userToReset.value = user
-  resetSuccess.value = ''
-}
-
-async function doReset() {
-  if (!userToReset.value) return
-  resetting.value = true
-  try {
-    await resetUserPassword(userToReset.value.id)
-    resetSuccess.value = `Senha de ${userToReset.value.name} resetada com sucesso! Um e-mail foi enviado.`
-    userToReset.value = null
-  } catch (e) {
-    error.value = e.response?.data?.message || 'Erro ao resetar senha.'
-    userToReset.value = null
-  } finally {
-    resetting.value = false
-  }
-}
-
 onMounted(async () => {
   try {
     users.value = await getUsers()
   } catch (e) {
-    error.value = e.response?.data?.message || 'Erro ao carregar usuários.'
+    error.value = e.response?.data?.message || 'Error loading users.'
   } finally {
     loading.value = false
   }
@@ -186,8 +126,9 @@ onMounted(async () => {
 .divider { border: none; border-top: 1px solid #e0e0e0; margin-bottom: 32px; }
 .state { text-align: center; padding: 40px; color: #555; }
 .error { color: red; }
-.success { color: green; padding: 12px; text-align: center; }
+
 .user-list { display: flex; flex-direction: column; gap: 12px; }
+
 .user-card {
   display: flex;
   align-items: center;
@@ -202,20 +143,7 @@ onMounted(async () => {
 .user-name { font-weight: 500; }
 .user-separator { color: rgba(255,255,255,0.5); }
 .user-role { color: rgba(255,255,255,0.85); flex: 1; }
-.btn-reset {
-  background: none;
-  border: none;
-  color: rgba(255,255,255,0.4);
-  cursor: pointer;
-  font-size: 1rem;
-  padding: 6px 8px;
-  border-radius: 6px;
-  transition: color 0.2s, background 0.2s;
-}
-.btn-reset:hover {
-  color: #f99f56;
-  background: rgba(255,255,255,0.1);
-}
+
 .btn-delete {
   background: none;
   border: none;
@@ -225,11 +153,14 @@ onMounted(async () => {
   padding: 6px 8px;
   border-radius: 6px;
   transition: color 0.2s, background 0.2s;
+  margin-left: auto;
 }
 .btn-delete:hover {
   color: #c0392b;
   background: rgba(255,255,255,0.1);
 }
+
+/* Modal */
 .modal-overlay {
   position: fixed;
   inset: 0;
@@ -250,10 +181,26 @@ onMounted(async () => {
   align-items: center;
   gap: 16px;
 }
-.modal-icon { font-size: 2.5rem; color: #f99f56; }
-.modal h3 { font-size: 1.2rem; color: #1a1a2e; margin: 0; }
-.modal p { font-size: 0.9rem; color: #555; line-height: 1.5; margin: 0; }
-.modal-actions { display: flex; gap: 12px; margin-top: 8px; }
+.modal-icon {
+  font-size: 2.5rem;
+  color: #f99f56;
+}
+.modal h3 {
+  font-size: 1.2rem;
+  color: #1a1a2e;
+  margin: 0;
+}
+.modal p {
+  font-size: 0.9rem;
+  color: #555;
+  line-height: 1.5;
+  margin: 0;
+}
+.modal-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+}
 .btn-confirm-delete {
   padding: 12px 28px;
   background: #c0392b;
@@ -265,17 +212,6 @@ onMounted(async () => {
   cursor: pointer;
 }
 .btn-confirm-delete:disabled { opacity: 0.6; cursor: not-allowed; }
-.btn-confirm-reset {
-  padding: 12px 28px;
-  background: #f99f56;
-  border: none;
-  border-radius: 30px;
-  color: #fff;
-  font-size: 0.95rem;
-  font-weight: bold;
-  cursor: pointer;
-}
-.btn-confirm-reset:disabled { opacity: 0.6; cursor: not-allowed; }
 .btn-cancel {
   padding: 12px 28px;
   background: #e8e8e8;
