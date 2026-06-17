@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import Login from '../pages/Login/index.vue'
 import Dashboard from '../pages/Dashboard/index.vue'
 import Buildings from '../pages/Buildings/index.vue'
+import Buildings from '../pages/Buildings/index.vue' // Exemplo
 
 const routes = [
   { path: '/', redirect: '/login' },
@@ -14,7 +15,7 @@ const routes = [
   { path: '/change-password', component: () => import('../pages/ChangePassword/index.vue'), meta: { requiresAuth: true } },
 
   { path: '/dashboard', component: Dashboard, meta: { requiresAuth: true } },
-  { path: '/buildings/:id', component: Buildings, meta: { requiresAuth: true } },
+ { path: '/buildings/:id', component: () => import('../pages/Buildings/index.vue'), meta: { requiresAuth: true } },
   { path: '/cadastro', component: () => import('../pages/EmConstrucao/index.vue'), meta: { requiresAuth: true } },
   { path: '/team', component: () => import('../pages/Team/index.vue'), meta: { requiresAuth: true } },
   { path: '/team/register', component: () => import('../pages/Team/Register.vue'), meta: { requiresAuth: true } },
