@@ -95,8 +95,9 @@
 import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import MainLayout from '../../components/Layout/MainLayout.vue'
-import { createUser } from '../../services/users.js'
-import { getRoles } from '../../services/roles.js'
+
+// CORREÇÃO AQUI: Importando ambas as funções do arquivo correto (users.js)
+import { createUser, getRoles } from '../../services/users.js'
 
 const router = useRouter()
 
