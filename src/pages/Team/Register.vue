@@ -323,6 +323,7 @@ input.invalid, select.invalid {
   cursor: pointer;
 }
 .btn-save:disabled { opacity: 0.6; cursor: not-allowed; }
+  
 
 .btn-cancel {
   padding: 14px 40px;
