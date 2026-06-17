@@ -15,14 +15,12 @@ export async function getApartment(id) {
   return response.data
 }
 
-// Funções que a página Buildings/index.vue está exigindo:
 export async function createApartment(data) {
   const response = await api.post('/apartments', data)
   return response.data
 }
 
 export async function getApartmentTypes() {
-  // Retorna array vazio ou endpoint correto se houver, para não quebrar a página
   try {
     const response = await api.get('/apartment-types')
     return response.data
