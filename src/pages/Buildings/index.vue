@@ -220,7 +220,12 @@
           <span>Andar</span>
         </div>
         <div class="item-list">
-          <div v-for="apt in apartments" :key="apt.id" class="apt-row">
+          <div
+            v-for="apt in apartments"
+            :key="apt.id"
+            class="apt-row apt-row-clickable"
+            @click="openChecklist(apt)"
+          >
             <span>{{ getBuildingName(apt.buildingId) }}</span>
             <span>{{ apt.identifier }}</span>
             <span>{{ apt.block || '—' }}</span>
@@ -235,18 +240,55 @@
 
     </div>
 
+    <!-- Checklist do apartamento selecionado -->
+    <div v-if="loadingChecklist" class="checklist-overlay-state">Carregando checklist...</div>
+    <div v-if="checklistError" class="checklist-overlay-state error">
+      {{ checklistError }}
+      <button class="btn-cancel" @click="checklistError = ''">Fechar</button>
+    </div>
+    <ChecklistModal
+      v-if="selectedChecklist"
+      :checklist="selectedChecklist"
+      @fechar="selectedChecklist = null"
+    />
+
   </MainLayout>
 </template>
 
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
 import MainLayout from '../../components/Layout/MainLayout.vue'
+import ChecklistModal from '../../components/Layout/ChecklistModal.vue'
 import { getBuildings, createBuilding } from '../../services/buildings.js'
 import { getApartments, createApartment } from '../../services/apartments.js'
+import { getChecklistByApartment } from '../../services/checklists.js'
+import { groupChecklistByRoom } from '../../utils/checklist.js'
 import { useAuthStore } from '../../store/auth.js'
 import { getApartmentTypes } from '../../services/apartments.js'
 
 const authStore = useAuthStore()
+
+// ─── Checklist do apartamento ──────────────────────────────────
+const selectedChecklist = ref(null)
+const loadingChecklist = ref(false)
+const checklistError = ref('')
+
+async function openChecklist(apt) {
+  checklistError.value = ''
+  loadingChecklist.value = true
+  try {
+    const detail = await getChecklistByApartment(apt.id)
+    if (!detail) {
+      checklistError.value = 'Este apartamento ainda não tem checklist de vistoria.'
+      return
+    }
+    selectedChecklist.value = groupChecklistByRoom(detail)
+  } catch (e) {
+    checklistError.value = e.response?.data?.message || 'Erro ao carregar o checklist.'
+  } finally {
+    loadingChecklist.value = false
+  }
+}
 
 const activeTab = ref('buildings')
 const buildings = ref([])
@@ -676,6 +718,23 @@ input.invalid, select.invalid {
   font-size: 0.9rem;
   margin-bottom: 8px;
 }
+.apt-row-clickable { cursor: pointer; transition: background 0.2s; }
+.apt-row-clickable:hover { background: #555; }
+.checklist-overlay-state {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  color: #fff;
+  font-size: 1rem;
+  flex-direction: column;
+  gap: 16px;
+}
+.checklist-overlay-state.error { color: #fff; }
+.checklist-overlay-state.error .btn-cancel { padding: 10px 28px; }
 .empty {
   text-align: center;
   padding: 40px;
