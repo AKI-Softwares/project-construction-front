@@ -5,20 +5,19 @@
 
     <div v-if="!loading && !error">
 
-      <!-- Barra de progresso geral -->
+      <!-- Barra de progresso geral (% de vistorias finalizadas no período) -->
       <div class="progress-card">
         <div class="progress-header">
-          <span class="progress-label">Progresso geral das vistorias</span>
-          <span class="progress-pct">{{ summary.approvedPct }}% concluído</span>
+          <span class="progress-label">Vistorias finalizadas no período</span>
+          <span class="progress-pct">{{ finalizedPct }}% concluído</span>
         </div>
         <div class="progress-bar">
-          <div class="progress-fill approved" :style="{ width: summary.approvedPct + '%' }"></div>
-          <div class="progress-fill pending" :style="{ width: summary.pendingPct + '%' }"></div>
+          <div class="progress-fill approved" :style="{ width: finalizedPct + '%' }"></div>
+          <div class="progress-fill pending" :style="{ width: pendingPct + '%' }"></div>
         </div>
         <div class="progress-legend">
-          <span><span class="dot approved"></span>Aprovados {{ summary.approved }} apts</span>
-          <span><span class="dot pending"></span>Pendências {{ summary.pending }} apts</span>
-          <span><span class="dot waiting"></span>Aguardando {{ summary.waiting }} apts</span>
+          <span><span class="dot approved"></span>Finalizadas {{ overview.visitsFinalized }}</span>
+          <span><span class="dot pending"></span>Pendentes {{ overview.visitsPending }}</span>
         </div>
       </div>
 
@@ -30,121 +29,120 @@
             <FontAwesomeIcon :icon="['fas', 'building-circle-arrow-right']" />
           </div>
           <div class="card-number">{{ totalBuildings }}</div>
-          <div class="card-sub">{{ totalApartments }} apartamentos no total</div>
+          <div class="card-sub">{{ overview.totalApartments }} apartamentos no total</div>
         </div>
         <div class="card card-orange">
           <div class="card-header">
-            <span>Com Pendências</span>
+            <span>Vistorias Pendentes</span>
             <FontAwesomeIcon :icon="['fas', 'circle-exclamation']" />
           </div>
-          <div class="card-number">{{ summary.pending }}</div>
-          <div class="card-sub card-sub-alert">Requerem atenção imediata</div>
+          <div class="card-number">{{ overview.visitsPending }}</div>
+          <div class="card-sub card-sub-alert">Aguardando inspeção</div>
         </div>
         <div class="card card-yellow">
           <div class="card-header">
-            <span>Aguardando Vistoria</span>
+            <span>Não Conformidades</span>
             <FontAwesomeIcon :icon="['fas', 'clock']" />
           </div>
-          <div class="card-number">{{ summary.waiting }}</div>
-          <div class="card-sub">{{ summary.waitingPct }}% do total</div>
+          <div class="card-number">{{ overview.totalNonConformities }}</div>
+          <div class="card-sub">Identificadas nas vistorias</div>
         </div>
         <div class="card card-teal">
           <div class="card-header">
-            <span>Aprovados</span>
+            <span>Taxa de Aprovação</span>
             <FontAwesomeIcon :icon="['fas', 'circle-check']" />
           </div>
-          <div class="card-number">{{ summary.approved }}</div>
-          <div class="card-sub">{{ summary.approvedPct }}% do total</div>
+          <div class="card-number">{{ approvalPct }}%</div>
+          <div class="card-sub">{{ overview.visitsFinalized }} vistorias finalizadas no período</div>
         </div>
       </div>
 
-      <!-- Gráficos + Pendências críticas -->
+      <!-- Gráficos -->
       <div class="charts-row">
 
-        <!-- Gráfico de barras -->
+        <!-- Gráfico de barras: progresso e qualidade por empreendimento -->
         <div class="chart-card chart-bars">
-          <div class="chart-title">Status por Empreendimento</div>
-          <Bar :data="barData" :options="barOptions" />
+          <div class="chart-title">Progresso e qualidade por empreendimento</div>
+          <Bar v-if="buildingRanking.length > 0" :data="barData" :options="barOptions" />
+          <div v-else class="empty">Nenhum empreendimento com dados ainda.</div>
         </div>
 
-        <!-- Gráfico de rosca -->
+        <!-- Gráfico de rosca: finalizadas x pendentes -->
         <div class="chart-card chart-doughnut">
-          <Doughnut :data="doughnutData" :options="doughnutOptions" />
+          <Doughnut v-if="totalVisits > 0" :data="doughnutData" :options="doughnutOptions" />
+          <div v-else class="empty">Sem vistorias no período.</div>
           <div class="legend">
             <div class="legend-item">
               <span class="legend-color" style="background:#00e5cc"></span>
-              Aprovados {{ summary.approvedPct }}%
+              Finalizadas {{ finalizedPct }}%
             </div>
             <div class="legend-item">
               <span class="legend-color" style="background:#f99f56"></span>
-              Pendentes {{ summary.pendingPct }}%
-            </div>
-            <div class="legend-item">
-              <span class="legend-color" style="background:#f5a623"></span>
-              Aguardando {{ summary.waitingPct }}%
+              Pendentes {{ pendingPct }}%
             </div>
           </div>
         </div>
 
       </div>
 
-      <!-- Pendências críticas + Progresso por empreendimento -->
+      <!-- Qualidade por serviço + Ranking de empreendimentos -->
       <div class="bottom-row">
 
-        <!-- Pendências críticas -->
+        <!-- Qualidade por serviço (o que mais reprova nas vistorias) -->
         <div class="table-card">
           <div class="table-title">
             <FontAwesomeIcon :icon="['fas', 'circle-exclamation']" class="title-icon orange" />
-            Apartamentos com pendências críticas
+            Serviços com mais reprovações
           </div>
           <div class="table-header">
-            <span>Empreendimento</span>
-            <span>Apartamento</span>
-            <span>Bloco</span>
-            <span>Progresso</span>
+            <span>Serviço</span>
+            <span>Categoria</span>
+            <span>Reprovações</span>
+            <span>Taxa de reprovação</span>
           </div>
           <div
-            v-for="apt in criticalApartments"
-            :key="apt.id"
+            v-for="row in topQualityIssues"
+            :key="row.serviceId"
             class="table-row"
           >
-            <span class="row-building">{{ apt.buildingName }}</span>
-            <span class="row-apt">{{ apt.identifier }}</span>
-            <span>{{ apt.block }}</span>
+            <span class="row-building">{{ row.serviceName }}</span>
+            <span>{{ row.category || '—' }}</span>
+            <span class="row-apt">{{ row.nokCount }}</span>
             <div class="row-progress">
               <div class="mini-bar">
-                <div class="mini-fill" :style="{ width: apt.progress + '%' }"></div>
+                <div class="mini-fill" :style="{ width: Math.round(row.nokRate * 100) + '%' }"></div>
               </div>
-              <span>{{ apt.progress }}%</span>
+              <span>{{ Math.round(row.nokRate * 100) }}%</span>
             </div>
           </div>
-          <div v-if="criticalApartments.length === 0" class="empty">
-            Nenhuma pendência crítica. 🎉
+          <div v-if="topQualityIssues.length === 0" class="empty">
+            Nenhuma reprovação registrada no período. 🎉
           </div>
         </div>
 
-        <!-- Progresso por empreendimento -->
+        <!-- Ranking de empreendimentos -->
         <div class="table-card">
           <div class="table-title">
             <FontAwesomeIcon :icon="['fas', 'building-circle-arrow-right']" class="title-icon teal" />
-            Progresso por empreendimento
+            Ranking de empreendimentos
           </div>
           <div
-            v-for="b in buildingSummaries"
-            :key="b.id"
+            v-for="b in buildingRanking"
+            :key="b.buildingId"
             class="building-progress-row"
           >
-            <div class="building-name">{{ b.name }}</div>
+            <div class="building-name">{{ b.buildingName }}</div>
             <div class="building-stats">
-              <span class="stat approved">{{ b.approved }} aprov.</span>
-              <span class="stat pending">{{ b.pending }} pend.</span>
-              <span class="stat waiting">{{ b.waiting }} aguard.</span>
+              <span class="stat approved">{{ b.finalizedApartments }}/{{ b.totalApartments }} finalizados</span>
+              <span class="stat pending">{{ Math.round(b.nokRate * 100) }}% reprovação</span>
             </div>
             <div class="building-bar">
-              <div class="building-fill approved" :style="{ width: b.approvedPct + '%' }"></div>
-              <div class="building-fill pending" :style="{ width: b.pendingPct + '%' }"></div>
+              <div class="building-fill approved" :style="{ width: b.progressPercent + '%' }"></div>
             </div>
-            <span class="building-pct">{{ b.approvedPct }}%</span>
+            <span class="building-pct">{{ b.progressPercent }}%</span>
+          </div>
+          <div v-if="buildingRanking.length === 0" class="empty">
+            Nenhum empreendimento com dados ainda.
           </div>
         </div>
 
@@ -160,69 +158,68 @@ import { Bar, Doughnut } from 'vue-chartjs'
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, ArcElement, Tooltip, Legend } from 'chart.js'
 import MainLayout from '../../components/Layout/MainLayout.vue'
 import { getBuildings } from '../../services/buildings.js'
-import { mockChecklists, mockApartments } from '../../mocks/buildings.js'
-import { getApartmentsSummary, getApartmentStatus, getProgress } from '../../utils/checklist.js'
+import { getOverview, getBuildingRanking, getQuality } from '../../services/analytics.js'
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, ArcElement, Tooltip, Legend)
 
 const loading = ref(true)
 const error = ref('')
 const buildings = ref([])
+const buildingRanking = ref([])
+const qualityRows = ref([])
 
-const totalBuildings = computed(() => buildings.value.length)
-const totalApartments = computed(() => mockApartments.length)
-
-const summary = computed(() =>
-  getApartmentsSummary(mockApartments, mockChecklists)
-)
-
-const buildingSummaries = computed(() =>
-  buildings.value.map(b => {
-    const apts = mockApartments.filter(a => a.buildingId === b.id)
-    const s = getApartmentsSummary(apts, mockChecklists)
-    return { ...s, id: b.id, name: b.name.replace('Residencial ', '') }
-  })
-)
-
-// Apartamentos com PENDING ordenados por menor progresso
-const criticalApartments = computed(() => {
-  return mockApartments
-    .filter(apt => getApartmentStatus(mockChecklists[apt.id]) === 'pending')
-    .map(apt => {
-      const building = buildings.value.find(b => b.id === apt.buildingId)
-      return {
-        ...apt,
-        buildingName: building ? building.name.replace('Residencial ', '') : '—',
-        progress: getProgress(mockChecklists[apt.id]),
-      }
-    })
-    .sort((a, b) => a.progress - b.progress)
-    .slice(0, 8)
+const overview = ref({
+  totalApartments: 0,
+  visitsFinalized: 0,
+  visitsPending: 0,
+  nokRate: 0,
+  totalNonConformities: 0,
+  totalInspectors: 0,
 })
 
+const totalBuildings = computed(() => buildings.value.length)
+
+const totalVisits = computed(() => overview.value.visitsFinalized + overview.value.visitsPending)
+const finalizedPct = computed(() =>
+  totalVisits.value > 0 ? Math.round((overview.value.visitsFinalized / totalVisits.value) * 100) : 0
+)
+const pendingPct = computed(() =>
+  totalVisits.value > 0 ? Math.round((overview.value.visitsPending / totalVisits.value) * 100) : 0
+)
+const approvalPct = computed(() => Math.round((1 - overview.value.nokRate) * 100))
+
+// Top 8 serviços com mais reprovações (substitui a antiga lista de
+// "apartamentos com pendências críticas", que dependia de um modelo de
+// status por apartamento que não existe no back real)
+const topQualityIssues = computed(() =>
+  [...qualityRows.value]
+    .filter(r => r.nokCount > 0)
+    .sort((a, b) => b.nokRate - a.nokRate)
+    .slice(0, 8)
+)
+
 const barData = computed(() => ({
-  labels: buildingSummaries.value.map(b => b.name),
+  labels: buildingRanking.value.map(b => b.buildingName.replace('Residencial ', '')),
   datasets: [
-    { label: 'Aprovados', data: buildingSummaries.value.map(b => b.approved), backgroundColor: '#00e5cc', borderRadius: 4 },
-    { label: 'Pendentes', data: buildingSummaries.value.map(b => b.pending), backgroundColor: '#f99f56', borderRadius: 4 },
-    { label: 'Aguardando', data: buildingSummaries.value.map(b => b.waiting), backgroundColor: '#f5a623', borderRadius: 4 },
+    { label: 'Progresso (%)', data: buildingRanking.value.map(b => b.progressPercent), backgroundColor: '#00e5cc', borderRadius: 4 },
+    { label: 'Taxa de reprovação (%)', data: buildingRanking.value.map(b => Math.round(b.nokRate * 100)), backgroundColor: '#f99f56', borderRadius: 4 },
   ]
 }))
 
 const barOptions = {
   responsive: true,
-  plugins: { legend: { display: false } },
+  plugins: { legend: { display: true, position: 'bottom' } },
   scales: {
-    y: { beginAtZero: true, ticks: { stepSize: 10 }, grid: { color: 'rgba(0,0,0,0.05)' } },
+    y: { beginAtZero: true, max: 100, ticks: { stepSize: 20 }, grid: { color: 'rgba(0,0,0,0.05)' } },
     x: { grid: { display: false } }
   }
 }
 
 const doughnutData = computed(() => ({
-  labels: ['Aprovados', 'Pendentes', 'Aguardando'],
+  labels: ['Finalizadas', 'Pendentes'],
   datasets: [{
-    data: [summary.value.approved, summary.value.pending, summary.value.waiting],
-    backgroundColor: ['#00e5cc', '#f99f56', '#f5a623'],
+    data: [overview.value.visitsFinalized, overview.value.visitsPending],
+    backgroundColor: ['#00e5cc', '#f99f56'],
     borderWidth: 0,
     hoverOffset: 8,
   }]
@@ -236,9 +233,22 @@ const doughnutOptions = {
 
 onMounted(async () => {
   try {
-    buildings.value = await getBuildings()
+    const [b, ov, ranking, quality] = await Promise.all([
+      getBuildings(),
+      getOverview(),
+      getBuildingRanking(),
+      getQuality(),
+    ])
+    buildings.value = b
+    overview.value = ov.data
+    buildingRanking.value = ranking.data
+    qualityRows.value = quality.data
   } catch (e) {
-    error.value = 'Erro ao carregar dados.'
+    if (e.response?.status === 403) {
+      error.value = 'Este dashboard exige permissão de administrador da empresa.'
+    } else {
+      error.value = 'Erro ao carregar dados.'
+    }
   } finally {
     loading.value = false
   }
@@ -291,7 +301,6 @@ onMounted(async () => {
 }
 .dot.approved { background: #00e5cc; }
 .dot.pending { background: #f99f56; }
-.dot.waiting { background: rgba(0,0,0,0.15); }
 
 /* Cards */
 .cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 24px; }
@@ -353,7 +362,7 @@ onMounted(async () => {
 .row-apt { font-weight: bold; color: #f99f56; }
 .row-progress { display: flex; align-items: center; gap: 8px; }
 .mini-bar { flex: 1; height: 6px; background: #eee; border-radius: 4px; overflow: hidden; }
-.mini-fill { height: 100%; background: #00e5cc; border-radius: 4px; }
+.mini-fill { height: 100%; background: #f99f56; border-radius: 4px; }
 .empty { text-align: center; padding: 24px; color: #aaa; font-size: 0.9rem; }
 
 /* Building progress */
@@ -368,13 +377,11 @@ onMounted(async () => {
 .building-progress-row:last-child { border-bottom: none; }
 .building-name { font-size: 0.85rem; font-weight: 600; color: #1a1a2e; }
 .building-stats { display: flex; gap: 6px; }
-.stat { font-size: 0.72rem; padding: 2px 8px; border-radius: 20px; font-weight: 600; }
+.stat { font-size: 0.72rem; padding: 2px 8px; border-radius: 20px; font-weight: 600; white-space: nowrap; }
 .stat.approved { background: #e0faf6; color: #00897b; }
 .stat.pending { background: #fff3e0; color: #f99f56; }
-.stat.waiting { background: #f5f5f5; color: #888; }
 .building-bar { height: 8px; background: rgba(0,0,0,0.08); border-radius: 4px; overflow: hidden; display: flex; }
 .building-fill { height: 100%; transition: width 0.3s; }
 .building-fill.approved { background: #00e5cc; }
-.building-fill.pending { background: #f99f56; }
 .building-pct { font-size: 0.82rem; font-weight: bold; color: #00e5cc; min-width: 36px; text-align: right; }
 </style>
