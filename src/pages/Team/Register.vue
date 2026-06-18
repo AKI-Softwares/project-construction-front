@@ -191,7 +191,15 @@ function cancel() {
 
 onMounted(async () => {
   try {
-    roles.value = await getRoles()
+    const allRoles = await getRoles()
+    // Remove duplicatas por nome — workaround enquanto o back retorna
+    // roles de todas as empresas (sem filtro por companyId)
+    const seen = new Set()
+    roles.value = allRoles.filter(r => {
+      if (seen.has(r.name)) return false
+      seen.add(r.name)
+      return true
+    })
   } catch (e) {
     error.value = 'Erro ao carregar funções.'
   } finally {
