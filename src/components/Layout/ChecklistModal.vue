@@ -1,6 +1,6 @@
 <template>
   <div class="modal-overlay" @click.self="$emit('fechar')">
-    <<div class="modal" @click.stop>>
+    <div class="modal" @click.stop>
 
       <!-- Header -->
       <div class="modal-header">
