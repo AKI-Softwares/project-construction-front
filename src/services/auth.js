@@ -1,47 +1,43 @@
-import { defineStore } from 'pinia'
+// src/services/auth.js
+import api from './api.js'
 
-// Decodifica o payload do JWT salvo no localStorage.
-// É a mesma lógica usada em services/api.js — lemos direto do localStorage
-// (e não do state da store) porque o login grava o token via localStorage.setItem
-// sem passar pela store, então o state.token pode ficar desatualizado.
-function getTokenPayload() {
-  try {
-    const token = localStorage.getItem('token')
-    if (!token) return null
-    return JSON.parse(atob(token.split('.')[1]))
-  } catch {
-    return null
-  }
+const USE_MOCK = false
+
+// JWT falso — payload com usuário admin mockado
+const MOCK_TOKEN = 'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJtb2NrLXVzZXItaWQiLCJjb21wYW55SWQiOjEsImlzUGxhdGZvcm1BZG1pbiI6ZmFsc2UsImlzQ29tcGFueUFkbWluIjp0cnVlLCJyb2xlSWQiOjEsInBlcm1pc3Npb25zIjpbXSwibXVzdENoYW5nZVBhc3N3b3JkIjpmYWxzZX0.mock-signature'
+
+const MOCK_ME = {
+  name: 'Usuário Teste',
+  role: 'Administrador',
 }
 
-export const useAuthStore = defineStore('auth', {
-  state: () => ({
-    token: localStorage.getItem('token') || null,
-    user: null,
-  }),
-  getters: {
-    isAuthenticated: (state) => !!state.token,
+export async function login(email, password) {
+  if (USE_MOCK) {
+    return { token: MOCK_TOKEN }
+  }
+  const response = await api.post('/auth/login', { email, password })
+  return response.data
+}
 
-    // Replica a regra do back (checkPermission): isPlatformAdmin e
-    // isCompanyAdmin têm acesso total; os demais precisam ter a permissão
-    // explícita no array `permissions` do token.
-    hasPermission: () => (action) => {
-      const payload = getTokenPayload()
-      if (!payload) return false
-      if (payload.isPlatformAdmin) return true
-      if (payload.isCompanyAdmin) return true
-      return Array.isArray(payload.permissions) && payload.permissions.includes(action)
-    },
-  },
-  actions: {
-    setToken(token) {
-      this.token = token
-      localStorage.setItem('token', token)
-    },
-    logout() {
-      this.token = null
-      this.user = null
-      localStorage.removeItem('token')
-    },
-  },
-})
+export async function me() {
+  if (USE_MOCK) {
+    return MOCK_ME
+  }
+  const response = await api.get('/auth/me')
+  return response.data
+}
+
+export async function forgotPassword(email) {
+  const response = await api.post('/auth/forgot-password', { email })
+  return response.data
+}
+
+export async function resetPassword(token, newPassword) {
+  const response = await api.post('/auth/reset-password', { token, newPassword })
+  return response.data
+}
+
+export async function changePassword(currentPassword, newPassword) {
+  const response = await api.post('/auth/change-password', { currentPassword, newPassword })
+  return response.data
+}
