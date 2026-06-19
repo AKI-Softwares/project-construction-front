@@ -29,7 +29,9 @@ import {
   faEyeSlash,
   faLock,
   faTrash,
-  faTriangleExclamation
+  faTriangleExclamation,
+  faClipboardCheck,
+  faChevronRight,
 } from '@fortawesome/free-solid-svg-icons'
 
 library.add(
