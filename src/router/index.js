@@ -13,16 +13,13 @@ const routes = [
   { path: '/change-password', component: () => import('../pages/ChangePassword/index.vue'), meta: { requiresAuth: true } },
 
   { path: '/dashboard', component: Dashboard, meta: { requiresAuth: true } },
-  
-  // Corrigido: Agora usando Lazy Loading padronizado igual aos outros
+
+  { path: '/buildings', component: () => import('../pages/Buildings/index.vue'), meta: { requiresAuth: true } },
   { path: '/buildings/:id', component: () => import('../pages/Buildings/index.vue'), meta: { requiresAuth: true } },
-  
-  { path: '/cadastro', component: () => import('../pages/EmConstrucao/index.vue'), meta: { requiresAuth: true } },
-  
-  // Corrigido: Rota mais específica (/register) antes da rota genérica (/team)
+
   { path: '/team/register', component: () => import('../pages/Team/Register.vue'), meta: { requiresAuth: true } },
   { path: '/team', component: () => import('../pages/Team/index.vue'), meta: { requiresAuth: true } },
-  
+
   { path: '/equipe', redirect: '/team' },
   { path: '/calendario', component: () => import('../pages/EmConstrucao/index.vue'), meta: { requiresAuth: true } },
   { path: '/relatorios', component: () => import('../pages/EmConstrucao/index.vue'), meta: { requiresAuth: true } },
