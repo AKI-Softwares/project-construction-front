@@ -240,7 +240,7 @@ async function submitRole() {
     const created = await createRole({
       name: roleForm.name,
       description: roleForm.description || undefined,
-      permissionIds: roleForm.permissionIds.map(id => Number(id)),
+      permissionIds: roleForm.permissionIds.map(id => Number(id)).filter(id => !isNaN(id) && id > 0),
     })
     roles.value.push(created)
     roleFormSuccess.value = true
