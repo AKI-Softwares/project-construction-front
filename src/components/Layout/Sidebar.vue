@@ -14,12 +14,7 @@
         <span v-if="aberta" class="label">Dashboard</span>
       </router-link>
 
-      <router-link to="/cadastro" class="menu-item" :title="aberta ? '' : 'Cadastro'">
-        <FontAwesomeIcon :icon="['fas', 'pen-to-square']" class="icone" />
-        <span v-if="aberta" class="label">Cadastro</span>
-      </router-link>
-
-      <router-link to="/buildings/1" class="menu-item" :title="aberta ? '' : 'Empreendimentos'">
+      <router-link to="/buildings" class="menu-item" :title="aberta ? '' : 'Empreendimentos'">
         <FontAwesomeIcon :icon="['fas', 'building-circle-arrow-right']" class="icone" />
         <span v-if="aberta" class="label">Empreendimentos</span>
       </router-link>
@@ -84,89 +79,22 @@ function sair() {
   transition: width 0.25s ease;
   overflow: hidden;
 }
-
-.sidebar.expandida {
-  width: 260px;
-}
-
-.logo {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 40px;
-  padding: 0 8px;
-  white-space: nowrap;
-  overflow: hidden;
-}
-
-.logo-icone {
-  font-size: 1.4rem;
-  color: #00e5cc;
-  flex-shrink: 0;
-  width: 24px;
-  text-align: center;
-}
-
-.logo-nome {
-  color: #00e5cc;
-  font-size: 1.2rem;
-  font-weight: bold;
-}
-
-.menu {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  flex: 1;
-}
-
-.menu-inferior {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
+.sidebar.expandida { width: 260px; }
+.logo { display: flex; align-items: center; gap: 12px; margin-bottom: 40px; padding: 0 8px; white-space: nowrap; overflow: hidden; }
+.logo-icone { font-size: 1.4rem; color: #00e5cc; flex-shrink: 0; width: 24px; text-align: center; }
+.logo-nome { color: #00e5cc; font-size: 1.2rem; font-weight: bold; }
+.menu { display: flex; flex-direction: column; gap: 4px; flex: 1; }
+.menu-inferior { display: flex; flex-direction: column; gap: 4px; }
 .menu-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 8px;
-  border-radius: 8px;
-  color: #ffffff;
-  text-decoration: none;
-  font-size: 0.95rem;
-  transition: background 0.2s;
-  background: none;
-  border: none;
-  cursor: pointer;
-  width: 100%;
-  text-align: left;
-  white-space: nowrap;
-  overflow: hidden;
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 8px; border-radius: 8px; color: #ffffff;
+  text-decoration: none; font-size: 0.95rem; transition: background 0.2s;
+  background: none; border: none; cursor: pointer;
+  width: 100%; text-align: left; white-space: nowrap; overflow: hidden;
 }
-
-.menu-item:hover {
-  background-color: rgba(255, 255, 255, 0.08);
-}
-
-.menu-item.router-link-active {
-  background-color: #00e5cc;
-  color: #0d0d2b;
-  font-weight: bold;
-}
-
-.icone {
-  font-size: 1.1rem;
-  flex-shrink: 0;
-  width: 24px;
-  text-align: center;
-}
-
-.label {
-  font-size: 0.95rem;
-}
-
-.sair {
-  color: #ffffff;
-}
+.menu-item:hover { background-color: rgba(255, 255, 255, 0.08); }
+.menu-item.router-link-active { background-color: #00e5cc; color: #0d0d2b; font-weight: bold; }
+.icone { font-size: 1.1rem; flex-shrink: 0; width: 24px; text-align: center; }
+.label { font-size: 0.95rem; }
+.sair { color: #ffffff; }
 </style>
