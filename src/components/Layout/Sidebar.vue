@@ -18,7 +18,12 @@
         <FontAwesomeIcon :icon="['fas', 'building-circle-arrow-right']" class="icone" />
         <span v-if="aberta" class="label">Empreendimentos</span>
       </router-link>
-
+      
+<router-link to="/visits" class="menu-item" :title="aberta ? '' : 'Vistorias'">
+  <FontAwesomeIcon :icon="['fas', 'clipboard-check']" class="icone" />
+  <span v-if="aberta" class="label">Vistorias</span>
+</router-link>
+      
       <router-link to="/calendario" class="menu-item" :title="aberta ? '' : 'Calendário'">
         <FontAwesomeIcon :icon="['fas', 'calendar-days']" class="icone" />
         <span v-if="aberta" class="label">Calendário</span>
