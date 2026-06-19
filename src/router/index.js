@@ -17,16 +17,15 @@ const routes = [
   { path: '/buildings', component: () => import('../pages/Buildings/index.vue'), meta: { requiresAuth: true } },
   { path: '/buildings/:id', component: () => import('../pages/Buildings/index.vue'), meta: { requiresAuth: true } },
 
+  { path: '/apartment-types', component: () => import('../pages/ApartmentTypes/index.vue'), meta: { requiresAuth: true } },
+
   { path: '/team/register', component: () => import('../pages/Team/Register.vue'), meta: { requiresAuth: true } },
   { path: '/team', component: () => import('../pages/Team/index.vue'), meta: { requiresAuth: true } },
 
   { path: '/equipe', redirect: '/team' },
   { path: '/calendario', component: () => import('../pages/EmConstrucao/index.vue'), meta: { requiresAuth: true } },
   { path: '/relatorios', component: () => import('../pages/EmConstrucao/index.vue'), meta: { requiresAuth: true } },
- { path: '/configuracoes', component: () => import('../pages/Settings/index.vue'), meta: { requiresAuth: true } },
-
-  { path: '/visits', component: () => import('../pages/Visits/index.vue'), meta: { requiresAuth: true } },
-{ path: '/visits/:id', component: () => import('../pages/Visits/Detail.vue'), meta: { requiresAuth: true } },
+  { path: '/configuracoes', component: () => import('../pages/EmConstrucao/index.vue'), meta: { requiresAuth: true } },
 ]
 
 const router = createRouter({
@@ -36,12 +35,8 @@ const router = createRouter({
 
 router.beforeEach((to) => {
   const token = localStorage.getItem('token')
-  if (to.meta.requiresAuth && !token) {
-    return { path: '/login' }
-  }
-  if (to.path === '/login' && token) {
-    return { path: '/dashboard' }
-  }
+  if (to.meta.requiresAuth && !token) return { path: '/login' }
+  if (to.path === '/login' && token) return { path: '/dashboard' }
   return true
 })
 
