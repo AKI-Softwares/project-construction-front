@@ -21,6 +21,10 @@
         <FontAwesomeIcon :icon="['fas', 'door-open']" class="icone" />
         <span v-if="aberta" class="label">Tipos de Apartamento</span>
       </router-link>
+      <router-link to="/services" class="menu-item" :title="aberta ? '' : 'Catálogo de Serviços'">
+  <FontAwesomeIcon :icon="['fas', 'screwdriver-wrench']" class="icone" />
+  <span v-if="aberta" class="label">Catálogo de Serviços</span>
+</router-link>
 
       <router-link to="/calendario" class="menu-item" :title="aberta ? '' : 'Calendário'">
         <FontAwesomeIcon :icon="['fas', 'calendar-days']" class="icone" />
