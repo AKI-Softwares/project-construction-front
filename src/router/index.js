@@ -19,6 +19,7 @@ const routes = [
 
   { path: '/apartment-types', component: () => import('../pages/ApartmentTypes/index.vue'), meta: { requiresAuth: true } },
   { path: '/services', component: () => import('../pages/Services/index.vue'), meta: { requiresAuth: true } },
+  { path: '/reinspections', component: () => import('../pages/Reinspections/index.vue'), meta: { requiresAuth: true } },
 
   { path: '/team/register', component: () => import('../pages/Team/Register.vue'), meta: { requiresAuth: true } },
   { path: '/team', component: () => import('../pages/Team/index.vue'), meta: { requiresAuth: true } },
