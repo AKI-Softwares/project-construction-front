@@ -21,6 +21,12 @@ const routes = [
   { path: '/services', component: () => import('../pages/Services/index.vue'), meta: { requiresAuth: true } },
   { path: '/reinspections', component: () => import('../pages/Reinspections/index.vue'), meta: { requiresAuth: true } },
 
+  { path: '/platform/companies', component: () => import('../pages/Platform/Companies/index.vue'), meta: { requiresAuth: true } },
+  { path: '/platform/companies/:id', component: () => import('../pages/Platform/CompanyDetail/index.vue'), meta: { requiresAuth: true } },
+  { path: '/platform/role-templates', component: () => import('../pages/Platform/RoleTemplates/index.vue'), meta: { requiresAuth: true } },
+  { path: '/platform/catalog', component: () => import('../pages/Platform/Catalog/index.vue'), meta: { requiresAuth: true } },
+  { path: '/platform/dashboard', component: () => import('../pages/Platform/Dashboard/index.vue'), meta: { requiresAuth: true } },
+
   { path: '/team/register', component: () => import('../pages/Team/Register.vue'), meta: { requiresAuth: true } },
   { path: '/team', component: () => import('../pages/Team/index.vue'), meta: { requiresAuth: true } },
 
