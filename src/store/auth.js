@@ -32,6 +32,11 @@ export const useAuthStore = defineStore('auth', {
       if (payload.isCompanyAdmin) return true
       return Array.isArray(payload.permissions) && payload.permissions.includes(action)
     },
+
+    isPlatformAdmin: () => {
+      const payload = getTokenPayload()
+      return !!payload?.isPlatformAdmin
+    },
   },
   actions: {
     setToken(token) {
