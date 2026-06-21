@@ -1,14 +1,7 @@
 <template>
-  <MainLayout titulo="Cadastro">
+  <MainLayout titulo="Cadastrar Usuário">
 
-    <div class="page-header">
-      <button class="btn-register active">
-        <FontAwesomeIcon :icon="['fas', 'user-plus']" />
-        Cadastrar usuário
-      </button>
-    </div>
-
-    <hr class="divider" />
+    <button class="btn-back" @click="cancel">← Voltar para Equipe</button>
 
     <div v-if="loadingRoles" class="state">Carregando funções...</div>
 
@@ -27,7 +20,7 @@
       <div class="form-card">
 
         <div class="form-group">
-          <label>Nome</label>
+          <label>Nome <span class="required">*</span></label>
           <input
             v-model="form.name"
             type="text"
@@ -37,7 +30,7 @@
         </div>
 
         <div class="form-group">
-          <label>E-mail</label>
+          <label>E-mail <span class="required">*</span></label>
           <input
             v-model="form.email"
             type="email"
@@ -47,7 +40,7 @@
         </div>
 
         <div class="form-group">
-          <label>Senha</label>
+          <label>Senha <span class="required">*</span></label>
           <input
             v-model="form.password"
             type="password"
@@ -57,7 +50,7 @@
         </div>
 
         <div class="form-group">
-          <label>Função</label>
+          <label>Função <span class="required">*</span></label>
           <div class="select-wrapper">
             <select
               v-model="form.roleId"
@@ -211,35 +204,15 @@ onMounted(async () => {
 <style scoped>
 .state { text-align: center; padding: 40px; color: #555; }
 
-.page-header {
-  display: flex;
-  justify-content: flex-end;
-  margin-bottom: 16px;
-}
-
-.btn-register {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  background: #0d0d2b;
-  color: #fff;
-  border: none;
+.btn-back {
+  background: none;
+  border: 1px solid #ccc;
   border-radius: 30px;
-  padding: 14px 28px;
-  font-size: 0.95rem;
-  font-weight: 600;
+  padding: 8px 18px;
+  font-size: 0.85rem;
+  color: #555;
   cursor: pointer;
-}
-
-.btn-register.active {
-  background: #00e5cc;
-  color: #0d0d2b;
-}
-
-.divider {
-  border: none;
-  border-top: 1px solid #e0e0e0;
-  margin-bottom: 32px;
+  margin-bottom: 24px;
 }
 
 .alert {
@@ -278,6 +251,8 @@ label {
   color: #333;
 }
 
+.required { color: #c0392b; }
+
 input, select {
   width: 100%;
   padding: 14px 20px;
@@ -288,6 +263,7 @@ input, select {
   outline: none;
   color: #333;
   appearance: none;
+  box-sizing: border-box;
 }
 
 input.invalid, select.invalid {
@@ -331,7 +307,6 @@ input.invalid, select.invalid {
   cursor: pointer;
 }
 .btn-save:disabled { opacity: 0.6; cursor: not-allowed; }
-  
 
 .btn-cancel {
   padding: 14px 40px;
