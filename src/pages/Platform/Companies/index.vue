@@ -32,6 +32,7 @@
       </button>
     </div>
 
+    <!-- Formulário de criação -->
     <div v-if="showForm" class="form-card">
       <h3 class="form-title">Nova empresa</h3>
       <div v-if="formSuccess" class="alert success">
@@ -61,6 +62,7 @@
       </div>
     </div>
 
+    <!-- Lista -->
     <div v-if="loading" class="state">Carregando...</div>
     <div v-if="loadError" class="state error">{{ loadError }}</div>
 
@@ -167,6 +169,7 @@ function goToDetail(c) {
   router.push(`/platform/companies/${c.id}`)
 }
 
+// ─── Status (ativar/suspender) ─────────────────────────────────
 const statusChanging = ref(null)
 
 async function changeStatus(c, newStatus) {
@@ -182,6 +185,7 @@ async function changeStatus(c, newStatus) {
   }
 }
 
+// ─── Formulário de criação ──────────────────────────────────────
 const showForm = ref(false)
 const saving = ref(false)
 const formSuccess = ref(false)
@@ -242,16 +246,21 @@ onMounted(loadCompanies)
 </script>
 
 <style scoped>
-.info-banner { display: flex; gap: 14px; background: #fff8e1; border: 1px solid #f5d77a; border-radius: 10px; padding: 16px 20px; margin-bottom: 24px; font-size: 0.85rem; color: #333; }
+.info-banner {
+  display: flex; gap: 14px; background: #fff8e1; border: 1px solid #f5d77a;
+  border-radius: 10px; padding: 16px 20px; margin-bottom: 24px; font-size: 0.85rem; color: #333;
+}
 .info-icon { color: #f5a623; font-size: 1.2rem; margin-top: 2px; flex-shrink: 0; }
 .info-banner strong { display: block; margin-bottom: 4px; color: #1a1a2e; }
 .info-banner p { margin: 0; line-height: 1.5; color: #555; }
+
 .top-bar { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
 .filter-bar { display: flex; flex-wrap: wrap; gap: 8px; }
 .filter-btn { padding: 8px 18px; border-radius: 30px; border: 2px solid #e0e0e0; background: #fff; color: #555; font-size: 0.85rem; font-weight: 500; cursor: pointer; transition: all 0.2s; }
 .filter-btn:hover { border-color: #00e5cc; color: #00897b; }
 .filter-btn.active { background: #00e5cc; border-color: #00e5cc; color: #0d0d2b; font-weight: 700; }
 .btn-primary { display: flex; align-items: center; gap: 8px; background: #0d0d2b; color: #fff; border: none; border-radius: 30px; padding: 10px 20px; font-size: 0.9rem; font-weight: 600; cursor: pointer; white-space: nowrap; }
+
 .form-card { background: #fff; border-radius: 12px; padding: 24px; border: 1px solid #eee; display: flex; flex-direction: column; gap: 14px; margin-bottom: 24px; max-width: 700px; }
 .form-title { font-size: 0.95rem; font-weight: 700; color: #1a1a2e; margin: 0; }
 .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
@@ -269,8 +278,10 @@ input[type="text"].invalid { border: 2px solid #c0392b; background: #fff3f0; }
 .alert { display: flex; align-items: center; gap: 10px; padding: 10px 16px; border-radius: 8px; font-size: 0.88rem; font-weight: 500; }
 .alert.success { background: #e0faf6; color: #00897b; border: 1px solid #00e5cc; }
 .alert.error { background: #fff3f0; color: #c0392b; border: 1px solid #f99f56; }
+
 .state { text-align: center; padding: 40px; color: #888; }
 .error { color: red; }
+
 .table-header { display: grid; grid-template-columns: 1.5fr 1.2fr 1fr 0.8fr 1fr auto; padding: 10px 20px; font-size: 0.8rem; font-weight: 700; color: #888; border-bottom: 2px solid #eee; margin-bottom: 4px; }
 .table-row { display: grid; grid-template-columns: 1.5fr 1.2fr 1fr 0.8fr 1fr auto; padding: 14px 20px; font-size: 0.88rem; color: #333; border-bottom: 1px solid #f5f5f5; align-items: center; background: #fff; border-radius: 8px; margin-bottom: 4px; cursor: pointer; transition: background 0.2s; }
 .table-row:hover { background: #f9f9f9; }
