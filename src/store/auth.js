@@ -1,12 +1,8 @@
 import { defineStore } from 'pinia'
 
-// Decodifica o payload do JWT salvo no localStorage.
-// É a mesma lógica usada em services/api.js — lemos direto do localStorage
-// (e não do state da store) porque o login grava o token via localStorage.setItem
-// sem passar pela store, então o state.token pode ficar desatualizado.
-function getTokenPayload() {
+// Decodifica o payload de um JWT.
+function decodeToken(token) {
   try {
-    const token = localStorage.getItem('token')
     if (!token) return null
     return JSON.parse(atob(token.split('.')[1]))
   } catch {
@@ -22,19 +18,26 @@ export const useAuthStore = defineStore('auth', {
   getters: {
     isAuthenticated: (state) => !!state.token,
 
+    // IMPORTANTE: os getters abaixo leem de `state.token` (e não de
+    // localStorage direto) para que o Vue/Pinia rastreie a dependência
+    // reativa corretamente. Sem isso, o Vue calcula o valor uma vez, guarda
+    // em cache, e nunca recalcula ao trocar de conta na mesma aba (só um F5
+    // resolveria). Isso só funciona porque toda gravação de token agora
+    // passa pela action setToken() abaixo, que atualiza state.token.
+
     // Replica a regra do back (checkPermission): isPlatformAdmin e
     // isCompanyAdmin têm acesso total; os demais precisam ter a permissão
     // explícita no array `permissions` do token.
-    hasPermission: () => (action) => {
-      const payload = getTokenPayload()
+    hasPermission: (state) => (action) => {
+      const payload = decodeToken(state.token)
       if (!payload) return false
       if (payload.isPlatformAdmin) return true
       if (payload.isCompanyAdmin) return true
       return Array.isArray(payload.permissions) && payload.permissions.includes(action)
     },
 
-    isPlatformAdmin: () => {
-      const payload = getTokenPayload()
+    isPlatformAdmin: (state) => {
+      const payload = decodeToken(state.token)
       return !!payload?.isPlatformAdmin
     },
   },
