@@ -46,6 +46,26 @@
         <FontAwesomeIcon :icon="['fas', 'pen-to-square']" class="icone" />
         <span v-if="aberta" class="label">Relatórios</span>
       </router-link>
+
+      <template v-if="authStore.isPlatformAdmin">
+        <div class="menu-separator"><span v-if="aberta">PLATAFORMA</span></div>
+        <router-link to="/platform/dashboard" class="menu-item" :title="aberta ? '' : 'Dashboard da Plataforma'">
+          <FontAwesomeIcon :icon="['fas', 'chart-line']" class="icone" />
+          <span v-if="aberta" class="label">Dashboard da Plataforma</span>
+        </router-link>
+        <router-link to="/platform/companies" class="menu-item" :title="aberta ? '' : 'Empresas'">
+          <FontAwesomeIcon :icon="['fas', 'sitemap']" class="icone" />
+          <span v-if="aberta" class="label">Empresas</span>
+        </router-link>
+        <router-link to="/platform/catalog" class="menu-item" :title="aberta ? '' : 'Catálogo Global'">
+          <FontAwesomeIcon :icon="['fas', 'book']" class="icone" />
+          <span v-if="aberta" class="label">Catálogo Global</span>
+        </router-link>
+        <router-link to="/platform/role-templates" class="menu-item" :title="aberta ? '' : 'Templates de Funções'">
+          <FontAwesomeIcon :icon="['fas', 'shield-halved']" class="icone" />
+          <span v-if="aberta" class="label">Templates de Funções</span>
+        </router-link>
+      </template>
     </nav>
 
     <div class="menu-inferior">
@@ -66,8 +86,10 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { useAuthStore } from '../../store/auth.js'
 
 const router = useRouter()
+const authStore = useAuthStore()
 const aberta = ref(false)
 
 function sair() {
@@ -90,4 +112,13 @@ function sair() {
 .icone { font-size: 1.1rem; flex-shrink: 0; width: 24px; text-align: center; }
 .label { font-size: 0.95rem; }
 .sair { color: #ffffff; }
+.menu-separator {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: rgba(255,255,255,0.35);
+  letter-spacing: 0.05em;
+  padding: 14px 12px 4px;
+  white-space: nowrap;
+  overflow: hidden;
+}
 </style>
