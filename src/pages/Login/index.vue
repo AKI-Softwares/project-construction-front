@@ -31,8 +31,10 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { login } from '../../services/auth.js'
+import { useAuthStore } from '../../store/auth.js'
 
 const router = useRouter()
+const authStore = useAuthStore()
 const email = ref('')
 const senha = ref('')
 const erro = ref('')
@@ -52,7 +54,11 @@ async function entrar() {
   carregando.value = true
   try {
     const data = await login(email.value, senha.value)
-    localStorage.setItem('token', data.token)
+    // Usa a action da store (e não localStorage.setItem direto) para que o
+    // state.token reativo seja atualizado — isso é o que permite os getters
+    // hasPermission/isPlatformAdmin recalcularem corretamente ao trocar de
+    // conta na mesma aba, sem precisar de F5.
+    authStore.setToken(data.token)
 
     // Verifica se precisa trocar senha
     const payload = decodeToken(data.token)
