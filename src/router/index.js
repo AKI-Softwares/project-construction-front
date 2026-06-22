@@ -21,6 +21,11 @@ const routes = [
   { path: '/services', component: () => import('../pages/Services/index.vue'), meta: { requiresAuth: true } },
   { path: '/reinspections', component: () => import('../pages/Reinspections/index.vue'), meta: { requiresAuth: true } },
 
+  { path: '/visits', component: () => import('../pages/Visits/index.vue'), meta: { requiresAuth: true } },
+  { path: '/visits/:id', component: () => import('../pages/Visits/Detail.vue'), meta: { requiresAuth: true } },
+
+  { path: '/non-conformities', component: () => import('../pages/NonConformities/index.vue'), meta: { requiresAuth: true } },
+
   { path: '/platform/companies', component: () => import('../pages/Platform/Companies/index.vue'), meta: { requiresAuth: true } },
   { path: '/platform/companies/:id', component: () => import('../pages/Platform/CompanyDetail/index.vue'), meta: { requiresAuth: true } },
   { path: '/platform/role-templates', component: () => import('../pages/Platform/RoleTemplates/index.vue'), meta: { requiresAuth: true } },
@@ -33,7 +38,7 @@ const routes = [
   { path: '/equipe', redirect: '/team' },
   { path: '/calendario', component: () => import('../pages/EmConstrucao/index.vue'), meta: { requiresAuth: true } },
   { path: '/relatorios', component: () => import('../pages/EmConstrucao/index.vue'), meta: { requiresAuth: true } },
-  { path: '/configuracoes', component: () => import('../pages/EmConstrucao/index.vue'), meta: { requiresAuth: true } },
+  { path: '/configuracoes', component: () => import('../pages/Settings/index.vue'), meta: { requiresAuth: true } },
 ]
 
 const router = createRouter({
