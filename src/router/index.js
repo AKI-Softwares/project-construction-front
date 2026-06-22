@@ -36,7 +36,7 @@ const routes = [
   { path: '/team', component: () => import('../pages/Team/index.vue'), meta: { requiresAuth: true } },
 
   { path: '/equipe', redirect: '/team' },
-  { path: '/calendario', component: () => import('../pages/EmConstrucao/index.vue'), meta: { requiresAuth: true } },
+
   { path: '/relatorios', component: () => import('../pages/EmConstrucao/index.vue'), meta: { requiresAuth: true } },
   { path: '/configuracoes', component: () => import('../pages/Settings/index.vue'), meta: { requiresAuth: true } },
 ]
