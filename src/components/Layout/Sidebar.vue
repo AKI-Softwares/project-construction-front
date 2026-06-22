@@ -42,10 +42,6 @@
         <span v-if="aberta" class="label">Vistorias</span>
       </router-link>
 
-      <router-link to="/calendario" class="menu-item" :title="aberta ? '' : 'Calendário'">
-        <FontAwesomeIcon :icon="['fas', 'calendar-days']" class="icone" />
-        <span v-if="aberta" class="label">Calendário</span>
-      </router-link>
 
       <router-link to="/equipe" class="menu-item" :title="aberta ? '' : 'Equipe'">
         <FontAwesomeIcon :icon="['fas', 'users']" class="icone" />
