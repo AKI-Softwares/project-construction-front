@@ -32,6 +32,11 @@
       <span v-if="aberta" class="label">Re-inspeções</span>
       </router-link>
 
+      <router-link to="/non-conformities" class="menu-item" :title="aberta ? '' : 'Não-Conformidades'">
+        <FontAwesomeIcon :icon="['fas', 'triangle-exclamation']" class="icone" />
+        <span v-if="aberta" class="label">Não-Conformidades</span>
+      </router-link>
+
       <router-link to="/calendario" class="menu-item" :title="aberta ? '' : 'Calendário'">
         <FontAwesomeIcon :icon="['fas', 'calendar-days']" class="icone" />
         <span v-if="aberta" class="label">Calendário</span>
