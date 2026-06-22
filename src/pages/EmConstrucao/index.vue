@@ -19,7 +19,6 @@
   
   const titulos = {
     '/cadastro': 'Cadastro',
-    '/calendario': 'Calendário',
     '/equipe': 'Equipe',
     '/relatorios': 'Relatórios',
     '/configuracoes': 'Configurações',
