@@ -185,13 +185,9 @@ const roleFormErrors = reactive({ name: '', permissionIds: '' })
 const permissions = ref([])
 const loadingPermissions = ref(true)
 
+// DEPOIS — o back já retorna agrupado, só ordena
 const permissionGroups = computed(() => {
-  const map = new Map()
-  for (const perm of permissions.value) {
-    if (!map.has(perm.resource)) map.set(perm.resource, { resource: perm.resource, permissions: [] })
-    map.get(perm.resource).permissions.push(perm)
-  }
-  return [...map.values()].sort((a, b) => a.resource.localeCompare(b.resource))
+  return [...permissions.value].sort((a, b) => a.resource.localeCompare(b.resource))
 })
 
 const GROUP_LABELS = {
