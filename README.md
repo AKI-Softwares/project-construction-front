@@ -1,152 +1,213 @@
-CheckObra — Frontend Web (Backoffice)
+# CheckObra — Frontend Web (Backoffice)
 
-Frontend desktop do sistema CheckObra — plataforma de vistoria de obras em processo digital.
+Frontend desktop do sistema **CheckObra** — plataforma de vistoria de obras em processo digital.
 
-Desenvolvido em Vue 3 com Vite, integrado ao back-end via Axios e autenticação JWT.
+Desenvolvido em **Vue 3** com **Vite**, integrado ao back-end via **Axios** e autenticação **JWT**.
 
-Multi-tenant SaaS com três perfis: Inspetor (mobile, finalizado — repositório separado), Gestor de Empresa (este backoffice web) e Platform Admin (área restrita AKI Softwares).
+Sistema *Multi-tenant SaaS* com três perfis:
+* **Inspetor:** Mobile (finalizado — repositório separado).
+* **Gestor de Empresa:** Este backoffice web.
+* **Platform Admin:** Área restrita AKI Softwares.
 
+---
 
-Tecnologias
+## 🛠️ Tecnologias
 
-TecnologiaUsoVue 3Framework principal (Composition API + <script setup>)ViteBundler e servidor de desenvolvimentoVue RouterNavegação entre telas com guard de autenticaçãoPiniaGerenciamento de estado global (auth store)AxiosIntegração com a API RESTFontAwesomeÍconesChart.js + vue-chartjsGráficos do Dashboard e Platform Dashboard
+| Tecnologia | Uso |
+| :--- | :--- |
+| **Vue 3** | Framework principal (Composition API + `<script setup>`) |
+| **Vite** | Bundler e servidor de desenvolvimento |
+| **Vue Router** | Navegação entre telas com guard de autenticação |
+| **Pinia** | Gerenciamento de estado global (`auth store`) |
+| **Axios** | Integração com a API REST |
+| **FontAwesome** | Ícones da interface |
+| **Chart.js + vue-chartjs** | Gráficos do Dashboard e Platform Dashboard |
 
+---
 
-Pré-requisitos
+## 🚀 Pré-requisitos
 
+* **Node.js** 18+
+* **npm** 9+
 
-Node.js 18+
-npm 9+
+---
 
+## 📥 Instalação
 
-
-Instalação
-
-bashgit clone https://github.com/AKI-Softwares/project-construction-front.git
+```bash
+git clone [https://github.com/AKI-Softwares/project-construction-front.git](https://github.com/AKI-Softwares/project-construction-front.git)
 cd project-construction-front
 npm install
 
+```
 
-Configuração
+---
 
-Crie um arquivo .env na raiz do projeto:
+## ⚙️ Configuração
 
-envVITE_API_URL=https://project-construction-back.vercel.app
+Crie um arquivo `.env` na raiz do projeto:
 
-Para desenvolvimento local com o back rodando localmente:
+```env
+VITE_API_URL=[https://project-construction-back.vercel.app](https://project-construction-back.vercel.app)
 
-envVITE_API_URL=http://localhost:3000
+```
 
+Para desenvolvimento local com o back-end rodando localmente:
 
-Rodando o projeto
+```env
+VITE_API_URL=http://localhost:3000
 
-bashnpm run dev
+```
 
-Acesse em: http://localhost:5173
+---
 
-Build de produção:
+## 💻 Rodando o projeto
 
-bashnpm run build
+```bash
+# Iniciar servidor de desenvolvimento
+npm run dev
 
+```
 
-Deploy
+Acesse em: `http://localhost:5173`
 
+```bash
+# Build de produção
+npm run build
 
-Plataforma: Vercel, conectado ao GitHub
-Branch de produção: main
-URL produção: https://project-construction-front.vercel.app
-Todo commit na main dispara deploy automático
-O campo CORS_ORIGINS no painel Vercel do back deve conter exatamente https://project-construction-front.vercel.app (sem barra no final)
+```
 
+---
 
+## 🌐 Deploy
 
-Estrutura de pastas
+* **Plataforma:** Vercel, conectado ao GitHub.
+* **Branch de produção:** `main`
+* **URL de produção:** [https://project-construction-front.vercel.app](https://project-construction-front.vercel.app)
+* *Todo commit na branch `main` dispara o deploy automático.*
 
+> ⚠️ **Importante:** O campo `CORS_ORIGINS` no painel da Vercel do back-end deve conter exatamente `https://project-construction-front.vercel.app` (sem barra no final).
+
+---
+
+## 📂 Estrutura de Pastas
+
+```text
 src/
 ├── pages/
-│   ├── Login/index.vue                     # W-01 Login
-│   ├── ForgotPassword/index.vue            # W-02 Recuperar senha
-│   ├── ForgotPassword/Sent.vue             # W-02 E-mail enviado
-│   ├── ResetPassword/index.vue             # W-03 Nova senha via token
-│   ├── ResetPassword/Success.vue           # W-03 Confirmação
-│   ├── ChangePassword/index.vue            # W-04 Troca de senha (obrigatória ou voluntária)
-│   ├── Dashboard/index.vue                 # W-05 Dashboard (usa /buildings, /apartments, /users)
-│   ├── Buildings/index.vue                 # W-06/W-08 Empreendimentos + Apartamentos + Checklist
-│   ├── ApartmentTypes/index.vue            # W-07 Tipos de Apartamento (CRUD + cômodos)
-│   ├── Services/index.vue                  # W-09 Catálogo de Serviços (CRUD)
-│   ├── Visits/index.vue                    # W-10 Vistorias listagem (implementado pelo colega)
-│   ├── Visits/Detail.vue                   # W-10 Vistorias detalhe (implementado pelo colega)
-│   ├── Team/index.vue                      # W-11/W-12 Equipe — usuários e funções
-│   ├── Team/Register.vue                   # W-11 Cadastro de usuário
-│   ├── Settings/index.vue                  # W-13 Configurações da empresa (visual — aguarda endpoint self-service no back)
-│   ├── NonConformities/index.vue           # W-14 Não-Conformidades (bloqueada — aguarda GET /non-conformities no back)
-│   ├── Reinspections/index.vue             # W-15 Re-inspeções (lista as sem inspetor via GET /visits/available-reinspections)
+│   ├── Login/index.vue                  # W-01 Login
+│   ├── ForgotPassword/index.vue         # W-02 Recuperar senha
+│   ├── ForgotPassword/Sent.vue          # W-02 E-mail enviado
+│   ├── ResetPassword/index.vue          # W-03 Nova senha via token
+│   ├── ResetPassword/Success.vue        # W-03 Confirmação
+│   ├── ChangePassword/index.vue         # W-04 Troca de senha (obrigatória/voluntária)
+│   ├── Dashboard/index.vue              # W-05 Dashboard (usa /buildings, /apartments, /users)
+│   ├── Buildings/index.vue              # W-06/W-08 Empreendimentos + Apartamentos + Checklist
+│   ├── ApartmentTypes/index.vue         # W-07 Tipos de Apartamento (CRUD + cômodos)
+│   ├── Services/index.vue               # W-09 Catálogo de Serviços (CRUD)
+│   ├── Visits/index.vue                 # W-10 Vistorias listagem (implementado pelo colega)
+│   ├── Visits/Detail.vue                # W-10 Vistorias detalhe (implementado pelo colega)
+│   ├── Team/index.vue                   # W-11/W-12 Equipe — usuários e funções
+│   ├── Team/Register.vue                # W-11 Cadastro de usuário
+│   ├── Settings/index.vue               # W-13 Configurações da empresa (visual — aguarda back)
+│   ├── NonConformities/index.vue        # W-14 Não-Conformidades (bloqueada — aguarda back)
+│   ├── Reinspections/index.vue          # W-15 Re-inspeções (lista as sem inspetor via back)
 │   ├── Platform/
-│   │   ├── Dashboard/index.vue             # WP-01 Dashboard da Plataforma
-│   │   ├── Companies/index.vue             # WP-02 Gestão de Empresas — lista
-│   │   ├── CompanyDetail/index.vue         # WP-02 Gestão de Empresas — detalhe
-│   │   ├── Catalog/index.vue               # WP-03/WP-04 Catálogo Global (serviços + tipos)
-│   │   └── RoleTemplates/index.vue         # WP-05 Templates de Funções
-│   ├── Register/index.vue                  # Cadastro de empresa (público — auto-registro)
-│   └── EmConstrucao/index.vue              # Placeholder para Calendário e Relatórios
+│   │   ├── Dashboard/index.vue          # WP-01 Dashboard da Plataforma
+│   │   ├── Companies/index.vue          # WP-02 Gestão de Empresas — lista
+│   │   ├── CompanyDetail/index.vue      # WP-02 Gestão de Empresas — detalhe
+│   │   ├── Catalog/index.vue            # WP-03/WP-04 Catálogo Global (serviços + tipos)
+│   │   └── RoleTemplates/index.vue      # WP-05 Templates de Funções
+│   ├── Register/index.vue               # Cadastro de empresa (público — auto-registro)
+│   └── EmConstrucao/index.vue           # Placeholder para Calendário e Relatórios
 ├── components/Layout/
-│   ├── Sidebar.vue          # Menu lateral recolhível (60px → 260px no hover). Seção PLATAFORMA só aparece para isPlatformAdmin
-│   ├── Header.vue           # Título + nome do usuário via GET /auth/me
-│   ├── MainLayout.vue       # Layout base (Sidebar + Header + slot)
-│   └── ChecklistModal.vue   # Modal de checklist por apartamento
+│   ├── Sidebar.vue                      # Menu lateral recolhível (60px → 260px no hover)
+│   ├── Header.vue                       # Título + nome do usuário via GET /auth/me
+│   ├── MainLayout.vue                   # Layout base (Sidebar + Header + slot)
+│   └── ChecklistModal.vue               # Modal de checklist por apartamento
 ├── services/
-│   ├── api.js               # Axios base: injeta Bearer token, envia X-Company-Id, redireciona em 401
-│   ├── analytics.js         # getOverview, getBuildingRanking, getQuality
-│   ├── apartmentTypes.js    # CRUD de tipos + cômodos + serviços padrão por cômodo
-│   ├── apartments.js        # getApartments, createApartment, getApartmentTypes
-│   ├── auth.js              # login, me, forgotPassword, resetPassword, changePassword
-│   ├── buildings.js         # getBuildings, getBuilding, createBuilding
-│   ├── checklists.js        # getChecklistByApartment, updateChecklistItem
-│   ├── permissions.js       # getPermissions
-│   ├── platform.js          # Empresas, role-templates, catálogo global e analytics da plataforma
-│   ├── roles.js             # getRoles, createRole, deleteRole
-│   ├── services.js          # CRUD de serviços do catálogo
-│   ├── users.js             # getUsers, createUser, deleteUser, resetUserPassword
-│   └── visits.js            # getVisits, getVisit, getAvailableReinspections, createReinspection
+│   ├── api.js                           # Axios base: injeta Bearer token, envia X-Company-Id
+│   ├── analytics.js                     # getOverview, getBuildingRanking, getQuality
+│   ├── apartmentTypes.js                # CRUD de tipos + cômodos + serviços padrão
+│   ├── apartments.js                    # getApartments, createApartment, getApartmentTypes
+│   ├── auth.js                          # login, me, forgotPassword, resetPassword, etc.
+│   ├── buildings.js                     # getBuildings, getBuilding, createBuilding
+│   ├── checklists.js                    # getChecklistByApartment, updateChecklistItem
+│   ├── permissions.js                   # getPermissions
+│   ├── platform.js                      # Empresas, role-templates, catálogo global e analytics
+│   ├── roles.js                         # getRoles, createRole, deleteRole
+│   ├── services.js                      # CRUD de serviços do catálogo
+│   ├── users.js                         # getUsers, createUser, deleteUser, resetUserPassword
+│   └── visits.js                        # getVisits, getVisit, getAvailableReinspections
 ├── store/
-│   └── auth.js              # Pinia store: state.token reativo, getters hasPermission + isPlatformAdmin, actions setToken + logout
+│   └── auth.js                          # Pinia store: token reativo e getters de permissão
 ├── utils/
-│   └── checklist.js         # groupChecklistByRoom: transforma resposta do back em estrutura por cômodo
-├── router/index.js          # Todas as rotas + guard de autenticação
-└── main.js                  # Vue + Pinia + Router + FontAwesome
+│   └── checklist.js                     # groupChecklistByRoom: transforma estrutura do back
+├── router/index.js                      # Todas as rotas + guard de autenticação
+└── main.js                              # Inicialização (Vue + Pinia + Router + FontAwesome)
 
+```
 
-Rotas
+---
 
-Públicas
+## 🛣️ Rotas do Sistema
 
-RotaTela/loginW-01 Login/forgot-passwordW-02 Recuperar senha/forgot-password/sentW-02 E-mail enviado/reset-passwordW-03 Nova senha via token/reset-password/successW-03 Senha redefinida
+### 🔓 Públicas
 
-Privadas — Gestor de Empresa
+| Rota | Tela |
+| --- | --- |
+| `/login` | W-01 Login |
+| `/forgot-password` | W-02 Recuperar senha |
+| `/forgot-password/sent` | W-02 E-mail enviado |
+| `/reset-password` | W-03 Nova senha via token |
+| `/reset-password/success` | W-03 Senha redefinida |
 
-RotaTelaStatus/change-passwordW-04 Troca de senha✅/dashboardW-05 Dashboard✅ dados reais/buildingsW-06/W-08 Empreendimentos + Apartamentos✅/apartment-typesW-07 Tipos de Apartamento✅/servicesW-09 Catálogo de Serviços✅/visitsW-10 Vistorias✅ (colega)/visits/:idW-10 Detalhe da vistoria✅ (colega)/teamW-11/W-12 Equipe✅/team/registerW-11 Cadastro de usuário✅/configuracoesW-13 Configurações⚠️ visual — aguarda endpoint no back/non-conformitiesW-14 Não-Conformidades🚫 bloqueada — aguarda GET /non-conformities/reinspectionsW-15 Re-inspeções⚠️ parcial — só lista sem inspetor/calendarioCalendário❌ em construção/relatoriosRelatórios❌ em construção
+### 🔐 Privadas — Gestor de Empresa
 
-Privadas — Platform Admin (isPlatformAdmin: true)
+| Rota | Tela | Status |
+| --- | --- | --- |
+| `/change-password` | W-04 Troca de senha | ✅ Concluído |
+| `/dashboard` | W-05 Dashboard | ✅ Dados reais |
+| `/buildings` | W-06/W-08 Empreendimentos + Apartamentos | ✅ Concluído |
+| `/apartment-types` | W-07 Tipos de Apartamento | ✅ Concluído |
+| `/services` | W-09 Catálogo de Serviços | ✅ Concluído |
+| `/visits` | W-10 Vistorias | ✅ Concluído (colega) |
+| `/visits/:id` | W-10 Detalhe da vistoria | ✅ Concluído (colega) |
+| `/team` | W-11/W-12 Equipe | ✅ Concluído |
+| `/team/register` | W-11 Cadastro de usuário | ✅ Concluído |
+| `/configuracoes` | W-13 Configurações | ⚠️ Visual (Aguardando back-end) |
+| `/non-conformities` | W-14 Não-Conformidades | 🚫 Bloqueada (Aguardando back-end) |
+| `/reinspections` | W-15 Re-inspeções | ⚠️ Parcial (Apenas sem inspetor) |
+| `/calendario` | Calendário | ❌ Em construção |
+| `/relatorios` | Relatórios | ❌ Em construção |
 
-RotaTelaStatus/platform/dashboardWP-01 Dashboard da Plataforma✅/platform/companiesWP-02 Gestão de Empresas✅/platform/companies/:idWP-02 Detalhe da empresa✅/platform/catalogWP-03/WP-04 Catálogo Global✅/platform/role-templatesWP-05 Templates de Funções✅
+### 🛡️ Privadas — Platform Admin (`isPlatformAdmin: true`)
 
+| Rota | Tela | Status |
+| --- | --- | --- |
+| `/platform/dashboard` | WP-01 Dashboard da Plataforma | ✅ Concluído |
+| `/platform/companies` | WP-02 Gestão de Empresas | ✅ Concluído |
+| `/platform/companies/:id` | WP-02 Detalhe da empresa | ✅ Concluído |
+| `/platform/catalog` | WP-03/WP-04 Catálogo Global | ✅ Concluído |
+| `/platform/role-templates` | WP-05 Templates de Funções | ✅ Concluído |
 
-Autenticação
+---
 
-JWT Bearer token. Fluxo:
+## 🔑 Autenticação
 
+Fluxo do **JWT Bearer token**:
 
-POST /auth/login → recebe { token }
-authStore.setToken(token) — sempre use a action da store, nunca localStorage.setItem direto; os getters hasPermission e isPlatformAdmin leem de state.token e só recalculam quando esse state muda
-Interceptor do Axios injeta Authorization: Bearer <token> em toda requisição
-401 → limpa token e redireciona para /login automaticamente
-Se isPlatformAdmin: true e companyId presente, interceptor envia X-Company-Id
-Se mustChangePassword: true no JWT → redireciona para /change-password antes de entrar
+1. `POST /auth/login` → recebe `{ token }`
+2. `authStore.setToken(token)` — **Sempre** use a action da store, nunca o `localStorage.setItem` direto. Os getters `hasPermission` e `isPlatformAdmin` dependem da reatividade do `state.token`.
+3. Interceptor do Axios injeta `Authorization: Bearer <token>` automaticamente em todas as requisições.
+4. Resposta `401` → limpa o token e redireciona para `/login`.
+5. Se `isPlatformAdmin: true` e `companyId` presente, o interceptor injeta o header `X-Company-Id`.
+6. Se `mustChangePassword: true` no JWT → redireciona obrigatoriamente para `/change-password`.
 
+### Payload do JWT:
 
-JWT payload:
-
-json{
+```json
+{
   "sub": "string",
   "companyId": "number | null",
   "isPlatformAdmin": "boolean",
@@ -156,76 +217,94 @@ json{
   "mustChangePassword": "boolean"
 }
 
-Verificação de permissão nas telas:
+```
 
-javascriptconst authStore = useAuthStore()
-authStore.hasPermission('buildings:create') // true para isCompanyAdmin e isPlatformAdmin
-authStore.isPlatformAdmin                   // true somente para platform admins
+### Verificação de permissões em tela:
 
+```javascript
+const authStore = useAuthStore()
 
-Back-end
+// Retorna true para isCompanyAdmin e isPlatformAdmin
+authStore.hasPermission('buildings:create') 
 
-Repositório: project-construction-back
+// Controle de blocos exclusivos do admin da plataforma
+authStore.isPlatformAdmin 
 
-URL produção: https://project-construction-back.vercel.app
+```
 
-Stack: Fastify v5 + Prisma v6 + PostgreSQL (Neon) — arquitetura hexagonal, deploy Vercel serverless.
+---
 
+## 🖥️ Back-end
 
-Gaps de back-end conhecidos
+* **Repositório:** `project-construction-back`
+* **URL de Produção:** [https://project-construction-back.vercel.app](https://project-construction-back.vercel.app)
+* **Stack:** Fastify v5 + Prisma v6 + PostgreSQL (Neon)
+* **Arquitetura:** Hexagonal (Deploy Vercel Serverless)
 
-Limitações documentadas para o responsável pelo back:
+### 🚨 Gaps de Back-end Conhecidos
 
-TelaEndpoint necessárioImpactoW-14GET /non-conformities com filtros buildingId, status, inspectorId, periodTela completamente bloqueadaW-13Endpoint self-service para empresa atualizar seus dadosTela é visual, salvar não funcionaW-15GET /visits?type=REINSPECTION sem filtro /mineSó mostra re-inspeções sem inspetorWP-02GET /roles?companyId=X ou campo companyId no payloadCriar usuário por empresa está bloqueadoWP-02Seed automático ao criar empresa via POST /platform/companiesEmpresa criada sem funções nem catálogo
+| Tela | Endpoint Necessário | Impacto no Front-end |
+| --- | --- | --- |
+| **W-14** | `GET /non-conformities` com filtros (`buildingId`, `status`, `inspectorId`, `period`) | Tela completamente bloqueada. |
+| **W-13** | Endpoint self-service para empresa atualizar dados próprios | Tela estritamente visual; salvar não funciona. |
+| **W-15** | `GET /visits?type=REINSPECTION` sem o filtro `/mine` | Só exibe re-inspeções que estão sem inspetor associado. |
+| **WP-02** | `GET /roles?companyId=X` ou campo `companyId` no payload | A criação de usuário por empresa está bloqueada. |
+| **WP-02** | Seed automático ao criar empresa via `POST /platform/companies` | Empresa é criada vazia (sem funções ou catálogo). |
 
+---
 
-Padrões do projeto
+## 📐 Padrões do Projeto
 
-
-Variáveis e funções em inglês no código; textos da interface em português
-Toda comunicação com o back passa pelos arquivos em src/services/ — nunca use fetch ou axios direto nas telas
-Nunca use localStorage.setItem('token', ...) direto — sempre use authStore.setToken() para manter a reatividade do Pinia
-Permissões verificadas via authStore.hasPermission('recurso:ação') — não leia o JWT direto nas telas
-Quando um endpoint não existe, use um banner de aviso honesto na tela (padrão W-14, W-15, WP-02) — nunca simule funcionalidade
-Cores: teal #00e5cc (primária), dark navy #0d0d2b (headers/botões), laranja #f99f56 (alertas), vermelho #c0392b (perigo), amarelo #f5a623 (avisos)
-
-
-
-Status do projeto
-
-Backoffice web: ~90% do escopo construído.
-
-Concluído
-
-
- Fluxo completo de autenticação (login, recuperação, troca de senha obrigatória/voluntária)
- Dashboard com dados reais de empreendimentos, apartamentos e usuários
- Empreendimentos + Apartamentos (individual e em lote) + Checklist modal
- Tipos de Apartamento (CRUD + cômodos + serviços padrão por cômodo)
- Catálogo de Serviços (CRUD com filtro por categoria)
- Vistorias — listagem e detalhe (implementado pelo colega)
- Equipe — usuários (cadastro, listagem, exclusão, reset de senha)
- Equipe — funções (CRUD com seleção de permissões por recurso)
- Configurações da empresa (visual — aguarda endpoint no back)
- Não-Conformidades (tela de bloqueio com alternativa via PDF de vistoria)
- Re-inspeções (lista as disponíveis sem inspetor designado)
- Platform Admin completo: Dashboard, Empresas, Catálogo Global, Templates de Funções
- Sidebar adaptativa com seção PLATAFORMA exclusiva para isPlatformAdmin: true
+* **Idioma:** Código em inglês (variáveis, funções, arquivos); Interface em português (textos, avisos, labels).
+* **Comunicação API:** Centralizada em `src/services/`. Nunca utilize `fetch` ou `axios` isolados diretamente nos componentes.
+* **Estado:** Nunca manipule o `localStorage` do token na força bruta. Use sempre as actions do Pinia para garantir a reatividade.
+* **Permissões:** Valide os acessos por meio do `authStore.hasPermission('recurso:acao')`. Não descriptografe o JWT nas páginas.
+* **Tratamento de Endpoints Ausentes:** Quando uma rota do back-end não existir, exiba um banner claro e honesto na tela (como feito em W-14, W-15 e WP-02). Não simule dados falsos de sucesso.
+* **Paleta de Cores:**
+* 🟢 Teal (`#00e5cc`): Cor primária
+* 🔵 Dark Navy (`#0d0d2b`): Headers e botões principais
+* 🟠 Laranja (`#f99f56`): Alertas e avisos urgentes
+* 🔴 Vermelho (`#c0392b`): Ações de perigo / exclusão
+* 🟡 Amarelo (`#f5a623`): Avisos neutros
 
 
-Pendente de back-end
 
+---
 
- GET /non-conformities com filtros (W-14)
- Endpoint self-service de empresa (W-13)
- GET /visits?type=REINSPECTION sem filtro /mine (W-15)
- GET /roles?companyId=X para criar usuário por empresa (WP-02)
- Seed automático em POST /platform/companies (WP-02)
+## 📊 Status do Projeto
 
+Atualmente o Backoffice web encontra-se com **~90% do escopo concluído**.
 
-Pendente de front-end
+### ✅ Concluído
 
+* [x] Fluxo completo de autenticação (login, recuperação, troca de senha obrigatória/voluntária).
+* [x] Dashboard com dados reais de empreendimentos, apartamentos e usuários.
+* [x] Empreendimentos + Apartamentos (individual e em lote) + Checklist modal.
+* [x] Tipos de Apartamento (CRUD + cômodos + serviços padrão por cômodo).
+* [x] Catálogo de Serviços (CRUD com filtro por categoria).
+* [x] Vistorias — listagem e detalhe (parceria com o colega de equipe).
+* [x] Equipe — usuários (cadastro, listagem, exclusão, reset de senha).
+* [x] Equipe — funções (CRUD com seleção de permissões por recurso).
+* [x] Configurações da empresa (estrutura visual pronta).
+* [x] Não-Conformidades (tela de bloqueio estruturada com alternativa via PDF).
+* [x] Re-inspeções (lista as disponíveis sem inspetor designado).
+* [x] Platform Admin completo: Dashboard, Empresas, Catálogo Global, Templates de Funções.
+* [x] Sidebar adaptativa com seção PLATAFORMA restrita via `isPlatformAdmin`.
 
- Calendário — escopo a definir
- Relatórios — escopo a definir
- Integração AbacatePay na tela de Configurações (aguarda back)
+### ⏳ Pendente (Aguardando Back-end)
+
+* [ ] Filtros do `GET /non-conformities` (W-14).
+* [ ] Endpoint self-service de dados da empresa (W-13).
+* [ ] Ajuste no `GET /visits?type=REINSPECTION` (W-15).
+* [ ] Parâmetro de query/payload para `GET /roles?companyId=X` (WP-02).
+* [ ] Gatilho de Seed automático em `POST /platform/companies` (WP-02).
+
+### 🛠️ Pendente (Desenvolvimento no Front-end)
+
+* [ ] Calendário — escopo técnico a definir.
+* [ ] Relatórios — escopo de regras de negócio a definir.
+* [ ] Integração do gateway AbacatePay na tela de Configurações (depende do back-end).
+
+```
+
+```
