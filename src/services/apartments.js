@@ -3,10 +3,10 @@ import { mockApartments } from '../mocks/buildings.js'
 
 const USE_MOCK = false
 
-export async function getApartments(buildingId) {
-  if (USE_MOCK) return mockApartments
-  const response = await api.get(`/apartments?buildingId=${buildingId}`)
-  return response.data
+export async function getApartments(buildingId = null) {
+  const url = buildingId ? `/apartments?buildingId=${buildingId}` : '/apartments'
+  const { data } = await api.get(url)
+  return data
 }
 
 export async function getApartment(id) {
