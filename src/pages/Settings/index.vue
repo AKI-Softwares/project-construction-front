@@ -1,10 +1,10 @@
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import MainLayout from '../../components/Layout/MainLayout.vue'
+import { me } from '../../services/auth.js'
 
 const editing = ref(false)
 
-// Dados em branco — prontos para conectar ao PATCH /company quando o back liberar
 const company = ref({
   name: '',
   slug: '',
@@ -64,4 +64,17 @@ function upgradeNotAvailable() {
     detail: { message: 'Upgrade de plano estará disponível em breve.', type: 'warning' }
   }))
 }
+
+onMounted(async () => {
+  try {
+    const user = await me()
+    if (user.company) {
+      company.value.name = user.company.name || ''
+      company.value.status = user.company.status || 'ACTIVE'
+    }
+    originalCompany.value = { ...company.value }
+  } catch {
+    // silencioso — campos ficam vazios
+  }
+})
 </script>
