@@ -39,6 +39,10 @@ const routes = [
 
   { path: '/relatorios', component: () => import('../pages/EmConstrucao/index.vue'), meta: { requiresAuth: true } },
   { path: '/configuracoes', component: () => import('../pages/Settings/index.vue'), meta: { requiresAuth: true } },
+
+  { path: '/reset-password/success', component: () => import('../pages/ResetPassword/Success.vue'), meta: { public: true } },
+{ path: '/register', component: () => import('../pages/Register/index.vue'), meta: { public: true } }, // ← adiciona aqui
+{ path: '/change-password', component: () => import('../pages/ChangePassword/index.vue'), meta: { requiresAuth: true } },
 ]
 
 const router = createRouter({
