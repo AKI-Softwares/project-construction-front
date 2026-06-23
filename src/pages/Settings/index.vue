@@ -3,7 +3,6 @@
 
     <div class="settings-grid">
 
-      <!-- Dados da empresa -->
       <div class="settings-card">
         <div class="card-title">
           <FontAwesomeIcon :icon="['fas', 'building-circle-arrow-right']" />
@@ -43,7 +42,6 @@
         </div>
       </div>
 
-      <!-- Status da conta -->
       <div class="settings-card">
         <div class="card-title">
           <FontAwesomeIcon :icon="['fas', 'circle-check']" />
@@ -60,7 +58,6 @@
         <p class="status-description">{{ statusDescription }}</p>
       </div>
 
-      <!-- Plano -->
       <div class="settings-card plan-card">
         <div class="card-title">
           <FontAwesomeIcon :icon="['fas', 'circle-check']" />
@@ -96,8 +93,6 @@
 </template>
 
 <script setup>
-
-  <script setup>
 import { ref, computed } from 'vue'
 import MainLayout from '../../components/Layout/MainLayout.vue'
 
@@ -162,8 +157,6 @@ function upgradeNotAvailable() {
   }))
 }
 </script>
- 
-</script>
 
 <style scoped>
 .settings-grid {
@@ -171,170 +164,34 @@ function upgradeNotAvailable() {
   grid-template-columns: 1fr 1fr;
   gap: 20px;
 }
-
-.plan-card {
-  grid-column: span 2;
-}
-
-.settings-card {
-  background: #fff;
-  border-radius: 12px;
-  padding: 28px;
-  border: 1px solid #eee;
-}
-
-.card-title {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 1rem;
-  font-weight: 600;
-  color: #1a1a2e;
-  margin-bottom: 24px;
-}
-
+.plan-card { grid-column: span 2; }
+.settings-card { background: #fff; border-radius: 12px; padding: 28px; border: 1px solid #eee; }
+.card-title { display: flex; align-items: center; gap: 10px; font-size: 1rem; font-weight: 600; color: #1a1a2e; margin-bottom: 24px; }
 .card-title svg { color: #00e5cc; }
-
-.field {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  margin-bottom: 18px;
-}
-
-.field label {
-  font-size: 0.85rem;
-  font-weight: 500;
-  color: #333;
-}
-
-.field input {
-  padding: 12px 18px;
-  border: none;
-  border-radius: 24px;
-  background: #e8e8e8;
-  font-size: 0.92rem;
-  outline: none;
-  color: #333;
-}
-
-.field input:disabled {
-  background: #f5f5f5;
-  color: #888;
-  cursor: not-allowed;
-}
-
-.field-hint {
-  font-size: 0.75rem;
-  color: #999;
-  padding-left: 8px;
-}
-
-.card-actions {
-  display: flex;
-  gap: 12px;
-  margin-top: 8px;
-}
-
-.btn-edit, .btn-save, .btn-cancel, .btn-upgrade {
-  padding: 11px 24px;
-  border: none;
-  border-radius: 24px;
-  font-size: 0.88rem;
-  font-weight: 600;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
+.field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 18px; }
+.field label { font-size: 0.85rem; font-weight: 500; color: #333; }
+.field input { padding: 12px 18px; border: none; border-radius: 24px; background: #e8e8e8; font-size: 0.92rem; outline: none; color: #333; }
+.field input:disabled { background: #f5f5f5; color: #888; cursor: not-allowed; }
+.field-hint { font-size: 0.75rem; color: #999; padding-left: 8px; }
+.card-actions { display: flex; gap: 12px; margin-top: 8px; }
+.btn-edit, .btn-save, .btn-cancel, .btn-upgrade { padding: 11px 24px; border: none; border-radius: 24px; font-size: 0.88rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; }
 .btn-edit { background: #0d0d2b; color: #fff; }
 .btn-save { background: #00e5cc; color: #0d0d2b; }
 .btn-cancel { background: #e8e8e8; color: #333; }
-
-.status-row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 16px;
-}
-
-.status-badge {
-  padding: 6px 18px;
-  border-radius: 20px;
-  font-size: 0.85rem;
-  font-weight: bold;
-}
+.status-row { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+.status-badge { padding: 6px 18px; border-radius: 20px; font-size: 0.85rem; font-weight: bold; }
 .status-active { background: #e0faf6; color: #00897b; }
 .status-suspended { background: #fdecea; color: #c0392b; }
 .status-pending { background: #fff3e0; color: #f99f56; }
-
 .status-date { font-size: 0.8rem; color: #888; }
-
-.status-description {
-  font-size: 0.88rem;
-  color: #555;
-  line-height: 1.5;
-}
-
-.plan-info {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  margin-bottom: 20px;
-  padding-bottom: 20px;
-  border-bottom: 1px solid #f0f0f0;
-}
-
-.plan-name {
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: #1a1a2e;
-}
-
-.price-value {
-  font-size: 1.6rem;
-  font-weight: bold;
-  color: #00e5cc;
-}
-
-.price-period {
-  font-size: 0.85rem;
-  color: #888;
-}
-
-.plan-features {
-  list-style: none;
-  padding: 0;
-  margin: 0 0 24px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.plan-features li {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 0.9rem;
-  color: #333;
-}
-
+.status-description { font-size: 0.88rem; color: #555; line-height: 1.5; }
+.plan-info { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid #f0f0f0; }
+.plan-name { font-size: 1.1rem; font-weight: 700; color: #1a1a2e; }
+.price-value { font-size: 1.6rem; font-weight: bold; color: #00e5cc; }
+.price-period { font-size: 0.85rem; color: #888; }
+.plan-features { list-style: none; padding: 0; margin: 0 0 24px; display: flex; flex-direction: column; gap: 10px; }
+.plan-features li { display: flex; align-items: center; gap: 10px; font-size: 0.9rem; color: #333; }
 .check-icon { color: #00e5cc; }
-
-.btn-upgrade {
-  background: #00e5cc;
-  color: #0d0d2b;
-  width: 100%;
-  justify-content: center;
-  padding: 14px;
-  font-size: 0.95rem;
-}
-
-.upgrade-note {
-  font-size: 0.78rem;
-  color: #999;
-  text-align: center;
-  margin-top: 10px;
-}
+.btn-upgrade { background: #00e5cc; color: #0d0d2b; width: 100%; justify-content: center; padding: 14px; font-size: 0.95rem; }
+.upgrade-note { font-size: 0.78rem; color: #999; text-align: center; margin-top: 10px; }
 </style>
