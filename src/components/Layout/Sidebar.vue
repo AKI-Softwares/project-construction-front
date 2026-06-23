@@ -17,6 +17,11 @@
         <span v-if="aberta" class="label">Empreendimentos</span>
       </router-link>
 
+      <router-link to="/visits" class="menu-item" :title="aberta ? '' : 'Vistorias'">
+        <FontAwesomeIcon :icon="['fas', 'clipboard-list']" class="icone" />
+        <span v-if="aberta" class="label">Vistorias</span>
+      </router-link>
+
       <router-link to="/apartment-types" class="menu-item" :title="aberta ? '' : 'Tipos de Apartamento'">
         <FontAwesomeIcon :icon="['fas', 'door-open']" class="icone" />
         <span v-if="aberta" class="label">Tipos de Apartamento</span>
@@ -37,11 +42,10 @@
         <span v-if="aberta" class="label">Não-Conformidades</span>
       </router-link>
 
-      <router-link to="/visits" class="menu-item" :title="aberta ? '' : 'Vistorias'">
-        <FontAwesomeIcon :icon="['fas', 'clipboard-list']" class="icone" />
-        <span v-if="aberta" class="label">Vistorias</span>
+      <router-link to="/calendario" class="menu-item" :title="aberta ? '' : 'Calendário'">
+        <FontAwesomeIcon :icon="['fas', 'calendar-days']" class="icone" />
+        <span v-if="aberta" class="label">Calendário</span>
       </router-link>
-
 
       <router-link to="/equipe" class="menu-item" :title="aberta ? '' : 'Equipe'">
         <FontAwesomeIcon :icon="['fas', 'users']" class="icone" />
@@ -128,3 +132,4 @@ function sair() {
   overflow: hidden;
 }
 </style>
+```
