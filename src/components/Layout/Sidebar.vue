@@ -76,7 +76,7 @@
     </nav>
 
     <div class="menu-inferior">
-      <router-link to="/configuracoes" class="menu-item" :title="aberta ? '' : 'Configurações'">
+    <router-link v-if="authStore.isCompanyAdmin || authStore.isPlatformAdmin" to="/configuracoes" class="menu-item" ...>
         <FontAwesomeIcon :icon="['fas', 'gear']" class="icone" />
         <span v-if="aberta" class="label">Configurações</span>
       </router-link>
