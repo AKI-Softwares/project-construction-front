@@ -97,9 +97,9 @@
 
 <script setup>
 
-  import { ref, computed, onMounted } from 'vue'
+  <script setup>
+import { ref, computed } from 'vue'
 import MainLayout from '../../components/Layout/MainLayout.vue'
-import { me } from '../../services/auth.js'
 
 const editing = ref(false)
 
@@ -161,22 +161,7 @@ function upgradeNotAvailable() {
     detail: { message: 'Upgrade de plano estará disponível em breve.', type: 'warning' }
   }))
 }
-
-onMounted(async () => {
-  try {
-    const user = await me()
-    if (user?.company?.name) {
-      company.value.name = user.company.name
-    }
-    if (user?.company?.status) {
-      company.value.status = user.company.status
-    }
-    originalCompany.value = { ...company.value }
-  } catch {
-    // silencioso
-  }
-})
-
+</script>
  
 </script>
 
