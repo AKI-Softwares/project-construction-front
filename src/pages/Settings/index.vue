@@ -96,7 +96,8 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+
+  import { ref, computed, onMounted } from 'vue'
 import MainLayout from '../../components/Layout/MainLayout.vue'
 import { me } from '../../services/auth.js'
 
@@ -164,15 +165,19 @@ function upgradeNotAvailable() {
 onMounted(async () => {
   try {
     const user = await me()
-    if (user.company) {
-      company.value.name = user.company.name || ''
-      company.value.status = user.company.status || 'ACTIVE'
+    if (user?.company?.name) {
+      company.value.name = user.company.name
+    }
+    if (user?.company?.status) {
+      company.value.status = user.company.status
     }
     originalCompany.value = { ...company.value }
   } catch {
-    // silencioso — campos ficam vazios
+    // silencioso
   }
 })
+
+ 
 </script>
 
 <style scoped>
