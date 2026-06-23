@@ -1,557 +1,254 @@
 <template>
-  <MainLayout titulo="Cadastro">
+  <div class="register-page">
+    <div class="register-card">
 
-    <!-- Tabs -->
-    <div class="tabs">
-      <button
-        :class="['tab-btn', { active: activeTab === 'buildings' }]"
-        @click="activeTab = 'buildings'"
-      >
-        Empreendimentos
-      </button>
-      <button
-        :class="['tab-btn', { active: activeTab === 'apartments' }]"
-        @click="activeTab = 'apartments'"
-      >
-        Apartamentos
-      </button>
-    </div>
+      <div class="logo">
+        <span class="logo-check">✓</span>
+        <span class="logo-text">CheckObra</span>
+      </div>
+      <h1 class="title">Criar conta</h1>
+      <p class="subtitle">Cadastre sua empresa e comece a usar o sistema.</p>
 
-    <hr class="divider" />
+      <div v-if="success" class="alert success">
+        <FontAwesomeIcon :icon="['fas', 'circle-check']" />
+        Empresa cadastrada! Redirecionando para o login...
+      </div>
+      <div v-if="error" class="alert error">
+        <FontAwesomeIcon :icon="['fas', 'circle-exclamation']" />
+        {{ error }}
+      </div>
 
-    <!-- ===================== TAB: BUILDINGS ===================== -->
-    <div v-if="activeTab === 'buildings'">
+      <div class="section-label">Dados da empresa</div>
 
-      <!-- Add building button -->
-      <button class="btn-add" @click="showBuildingForm = !showBuildingForm">
-        + Adicionar empreendimento
-      </button>
-
-      <!-- Building form -->
-      <div v-if="showBuildingForm" class="form-card">
-        <h3 class="form-title">Novo Empreendimento</h3>
-
-        <div v-if="buildingSuccess" class="alert success">
-          <FontAwesomeIcon :icon="['fas', 'circle-check']" />
-          Empreendimento cadastrado com sucesso!
-        </div>
-        <div v-if="buildingError" class="alert error">
-          <FontAwesomeIcon :icon="['fas', 'circle-exclamation']" />
-          {{ buildingError }}
-        </div>
-
+      <div class="field">
         <input
-          v-model="buildingForm.name"
+          v-model="form.companyName"
           type="text"
-          placeholder="Nome do Empreendimento"
-          :class="{ invalid: buildingErrors.name }"
+          placeholder="Nome da empresa"
+          :class="{ invalid: errors.companyName }"
+          @input="generateSlug"
         />
-        <span v-if="buildingErrors.name" class="field-error">{{ buildingErrors.name }}</span>
+        <span v-if="errors.companyName" class="field-error">{{ errors.companyName }}</span>
+      </div>
 
+      <div class="field">
         <input
-          v-model="buildingForm.address"
+          v-model="form.slug"
           type="text"
-          placeholder="Endereço"
-          :class="{ invalid: buildingErrors.address }"
+          placeholder="Identificador (ex: minha-empresa)"
+          :class="{ invalid: errors.slug }"
         />
-        <span v-if="buildingErrors.address" class="field-error">{{ buildingErrors.address }}</span>
-
-        <div class="form-actions">
-          <button class="btn-save" :disabled="savingBuilding" @click="saveBuilding">
-            {{ savingBuilding ? 'Salvando...' : 'Salvar' }}
-          </button>
-          <button class="btn-cancel" @click="cancelBuilding">Cancelar</button>
-        </div>
+        <span class="field-hint">Apenas letras minúsculas, números e hífens.</span>
+        <span v-if="errors.slug" class="field-error">{{ errors.slug }}</span>
       </div>
 
-      <!-- Buildings list -->
-      <div class="item-list">
-        <div
-          v-for="building in buildings"
-          :key="building.id"
-          class="item-card"
-          @click="selectBuilding(building)"
-        >
-          <span>{{ building.name }}</span>
-        </div>
-        <div v-if="buildings.length === 0 && !loadingBuildings" class="empty">
-          Nenhum empreendimento cadastrado.
-        </div>
-        <div v-if="loadingBuildings" class="empty">Carregando...</div>
+      <div class="section-label">Dados do administrador</div>
+
+      <div class="field">
+        <input
+          v-model="form.adminName"
+          type="text"
+          placeholder="Seu nome"
+          :class="{ invalid: errors.adminName }"
+        />
+        <span v-if="errors.adminName" class="field-error">{{ errors.adminName }}</span>
       </div>
+
+      <div class="field">
+        <input
+          v-model="form.email"
+          type="email"
+          placeholder="E-mail"
+          :class="{ invalid: errors.email }"
+        />
+        <span v-if="errors.email" class="field-error">{{ errors.email }}</span>
+      </div>
+
+      <div class="field">
+        <input
+          v-model="form.password"
+          type="password"
+          placeholder="Senha (mínimo 8 caracteres)"
+          :class="{ invalid: errors.password }"
+        />
+        <span v-if="errors.password" class="field-error">{{ errors.password }}</span>
+      </div>
+
+      <button class="btn-submit" :disabled="submitting" @click="submit">
+        {{ submitting ? 'Cadastrando...' : 'Criar conta' }}
+      </button>
+
+      <p class="login-link">
+        Já tem conta? <a @click="router.push('/login')">Entrar</a>
+      </p>
 
     </div>
-
-    <!-- ===================== TAB: APARTMENTS ===================== -->
-    <div v-if="activeTab === 'apartments'">
-
-      <!-- Action buttons -->
-      <div class="apt-actions">
-        <button
-          :class="['btn-add', { active: aptMode === 'single' }]"
-          @click="aptMode = aptMode === 'single' ? null : 'single'"
-        >
-          + Adicionar Apartamento individual
-        </button>
-        <button
-          :class="['btn-batch', { active: aptMode === 'batch' }]"
-          @click="aptMode = aptMode === 'batch' ? null : 'batch'"
-        >
-          Cadastro em Lote
-        </button>
-      </div>
-
-      <!-- Single apartment form -->
-      <div v-if="aptMode === 'single'" class="form-card">
-        <h3 class="form-title">Novo Apartamento</h3>
-
-        <div v-if="aptSuccess" class="alert success">
-          <FontAwesomeIcon :icon="['fas', 'circle-check']" />
-          Apartamento cadastrado com sucesso!
-        </div>
-        <div v-if="aptError" class="alert error">{{ aptError }}</div>
-
-        <select v-model="singleApt.buildingId" :class="{ invalid: aptErrors.buildingId }">
-          <option value="" disabled>Selecionar Empreendimento</option>
-          <option v-for="b in buildings" :key="b.id" :value="b.id">{{ b.name }}</option>
-        </select>
-        <span v-if="aptErrors.buildingId" class="field-error">{{ aptErrors.buildingId }}</span>
-
-        <select v-model="singleApt.apartmentTypeId" :class="{ invalid: aptErrors.apartmentTypeId }">
-          <option value="" disabled>Tipo de Apartamento</option>
-          <option v-for="t in apartmentTypes" :key="t.id" :value="t.id">{{ t.name }}</option>
-        </select>
-        <span v-if="aptErrors.apartmentTypeId" class="field-error">{{ aptErrors.apartmentTypeId }}</span>
-
-        <div class="form-row">
-          <div class="form-col">
-            <input v-model="singleApt.identifier" type="text" placeholder="Número (ex: 101)" :class="{ invalid: aptErrors.identifier }" />
-            <span v-if="aptErrors.identifier" class="field-error">{{ aptErrors.identifier }}</span>
-          </div>
-          <div class="form-col">
-            <input v-model="singleApt.floor" type="number" placeholder="Andar" min="1" />
-          </div>
-          <div class="form-col">
-            <input v-model="singleApt.block" type="text" placeholder="Bloco (ex: A)" />
-          </div>
-        </div>
-
-        <div class="form-actions">
-          <button class="btn-save" :disabled="savingApt" @click="saveSingleApt">
-            {{ savingApt ? 'Salvando...' : 'Salvar' }}
-          </button>
-          <button class="btn-cancel" @click="aptMode = null">Cancelar</button>
-        </div>
-      </div>
-
-      <!-- Batch form -->
-      <div v-if="aptMode === 'batch'" class="form-card">
-        <h3 class="form-title">Cadastrar em Lote - Gerar múltiplos apartamentos</h3>
-
-        <div class="info-box">
-          <FontAwesomeIcon :icon="['fas', 'circle-exclamation']" class="info-icon" />
-          <div>
-            <strong>Como funciona:</strong>
-            <ul>
-              <li>Bloco B, 4 andares, 3 apts/andar, número inicial 1 → Gera 101, 102, 103, 201, 202, 203, 301, 302, 303, 401, 402, 403</li>
-              <li>Número inicial define o último dígito: 1 = X01, X02, X03 | 5 = X05, X06, X07</li>
-              <li>Formato: AndarNúmero (ex: 1º andar apt 01 = 101)</li>
-            </ul>
-          </div>
-        </div>
-
-        <div v-if="batchSuccess" class="alert success">
-          <FontAwesomeIcon :icon="['fas', 'circle-check']" />
-          {{ batchSuccess }}
-        </div>
-        <div v-if="batchError" class="alert error">{{ batchError }}</div>
-
-        <select v-model="batchForm.buildingId" :class="{ invalid: batchErrors.buildingId }">
-          <option value="" disabled>Selecionar Empreendimento</option>
-          <option v-for="b in buildings" :key="b.id" :value="b.id">{{ b.name }}</option>
-        </select>
-        <span v-if="batchErrors.buildingId" class="field-error">{{ batchErrors.buildingId }}</span>
-
-        <select v-model="batchForm.apartmentTypeId" :class="{ invalid: batchErrors.apartmentTypeId }">
-          <option value="" disabled>Tipo de Apartamento</option>
-          <option v-for="t in apartmentTypes" :key="t.id" :value="t.id">{{ t.name }}</option>
-        </select>
-        <span v-if="batchErrors.apartmentTypeId" class="field-error">{{ batchErrors.apartmentTypeId }}</span>
-
-        <div class="form-row">
-          <div class="form-col">
-            <input v-model="batchForm.block" type="text" placeholder="Ex: Bloco B" :class="{ invalid: batchErrors.block }" />
-            <span v-if="batchErrors.block" class="field-error">{{ batchErrors.block }}</span>
-          </div>
-          <div class="form-col">
-            <input v-model.number="batchForm.floors" type="number" placeholder="Qtd de andares" min="1" :class="{ invalid: batchErrors.floors }" />
-            <span v-if="batchErrors.floors" class="field-error">{{ batchErrors.floors }}</span>
-          </div>
-          <div class="form-col">
-            <input v-model.number="batchForm.aptsPerFloor" type="number" placeholder="Número de Apt" min="1" :class="{ invalid: batchErrors.aptsPerFloor }" />
-            <span v-if="batchErrors.aptsPerFloor" class="field-error">{{ batchErrors.aptsPerFloor }}</span>
-          </div>
-        </div>
-
-        <!-- Preview -->
-        <div v-if="batchPreview.length > 0" class="preview">
-          <strong>Preview ({{ batchPreview.length }} apartamentos):</strong>
-          <div class="preview-list">
-            <span v-for="id in batchPreview.slice(0, 20)" :key="id" class="preview-tag">{{ id }}</span>
-            <span v-if="batchPreview.length > 20" class="preview-tag more">+{{ batchPreview.length - 20 }} mais</span>
-          </div>
-        </div>
-
-        <div class="form-actions">
-          <button class="btn-save" :disabled="savingBatch" @click="saveBatch">
-            {{ savingBatch ? `Salvando... (${batchProgress}/${batchPreview.length})` : 'Salvar' }}
-          </button>
-          <button class="btn-cancel" @click="aptMode = null">Cancelar</button>
-        </div>
-      </div>
-
-      <!-- Apartments list -->
-      <div v-if="!aptMode">
-        <div class="apt-table-header">
-          <span>Nome</span>
-          <span>Número</span>
-          <span>Bloco</span>
-          <span>Andar</span>
-        </div>
-        <div class="item-list">
-          <div v-for="apt in apartments" :key="apt.id" class="apt-row">
-            <span>{{ getBuildingName(apt.buildingId) }}</span>
-            <span>{{ apt.identifier }}</span>
-            <span>{{ apt.block || '—' }}</span>
-            <span>{{ apt.floor ? apt.floor + 'º' : '—' }}</span>
-          </div>
-          <div v-if="apartments.length === 0 && !loadingApts" class="empty">
-            Nenhum apartamento cadastrado.
-          </div>
-          <div v-if="loadingApts" class="empty">Carregando...</div>
-        </div>
-      </div>
-
-    </div>
-
-  </MainLayout>
+  </div>
 </template>
 
 <script setup>
-import { ref, reactive, computed, watch, onMounted } from 'vue'
-import MainLayout from '../../components/Layout/MainLayout.vue'
-import { getBuildings, createBuilding } from '../../services/buildings.js'
-import { getApartments, createApartment } from '../../services/apartments.js'
-import { getApartmentTypes } from '../../services/apartmentTypes.js'
+import { ref, reactive } from 'vue'
+import { useRouter } from 'vue-router'
+import { registerCompany } from '../../services/auth.js'
 
-// ─── State ───────────────────────────────────────────────────
-const activeTab = ref('buildings')
-const buildings = ref([])
-const apartments = ref([])
-const apartmentTypes = ref([])
-const loadingBuildings = ref(false)
-const loadingApts = ref(false)
+const router = useRouter()
+const submitting = ref(false)
+const success = ref(false)
+const error = ref('')
 
-// ─── Building form ────────────────────────────────────────────
-const showBuildingForm = ref(false)
-const savingBuilding = ref(false)
-const buildingSuccess = ref(false)
-const buildingError = ref('')
-const buildingForm = reactive({ name: '', address: '' })
-const buildingErrors = reactive({ name: '', address: '' })
-
-function cancelBuilding() {
-  showBuildingForm.value = false
-  buildingForm.name = ''
-  buildingForm.address = ''
-  buildingErrors.name = ''
-  buildingErrors.address = ''
-  buildingSuccess.value = false
-  buildingError.value = ''
-}
-
-function validateBuilding() {
-  buildingErrors.name = ''
-  buildingErrors.address = ''
-  let valid = true
-  if (!buildingForm.name || buildingForm.name.length < 2) {
-    buildingErrors.name = 'Nome deve ter pelo menos 2 caracteres.'
-    valid = false
-  }
-  if (!buildingForm.address) {
-    buildingErrors.address = 'Endereço é obrigatório.'
-    valid = false
-  }
-  return valid
-}
-
-async function saveBuilding() {
-  if (!validateBuilding()) return
-  savingBuilding.value = true
-  buildingError.value = ''
-  buildingSuccess.value = false
-  try {
-    const created = await createBuilding({
-      name: buildingForm.name,
-      address: buildingForm.address,
-    })
-    buildings.value.push(created)
-    buildingSuccess.value = true
-    buildingForm.name = ''
-    buildingForm.address = ''
-  } catch (e) {
-    buildingError.value = e.response?.data?.message || 'Error creating building.'
-  } finally {
-    savingBuilding.value = false
-  }
-}
-
-function selectBuilding(building) {
-  activeTab.value = 'apartments'
-}
-
-// ─── Apartment form ────────────────────────────────────────────
-const aptMode = ref(null)
-const savingApt = ref(false)
-const aptSuccess = ref(false)
-const aptError = ref('')
-const singleApt = reactive({ buildingId: '', apartmentTypeId: '', identifier: '', floor: '', block: '' })
-const aptErrors = reactive({ buildingId: '', apartmentTypeId: '', identifier: '' })
-
-function validateSingleApt() {
-  aptErrors.buildingId = ''
-  aptErrors.apartmentTypeId = ''
-  aptErrors.identifier = ''
-  let valid = true
-  if (!singleApt.buildingId) { aptErrors.buildingId = 'Selecione um empreendimento.'; valid = false }
-  if (!singleApt.apartmentTypeId) { aptErrors.apartmentTypeId = 'Selecione um tipo.'; valid = false }
-  if (!singleApt.identifier) { aptErrors.identifier = 'Número é obrigatório.'; valid = false }
-  return valid
-}
-
-async function saveSingleApt() {
-  if (!validateSingleApt()) return
-  savingApt.value = true
-  aptError.value = ''
-  aptSuccess.value = false
-  try {
-    const created = await createApartment({
-      buildingId: Number(singleApt.buildingId),
-      apartmentTypeId: Number(singleApt.apartmentTypeId),
-      identifier: singleApt.identifier,
-      floor: singleApt.floor ? Number(singleApt.floor) : undefined,
-      block: singleApt.block || undefined,
-    })
-    apartments.value.push(created)
-    aptSuccess.value = true
-    singleApt.identifier = ''
-    singleApt.floor = ''
-    singleApt.block = ''
-  } catch (e) {
-    if (e.response?.status === 409) aptError.value = 'Número de apartamento já existe neste empreendimento.'
-    else aptError.value = e.response?.data?.message || 'Error creating apartment.'
-  } finally {
-    savingApt.value = false
-  }
-}
-
-// ─── Batch form ────────────────────────────────────────────────
-const savingBatch = ref(false)
-const batchProgress = ref(0)
-const batchSuccess = ref('')
-const batchError = ref('')
-const batchForm = reactive({ buildingId: '', apartmentTypeId: '', block: '', floors: '', aptsPerFloor: '' })
-const batchErrors = reactive({ buildingId: '', apartmentTypeId: '', block: '', floors: '', aptsPerFloor: '' })
-
-const batchPreview = computed(() => {
-  if (!batchForm.block || !batchForm.floors || !batchForm.aptsPerFloor) return []
-  const block = batchForm.block.replace('Bloco ', '').trim()
-  const floors = Number(batchForm.floors)
-  const aptsPerFloor = Number(batchForm.aptsPerFloor)
-  if (!floors || !aptsPerFloor || floors < 1 || aptsPerFloor < 1) return []
-  const identifiers = []
-  for (let floor = 1; floor <= floors; floor++) {
-    for (let apt = 1; apt <= aptsPerFloor; apt++) {
-      identifiers.push(`${block}${floor}${String(apt).padStart(2, '0')}`)
-    }
-  }
-  return identifiers
+const form = reactive({
+  companyName: '',
+  slug: '',
+  adminName: '',
+  email: '',
+  password: '',
 })
 
-function validateBatch() {
-  Object.keys(batchErrors).forEach(k => batchErrors[k] = '')
+const errors = reactive({
+  companyName: '',
+  slug: '',
+  adminName: '',
+  email: '',
+  password: '',
+})
+
+function generateSlug() {
+  form.slug = form.companyName
+    .toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9\s-]/g, '')
+    .trim()
+    .replace(/\s+/g, '-')
+}
+
+function validate() {
+  Object.keys(errors).forEach(k => errors[k] = '')
   let valid = true
-  if (!batchForm.buildingId) { batchErrors.buildingId = 'Selecione um empreendimento.'; valid = false }
-  if (!batchForm.apartmentTypeId) { batchErrors.apartmentTypeId = 'Selecione um tipo.'; valid = false }
-  if (!batchForm.block) { batchErrors.block = 'Bloco é obrigatório.'; valid = false }
-  if (!batchForm.floors || batchForm.floors < 1) { batchErrors.floors = 'Mínimo 1 andar.'; valid = false }
-  if (!batchForm.aptsPerFloor || batchForm.aptsPerFloor < 1) { batchErrors.aptsPerFloor = 'Mínimo 1 apt.'; valid = false }
+  if (!form.companyName || form.companyName.length < 2) {
+    errors.companyName = 'Nome deve ter pelo menos 2 caracteres.'
+    valid = false
+  }
+  if (!form.slug || !/^[a-z0-9-]+$/.test(form.slug)) {
+    errors.slug = 'Apenas letras minúsculas, números e hífens.'
+    valid = false
+  }
+  if (!form.adminName || form.adminName.length < 2) {
+    errors.adminName = 'Nome deve ter pelo menos 2 caracteres.'
+    valid = false
+  }
+  if (!form.email || !form.email.includes('@')) {
+    errors.email = 'E-mail inválido.'
+    valid = false
+  }
+  if (!form.password || form.password.length < 8) {
+    errors.password = 'Senha deve ter pelo menos 8 caracteres.'
+    valid = false
+  }
   return valid
 }
 
-async function saveBatch() {
-  if (!validateBatch()) return
-  savingBatch.value = true
-  batchProgress.value = 0
-  batchSuccess.value = ''
-  batchError.value = ''
-
-  const block = batchForm.block.replace('Bloco ', '').trim()
-  const floors = Number(batchForm.floors)
-  const aptsPerFloor = Number(batchForm.aptsPerFloor)
-  const total = floors * aptsPerFloor
-  let created = 0
-  let errors = 0
-
-  for (let floor = 1; floor <= floors; floor++) {
-    for (let apt = 1; apt <= aptsPerFloor; apt++) {
-      const identifier = `${block}${floor}${String(apt).padStart(2, '0')}`
-      try {
-        const result = await createApartment({
-          buildingId: Number(batchForm.buildingId),
-          apartmentTypeId: Number(batchForm.apartmentTypeId),
-          identifier,
-          floor,
-          block,
-        })
-        apartments.value.push(result)
-        created++
-      } catch (e) {
-        errors++
-      }
-      batchProgress.value = created + errors
-    }
-  }
-
-  savingBatch.value = false
-  if (errors === 0) {
-    batchSuccess.value = `${created} apartamentos cadastrados com sucesso!`
-  } else {
-    batchSuccess.value = `${created} cadastrados. ${errors} já existiam ou falharam.`
-  }
-}
-
-// ─── Helpers ──────────────────────────────────────────────────
-function getBuildingName(buildingId) {
-  const b = buildings.value.find(b => b.id === buildingId)
-  return b ? b.name : '—'
-}
-
-// ─── Load data ────────────────────────────────────────────────
-onMounted(async () => {
-  loadingBuildings.value = true
-  loadingApts.value = true
+async function submit() {
+  error.value = ''
+  if (!validate()) return
+  submitting.value = true
   try {
-    const [b, a, t] = await Promise.all([
-      getBuildings(),
-      getApartments(),
-      getApartmentTypes(),
-    ])
-    buildings.value = b
-    apartments.value = a
-    apartmentTypes.value = t
+    await registerCompany({
+      company: { name: form.companyName, slug: form.slug },
+      admin: { name: form.adminName, email: form.email, password: form.password },
+    })
+    success.value = true
+    setTimeout(() => router.push('/login'), 2000)
   } catch (e) {
-    console.error('Error loading register data', e)
+    if (e.response?.status === 409) {
+      const msg = e.response.data?.message || ''
+      if (msg.toLowerCase().includes('slug')) errors.slug = 'Este identificador já está em uso.'
+      else if (msg.toLowerCase().includes('email')) errors.email = 'Este e-mail já está cadastrado.'
+      else error.value = msg
+    } else {
+      error.value = e.response?.data?.message || 'Erro ao criar conta. Tente novamente.'
+    }
   } finally {
-    loadingBuildings.value = false
-    loadingApts.value = false
+    submitting.value = false
   }
-})
+}
 </script>
 
 <style scoped>
-.tabs {
-  display: flex;
-  gap: 12px;
-  justify-content: flex-end;
-  margin-bottom: 16px;
-}
-
-.tab-btn {
-  padding: 12px 28px;
-  border-radius: 30px;
-  border: none;
+.register-page {
+  min-height: 100vh;
   background: #0d0d2b;
-  color: #fff;
-  font-size: 0.95rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-
-.tab-btn.active {
-  background: #00e5cc;
-  color: #0d0d2b;
-}
-
-.divider {
-  border: none;
-  border-top: 1px solid #e0e0e0;
-  margin-bottom: 28px;
-}
-
-.btn-add {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  background: #00e5cc;
-  color: #0d0d2b;
-  border: none;
-  border-radius: 30px;
-  padding: 12px 24px;
-  font-size: 0.9rem;
-  font-weight: 700;
-  cursor: pointer;
-  margin-bottom: 20px;
-  transition: opacity 0.2s;
-}
-
-.apt-actions {
   display: flex;
-  gap: 16px;
-  margin-bottom: 20px;
-}
-
-.btn-batch {
-  display: inline-flex;
   align-items: center;
-  gap: 8px;
-  background: #00e5cc;
-  color: #0d0d2b;
-  border: none;
-  border-radius: 30px;
-  padding: 12px 24px;
-  font-size: 0.9rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: opacity 0.2s;
+  justify-content: center;
+  padding: 32px 16px;
 }
 
-.btn-add.active, .btn-batch.active {
-  opacity: 0.7;
-}
-
-.form-card {
+.register-card {
   background: #fff;
-  border-radius: 12px;
-  padding: 28px;
-  border: 1px solid #eee;
-  max-width: 860px;
+  border-radius: 16px;
+  padding: 48px 40px;
+  width: 100%;
+  max-width: 460px;
   display: flex;
   flex-direction: column;
   gap: 16px;
-  margin-bottom: 28px;
 }
 
-.form-title {
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+
+.logo-check {
+  background: #00e5cc;
+  color: #0d0d2b;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
   font-size: 1rem;
+}
+
+.logo-text {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: #0d0d2b;
+}
+
+.title {
+  font-size: 1.5rem;
   font-weight: 700;
-  color: #1a1a2e;
+  color: #0d0d2b;
   margin: 0;
 }
 
-input, select {
-  width: 100%;
+.subtitle {
+  font-size: 0.9rem;
+  color: #666;
+  margin: 0;
+}
+
+.section-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #999;
+  margin-top: 8px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+input {
   padding: 14px 20px;
   border: none;
   border-radius: 30px;
@@ -559,24 +256,19 @@ input, select {
   font-size: 0.95rem;
   outline: none;
   color: #333;
-  appearance: none;
+  width: 100%;
+  box-sizing: border-box;
 }
 
-input.invalid, select.invalid {
+input.invalid {
   border: 2px solid #c0392b;
   background: #fff3f0;
 }
 
-.form-row {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
-}
-
-.form-col {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
+.field-hint {
+  font-size: 0.75rem;
+  color: #aaa;
+  padding-left: 8px;
 }
 
 .field-error {
@@ -585,34 +277,22 @@ input.invalid, select.invalid {
   padding-left: 8px;
 }
 
-.form-actions {
-  display: flex;
-  gap: 16px;
-  justify-content: flex-end;
-}
-
-.btn-save {
-  padding: 12px 36px;
+.btn-submit {
+  margin-top: 8px;
+  padding: 14px;
   background: #00e5cc;
   border: none;
   border-radius: 30px;
-  font-size: 0.95rem;
-  font-weight: bold;
+  font-size: 1rem;
+  font-weight: 700;
   color: #0d0d2b;
   cursor: pointer;
+  width: 100%;
 }
 
-.btn-save:disabled { opacity: 0.6; cursor: not-allowed; }
-
-.btn-cancel {
-  padding: 12px 36px;
-  background: #00e5cc;
-  border: none;
-  border-radius: 30px;
-  font-size: 0.95rem;
-  font-weight: bold;
-  color: #0d0d2b;
-  cursor: pointer;
+.btn-submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .alert {
@@ -624,94 +304,19 @@ input.invalid, select.invalid {
   font-size: 0.9rem;
   font-weight: 500;
 }
-
 .alert.success { background: #e0faf6; color: #00897b; border: 1px solid #00e5cc; }
-.alert.error { background: #fff3f0; color: #c0392b; border: 1px solid #f99f56; }
+.alert.error   { background: #fff3f0; color: #c0392b; border: 1px solid #f99f56; }
 
-.info-box {
-  display: flex;
-  gap: 12px;
-  background: #fff8e1;
-  border-radius: 8px;
-  padding: 16px;
-  font-size: 0.85rem;
-  color: #333;
-}
-
-.info-icon { color: #f5a623; margin-top: 2px; flex-shrink: 0; }
-
-.info-box ul { margin: 4px 0 0 16px; padding: 0; }
-.info-box li { margin-bottom: 4px; }
-
-.preview {
-  background: #f4f4f4;
-  border-radius: 8px;
-  padding: 16px;
-  font-size: 0.85rem;
-}
-
-.preview-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 8px;
-}
-
-.preview-tag {
-  background: #0d0d2b;
-  color: #fff;
-  padding: 4px 10px;
-  border-radius: 20px;
-  font-size: 0.78rem;
-}
-
-.preview-tag.more {
-  background: #00e5cc;
-  color: #0d0d2b;
-}
-
-.item-list {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.item-card {
-  background: #6b6b6b;
-  border-radius: 12px;
-  padding: 18px 24px;
-  color: #fff;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-
-.item-card:hover { background: #555; }
-
-.apt-table-header {
-  display: grid;
-  grid-template-columns: 2fr 1fr 1fr 1fr;
-  padding: 8px 24px;
-  font-size: 0.85rem;
-  color: #555;
-  font-weight: 600;
-  margin-bottom: 8px;
-}
-
-.apt-row {
-  display: grid;
-  grid-template-columns: 2fr 1fr 1fr 1fr;
-  background: #6b6b6b;
-  border-radius: 10px;
-  padding: 16px 24px;
-  color: #fff;
-  font-size: 0.9rem;
-  margin-bottom: 8px;
-}
-
-.empty {
+.login-link {
   text-align: center;
-  padding: 40px;
-  color: #888;
+  font-size: 0.88rem;
+  color: #666;
+  margin: 0;
+}
+
+.login-link a {
+  color: #00897b;
+  font-weight: 600;
+  cursor: pointer;
 }
 </style>
