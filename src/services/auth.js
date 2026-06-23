@@ -41,3 +41,7 @@ export async function changePassword(currentPassword, newPassword) {
   const response = await api.post('/auth/change-password', { currentPassword, newPassword })
   return response.data
 }
+export async function registerCompany(data) {
+  const response = await api.post('/auth/register', data)
+  return response.data
+}
