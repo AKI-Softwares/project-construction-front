@@ -92,9 +92,6 @@
 
     </div>
 
-    <!-- Mensagem de funcionalidade futura -->
-    <div v-if="message" class="toast">{{ message }}</div>
-
   </MainLayout>
 </template>
 
@@ -146,7 +143,6 @@ function formatDate(date) {
 }
 
 function saveChanges() {
-  // TODO: PATCH /company quando o back liberar o endpoint self-service
   originalCompany.value = { ...company.value }
   editing.value = false
   window.dispatchEvent(new CustomEvent('app:toast', {
@@ -350,19 +346,5 @@ onMounted(async () => {
   color: #999;
   text-align: center;
   margin-top: 10px;
-}
-
-.toast {
-  position: fixed;
-  bottom: 32px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: #0d0d2b;
-  color: #fff;
-  padding: 14px 28px;
-  border-radius: 30px;
-  font-size: 0.9rem;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.2);
-  z-index: 1000;
 }
 </style>
