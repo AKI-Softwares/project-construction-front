@@ -21,8 +21,7 @@
       <button @click="entrar" :disabled="carregando">
         {{ carregando ? 'Entrando...' : 'Entrar' }}
       </button>
-
-      <p>Não tem uma conta? <a href="#">Cadastre-se</a></p>
+      <p>Não tem uma conta? <router-link to="/register">Cadastre-se</router-link></p>
     </div>
   </div>
 </template>
