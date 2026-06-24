@@ -40,6 +40,24 @@ export const useAuthStore = defineStore('auth', {
       const payload = decodeToken(state.token)
       return !!payload?.isPlatformAdmin
     },
+    getters: {
+    isAuthenticated: (state) => !!state.token,
+    hasPermission: (state) => (action) => {
+      const payload = decodeToken(state.token)
+      if (!payload) return false
+      if (payload.isPlatformAdmin) return true
+      if (payload.isCompanyAdmin) return true
+      return Array.isArray(payload.permissions) && payload.permissions.includes(action)
+    },
+    isPlatformAdmin: (state) => {
+      const payload = decodeToken(state.token)
+      return !!payload?.isPlatformAdmin
+    },
+    isCompanyAdmin: (state) => {
+      const payload = decodeToken(state.token)
+      return !!payload?.isCompanyAdmin
+    },
+  },
   },
   actions: {
     setToken(token) {
