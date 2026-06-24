@@ -26,23 +26,21 @@
         <FontAwesomeIcon :icon="['fas', 'door-open']" class="icone" />
         <span v-if="aberta" class="label">Tipos de Apartamento</span>
       </router-link>
-      
+
       <router-link to="/services" class="menu-item" :title="aberta ? '' : 'Catálogo de Serviços'">
-      <FontAwesomeIcon :icon="['fas', 'screwdriver-wrench']" class="icone" />
-      <span v-if="aberta" class="label">Catálogo de Serviços</span>
+        <FontAwesomeIcon :icon="['fas', 'screwdriver-wrench']" class="icone" />
+        <span v-if="aberta" class="label">Catálogo de Serviços</span>
       </router-link>
 
       <router-link to="/reinspections" class="menu-item" :title="aberta ? '' : 'Re-inspeções'">
-      <FontAwesomeIcon :icon="['fas', 'rotate']" class="icone" />
-      <span v-if="aberta" class="label">Re-inspeções</span>
+        <FontAwesomeIcon :icon="['fas', 'rotate']" class="icone" />
+        <span v-if="aberta" class="label">Re-inspeções</span>
       </router-link>
 
       <router-link to="/non-conformities" class="menu-item" :title="aberta ? '' : 'Não-Conformidades'">
         <FontAwesomeIcon :icon="['fas', 'triangle-exclamation']" class="icone" />
         <span v-if="aberta" class="label">Não-Conformidades</span>
       </router-link>
-
-      
 
       <router-link to="/equipe" class="menu-item" :title="aberta ? '' : 'Equipe'">
         <FontAwesomeIcon :icon="['fas', 'users']" class="icone" />
@@ -76,7 +74,12 @@
     </nav>
 
     <div class="menu-inferior">
-    <router-link v-if="authStore.isCompanyAdmin || authStore.isPlatformAdmin" to="/configuracoes" class="menu-item" ...>
+      <router-link
+        v-if="authStore.isCompanyAdmin || authStore.isPlatformAdmin"
+        to="/configuracoes"
+        class="menu-item"
+        :title="aberta ? '' : 'Configurações'"
+      >
         <FontAwesomeIcon :icon="['fas', 'gear']" class="icone" />
         <span v-if="aberta" class="label">Configurações</span>
       </router-link>
@@ -119,14 +122,5 @@ function sair() {
 .icone { font-size: 1.1rem; flex-shrink: 0; width: 24px; text-align: center; }
 .label { font-size: 0.95rem; }
 .sair { color: #ffffff; }
-.menu-separator {
-  font-size: 0.68rem;
-  font-weight: 700;
-  color: rgba(255,255,255,0.35);
-  letter-spacing: 0.05em;
-  padding: 14px 12px 4px;
-  white-space: nowrap;
-  overflow: hidden;
-}
+.menu-separator { font-size: 0.68rem; font-weight: 700; color: rgba(255,255,255,0.35); letter-spacing: 0.05em; padding: 14px 12px 4px; white-space: nowrap; overflow: hidden; }
 </style>
-```
