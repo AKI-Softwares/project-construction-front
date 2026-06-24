@@ -75,7 +75,7 @@
 
     <div class="menu-inferior">
       <router-link
-        v-if="authStore.isCompanyAdmin || authStore.isPlatformAdmin"
+        v-if="authStore.isCompanyAdmin || authStore.isPlatformAdmin || authStore.companyId"
         to="/configuracoes"
         class="menu-item"
         :title="aberta ? '' : 'Configurações'"
