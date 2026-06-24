@@ -31,6 +31,10 @@ export const useAuthStore = defineStore('auth', {
       const payload = decodeToken(state.token)
       return !!payload?.isCompanyAdmin
     },
+    companyId: (state) => {
+      const payload = decodeToken(state.token)
+      return payload?.companyId ?? null
+    },
   },
   actions: {
     setToken(token) {
