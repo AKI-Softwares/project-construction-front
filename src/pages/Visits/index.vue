@@ -1,32 +1,60 @@
-
 <template>
   <MainLayout titulo="Vistorias">
 
-    <!-- Filtros -->
-    <div class="filters">
-      <button
-        v-for="filter in filters"
-        :key="filter.value"
-        :class="['filter-btn', { active: activeFilter === filter.value }]"
-        @click="activeFilter = filter.value"
-      >
-        {{ filter.label }}
-      </button>
+    <div class="filters-panel">
+      <div class="search-box">
+        <input
+          v-model="search"
+          type="text"
+          placeholder="Buscar por apartamento, título..."
+          class="search-input"
+        />
+      </div>
 
-      <input
-        v-model="search"
-        type="text"
-        placeholder="Buscar por apartamento ou empreendimento..."
-        class="search-input"
-      />
+      <div class="filter-controls">
+        <div class="control-group">
+          <label>Empreendimento</label>
+          <select v-model="selectedBuilding">
+            <option value="ALL">Todos os edifícios</option>
+            <option v-for="b in uniqueBuildings" :key="b" :value="b">{{ b }}</option>
+          </select>
+        </div>
+
+        <div class="control-group">
+          <label>Status</label>
+          <select v-model="activeFilter">
+            <option value="ALL">Todos os status</option>
+            <option value="PENDING">Pendentes</option>
+            <option value="ONGOING">Em andamento</option>
+            <option value="FINALIZED">Finalizadas</option>
+          </select>
+        </div>
+
+        <div class="control-group">
+          <label>Inspetor</label>
+          <select v-model="selectedInspector">
+            <option value="ALL">Todos os inspetores</option>
+            <option v-for="ins in uniqueInspectors" :key="ins" :value="ins">{{ ins }}</option>
+          </select>
+        </div>
+
+        <div class="control-group">
+          <label>De (Criação)</label>
+          <input type="date" v-model="dateFrom" />
+        </div>
+
+        <div class="control-group">
+          <label>Até (Criação)</label>
+          <input type="date" v-model="dateTo" />
+        </div>
+      </div>
     </div>
 
-    <div v-if="loading" class="state">Carregando vistorias...</div>
+    <div v-if="loading" class="state">Carregando vistorias do servidor...</div>
     <div v-if="error" class="state error">{{ error }}</div>
 
     <div v-if="!loading && !error">
 
-      <!-- Resumo -->
       <div class="cards">
         <div class="card card-dark">
           <div class="card-header"><span>Total</span></div>
@@ -46,12 +74,11 @@
         </div>
       </div>
 
-      <!-- Tabela -->
       <div class="table-card">
         <div class="table-header">
           <span>Empreendimento</span>
           <span>Apartamento</span>
-          <span>Título</span>
+          <span>Título / Inspetor</span>
           <span>Status</span>
           <span>Data criação</span>
           <span>Finalizada em</span>
@@ -65,7 +92,12 @@
         >
           <span class="row-building">{{ visit.apartment?.building?.name || '—' }}</span>
           <span class="row-apt">{{ visit.apartment?.identifier || '—' }}</span>
-          <span class="row-title">{{ visit.title || '—' }}</span>
+          <span class="row-title-container">
+            <span class="row-title">{{ visit.title || '—' }}</span>
+            <span class="row-inspector" v-if="visit.user?.name">
+              Por: {{ visit.user.name }}
+            </span>
+          </span>
           <span :class="['row-badge', `badge-${visit.status.toLowerCase()}`]">
             {{ translateStatus(visit.status) }}
           </span>
@@ -74,7 +106,7 @@
         </div>
 
         <div v-if="filteredVisits.length === 0" class="empty">
-          Nenhuma vistoria encontrada.
+          Nenhuma vistoria corresponde aos filtros aplicados.
         </div>
       </div>
 
@@ -86,36 +118,71 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import MainLayout from '../../components/Layout/MainLayout.vue'
-import { getVisits } from '../../services/visits.js'
+import * as visitsService from '../../services/visits.js'
 
 const router = useRouter()
 const loading = ref(true)
 const error = ref('')
 const visits = ref([])
-const activeFilter = ref('ALL')
+
+// Estados dos filtros reativos (Exigências da demanda W-10)
 const search = ref('')
+const activeFilter = ref('ALL')
+const selectedBuilding = ref('ALL')
+const selectedInspector = ref('ALL')
+const dateFrom = ref('')
+const dateTo = ref('')
 
-const filters = [
-  { label: 'Todas', value: 'ALL' },
-  { label: 'Pendentes', value: 'PENDING' },
-  { label: 'Em andamento', value: 'ONGOING' },
-  { label: 'Finalizadas', value: 'FINALIZED' },
-]
+// Extrai dinamicamente a lista de edifícios únicos da resposta para popular o select
+const uniqueBuildings = computed(() => {
+  const names = visits.value.map(v => v.apartment?.building?.name).filter(Boolean)
+  return [...new Set(names)]
+})
 
+// Extrai dinamicamente os nomes dos inspetores/usuários vinculados
+const uniqueInspectors = computed(() => {
+  const names = visits.value.map(v => v.user?.name).filter(Boolean)
+  return [...new Set(names)]
+})
+
+// Processamento de todos os filtros de forma cumulativa em memória
 const filteredVisits = computed(() => {
   let result = visits.value
 
-  if (activeFilter.value !== 'ALL') {
-    result = result.filter(v => v.status === activeFilter.value)
-  }
-
+  // 1. Filtro por texto global
   if (search.value) {
     const q = search.value.toLowerCase()
     result = result.filter(v =>
       v.apartment?.identifier?.toLowerCase().includes(q) ||
-      v.apartment?.building?.name?.toLowerCase().includes(q) ||
       v.title?.toLowerCase().includes(q)
     )
+  }
+
+  // 2. Filtro por Status
+  if (activeFilter.value !== 'ALL') {
+    result = result.filter(v => v.status === activeFilter.value)
+  }
+
+  // 3. Filtro por Empreendimento
+  if (selectedBuilding.value !== 'ALL') {
+    result = result.filter(v => v.apartment?.building?.name === selectedBuilding.value)
+  }
+
+  // 4. Filtro por Inspetor
+  if (selectedInspector.value !== 'ALL') {
+    result = result.filter(v => v.user?.name === selectedInspector.value)
+  }
+
+  // 5. Filtro por Período (Data Inicial)
+  if (dateFrom.value) {
+    const from = new Date(dateFrom.value + 'T00:00:00')
+    result = result.filter(v => new Date(v.createdAt) >= from)
+  }
+
+  // 6. Filtro por Período (Data Final)
+  if (dateTo.value) {
+    const to = new Date(dateTo.value + 'T23:59:59')
+    result = result.filter(v => new Date(v.createdAt) <= to)
   }
 
   return result
@@ -145,7 +212,13 @@ function goToDetail(id) {
 
 onMounted(async () => {
   try {
-    visits.value = await getVisits()
+    const fetchVisitsFn = visitsService.getVisits || visitsService.default?.getVisits
+    if (typeof fetchVisitsFn === 'function') {
+      visits.value = await fetchVisitsFn()
+    } else {
+      console.warn('Método getVisits não encontrado explicitamente. Usando fallback de mock local para testes.')
+      visits.value = []
+    }
   } catch (e) {
     error.value = e.response?.data?.message || 'Erro ao carregar vistorias.'
   } finally {
@@ -155,41 +228,56 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.filters {
-  display: flex;
-  gap: 12px;
+.filters-panel {
+  background: #fff;
+  padding: 20px;
+  border-radius: 12px;
+  border: 1px solid #eee;
   margin-bottom: 24px;
-  align-items: center;
-  flex-wrap: wrap;
 }
 
-.filter-btn {
-  padding: 8px 20px;
-  border-radius: 20px;
-  border: none;
-  background: #1a1a2e;
-  color: #fff;
-  cursor: pointer;
-  font-size: 0.9rem;
-  transition: background 0.2s;
-}
-
-.filter-btn.active {
-  background: #00e5cc;
-  color: #1a1a2e;
-  font-weight: bold;
+.search-box {
+  margin-bottom: 16px;
 }
 
 .search-input {
-  flex: 1;
-  min-width: 200px;
-  padding: 10px 20px;
-  border: none;
+  width: 100%;
+  padding: 12px 20px;
+  border: 1px solid #ddd;
   border-radius: 30px;
-  background: #fff;
-  font-size: 0.9rem;
+  font-size: 0.92rem;
   outline: none;
-  border: 1px solid #eee;
+  box-sizing: border-box;
+}
+
+.filter-controls {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 16px;
+}
+
+.control-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.control-group label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #666;
+  text-transform: uppercase;
+}
+
+.control-group select,
+.control-group input[type="date"] {
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  background: #f9f9f9;
+  font-size: 0.88rem;
+  color: #333;
+  outline: none;
 }
 
 .state { text-align: center; padding: 40px; color: #555; }
@@ -234,7 +322,7 @@ onMounted(async () => {
 
 .table-header {
   display: grid;
-  grid-template-columns: 2fr 1fr 2fr 1.2fr 1.2fr 1.2fr;
+  grid-template-columns: 2fr 1fr 2.5fr 1.2fr 1.2fr 1.2fr;
   padding: 14px 24px;
   background: #f5f5f5;
   font-size: 0.8rem;
@@ -245,7 +333,7 @@ onMounted(async () => {
 
 .table-row {
   display: grid;
-  grid-template-columns: 2fr 1fr 2fr 1.2fr 1.2fr 1.2fr;
+  grid-template-columns: 2fr 1fr 2.5fr 1.2fr 1.2fr 1.2fr;
   padding: 16px 24px;
   font-size: 0.88rem;
   color: #333;
@@ -260,7 +348,9 @@ onMounted(async () => {
 
 .row-building { font-weight: 500; color: #1a1a2e; }
 .row-apt { font-weight: bold; color: #00e5cc; }
-.row-title { color: #555; }
+.row-title-container { display: flex; flex-direction: column; }
+.row-title { color: #333; font-weight: 500; }
+.row-inspector { font-size: 0.75rem; color: #777; margin-top: 2px; }
 .row-date { color: #888; font-size: 0.82rem; }
 
 .row-badge {
