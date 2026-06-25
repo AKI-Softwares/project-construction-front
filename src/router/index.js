@@ -41,3 +41,50 @@ const routes = [
 const router = createRouter({
   history: createWebHistory(),
   routes,
+})
+
+// Função utilitária para decodificar o payload do JWT com segurança
+function isPasswordChangeRequired(token) {
+  if (!token) return false
+  try {
+    const base64Url = token.split('.')[1]
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+        .join('')
+    )
+    const payload = JSON.parse(jsonPayload)
+    return !!payload.mustChangePassword
+  } catch (error) {
+    console.error('Erro ao decodificar JWT Payload:', error)
+    return false
+  }
+}
+
+router.beforeEach((to) => {
+  const token = localStorage.getItem('token')
+
+  // 1. Bloqueio de rota privada se não houver token
+  if (to.meta.requiresAuth && !token) return { path: '/login' }
+
+  // 2. Se houver token, verifica a flag de troca de senha obrigatória
+  if (token) {
+    const mustChange = isPasswordChangeRequired(token)
+    
+    // Se a troca for obrigatória e o usuário tentar ir para outra rota que não seja /change-password
+    if (mustChange && to.path !== '/change-password') {
+      return { path: '/change-password' }
+    }
+    
+    // Se o usuário já trocou a senha (ou não precisa) e tenta forçar entrada na tela de login
+    if (to.path === '/login' && !mustChange) {
+      return { path: '/dashboard' }
+    }
+  }
+
+  return true
+})
+
+export default router
