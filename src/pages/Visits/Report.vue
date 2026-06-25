@@ -1,6 +1,7 @@
 <template>
   <MainLayout titulo="Relatório Consolidado de Inspeção">
     
+    <!-- Filtro de Seleção do Empreendimento Cadastrado -->
     <div class="filters-card no-print">
       <div class="form-group">
         <label for="building-select">Selecione o Empreendimento para o Relatório:</label>
@@ -18,7 +19,8 @@
       </div>
     </div>
 
-    <div v-if="selectedBuildingId && !carregando" class="report-actions no-print" style="margin-top: 20px;">
+    <!-- Área de Ações (Imprimir) -->
+    <div v-if="selectedBuildingId && !carregando && apartmentsReportData.length > 0" class="report-actions no-print" style="margin-top: 20px;">
       <button class="btn-back" @click="router.back()">
         <FontAwesomeIcon :icon="['fas', 'arrow-left']" /> Voltar
       </button>
@@ -27,18 +29,22 @@
       </button>
     </div>
 
-    <div v-if="carregando" class="loading-box">
+    <!-- Estado de Carregamento -->
+    <div v-if="carregando" class="loading-box" style="margin-top: 20px;">
       <FontAwesomeIcon :icon="['fas', 'spinner']" spin class="loading-icon" />
       <p style="margin: 0;">Minerando árvore de checklists e consolidando indicadores reais...</p>
     </div>
 
+    <!-- Tela Inicial / Esperando Escolha do Usuário -->
     <div v-else-if="!selectedBuildingId" class="empty-card" style="margin-top: 20px;">
       <FontAwesomeIcon :icon="['fas', 'circle-info']" class="empty-icon" />
-      <p>Selecione um empreendimento cadastrado acima para processar e gerar o relatório PEO 19 real.</p>
+      <p>Aguardando seleção. Escolha um empreendimento cadastrado acima para processar e gerar o relatório PEO 19 real.</p>
     </div>
 
+    <!-- Folha de Relatório Impressa (Só renderiza se houver dados processados) -->
     <div v-else class="report-paper">
       
+      <!-- Cabeçalho Institucional -->
       <header class="report-header">
         <div class="header-main">
           <h1>RELATÓRIO CONSOLIDADO</h1>
@@ -52,6 +58,7 @@
 
       <hr class="divider" />
 
+      <!-- Seção 1: Indicadores e Objetivos da Qualidade -->
       <section class="report-section">
         <h3>1. Indicadores de Desempenho e Objetivo da Qualidade</h3>
         
@@ -72,10 +79,12 @@
         </div>
       </section>
 
+      <!-- Seção 2: Resumo do Escopo de Verificação -->
       <section class="report-section">
         <h3>2. Escopo Geral e Itens Verificados</h3>
         
         <div class="tables-split">
+          <!-- Tabela A: Matriz de Cômodos Capturados Dinamicamente das Vistorias -->
           <div class="table-wrapper">
             <h4>Matriz de Cômodos Identificados nas Vistorias</h4>
             <table class="report-table">
@@ -97,6 +106,7 @@
             </table>
           </div>
 
+          <!-- Tabela B: Consolidado Volumétrico -->
           <div class="table-wrapper">
             <h4>Resumo Volumétrico da Obra</h4>
             <table class="report-table summary-table">
@@ -127,6 +137,7 @@
 
       <div class="page-break"></div>
 
+      <!-- Seção 3: Relação Analítica por Unidade Autônoma -->
       <section class="report-section">
         <h3>3. Mapeamento Analítico de Não-Conformidades e Reparos por Unidade</h3>
         <p class="section-description">Volume acumulado de pendências abertas (reparos pendentes) e finalizados extraídos em tempo real do banco de dados.</p>
@@ -166,6 +177,7 @@
         </table>
       </section>
 
+      <!-- Rodapé de Assinaturas -->
       <footer class="print-footer">
         <div class="signature-box">
           <div class="line"></div>
@@ -186,7 +198,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import MainLayout from '../../components/Layout/MainLayout.vue'
 
-// Importações dos seus serviços reais do CheckObra
+// Importações dos serviços do seu CheckObra
 import { getBuildings } from '../../services/buildings.js'
 import { getApartments } from '../../services/apartments.js'
 import { getChecklistByApartment } from '../../services/checklists.js'
@@ -236,7 +248,7 @@ const roomCatalog = computed(() => {
 
 // Fórmula PEO 19 baseada nos dados minerados reais
 const qualityObjectiveResult = computed(() => {
-  const totalInspecionados = totalApartmentsWithChecklist.value * 118 // Fator padrão baseado em itens base
+  const totalInspecionados = totalApartmentsWithChecklist.value * 118 
   if (totalInspecionados === 0) return '0.00'
   const calc = (totalNonConformitiesSum.value / totalInspecionados) * 100
   return calc.toFixed(2)
@@ -246,18 +258,19 @@ function printReport() {
   window.print()
 }
 
-// Carrega os empreendimentos do banco de dados na inicialização
+// Inicialização: Apenas preenche o select superior. Não dispara o relatório de imediato!
 onMounted(async () => {
   try {
     const res = await getBuildings()
     empreendimentos.value = res || []
   } catch (error) {
-    console.error('Erro ao buscar empreendimentos para o relatório:', error)
+    console.error('Erro ao buscar empreendimentos para a listagem inicial:', error)
   }
 })
 
-// MINERAÇÃO E AGREGAÇÃO DINÂMICA (Padrão ouro do seu back-end)
+// MINERAÇÃO E AGREGAÇÃO DISÂMICA SOB DEMANDA
 async function gerarRelatorioReal() {
+  // Trava de segurança: se o usuário limpou a seleção ou escolheu a opção vazia, aborta aqui.
   if (!selectedBuildingId.value) {
     apartmentsReportData.value = []
     dynamicRoomsMap.value = {}
@@ -269,7 +282,7 @@ async function gerarRelatorioReal() {
   dynamicRoomsMap.value = {}
 
   try {
-    // 1. Busca todos os apartamentos vinculados ao prédio
+    // 1. Busca todos os apartamentos vinculados ao prédio selecionado
     const maisAptos = await getApartments({ buildingId: selectedBuildingId.value })
     const listaAptos = maisAptos?.data || maisAptos || []
 
@@ -289,7 +302,6 @@ async function gerarRelatorioReal() {
           temChecklist = true
           
           for (const item of checklistDetail.items) {
-            // Conta e cataloga os cômodos que estão passando pelas vistorias
             const roomName = item.apartmentRoomService?.apartmentRoom?.name || 'Geral'
             tempRoomsMap[roomName] = (tempRoomsMap[roomName] || 0) + 1
 
@@ -312,7 +324,6 @@ async function gerarRelatorioReal() {
         console.warn(`Checklist ausente ou inacessível para o apartamento ID ${apto.id}`)
       }
 
-      // Adiciona o balanço volumétrico real daquela unidade autônoma
       tempReportData.push({
         id: apto.id,
         block: apto.block || 'N/A',
