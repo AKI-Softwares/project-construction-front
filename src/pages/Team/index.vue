@@ -42,40 +42,51 @@
 
       <div v-if="showRoleForm" class="form-card">
         <h3 class="form-title">Criar nova função</h3>
+        
         <div v-if="roleFormSuccess" class="alert success">
           <FontAwesomeIcon :icon="['fas', 'circle-check']" /> Função criada com sucesso!
         </div>
         <div v-if="roleFormError" class="alert error">
           <FontAwesomeIcon :icon="['fas', 'circle-exclamation']" /> {{ roleFormError }}
         </div>
+
         <div class="form-group">
           <label>Nome da função</label>
-          <input v-model="roleForm.name" type="text" placeholder="Ex: Inspetor, Gerente de Obras..." :class="{ invalid: roleFormErrors.name }" />
+          <input v-model="roleForm.name" type="text" placeholder="Ex: Inspetor de Campo, Gerente de Obras..." :class="{ invalid: roleFormErrors.name }" />
           <span v-if="roleFormErrors.name" class="field-error">{{ roleFormErrors.name }}</span>
         </div>
+
         <div class="form-group">
           <label>Descrição <span class="optional">(opcional)</span></label>
-          <input v-model="roleForm.description" type="text" placeholder="Breve descrição das responsabilidades" />
+          <input v-model="roleForm.description" type="text" placeholder="Breve descrição das responsabilidades e acessos" />
         </div>
+
         <div class="form-group">
-          <label>Permissões</label>
+          <label>Definição de Acessos e Permissões do Sistema</label>
           <span v-if="roleFormErrors.permissionIds" class="field-error">{{ roleFormErrors.permissionIds }}</span>
-          <div v-if="loadingPermissions" class="state small">Carregando permissões...</div>
+          <div v-if="loadingPermissions" class="state small">Carregando matriz de permissões...</div>
+          
           <div v-else class="permissions-grid">
-            <div v-for="group in permissionGroups" :key="group.resource" class="perm-group">
+            <div v-for="group in permissionGroups" :key="group.resource" class="perm-group-card">
+              
               <div class="perm-group-header">
                 <input type="checkbox" :id="'group-' + group.resource" :checked="isGroupChecked(group)" :indeterminate.prop="isGroupIndeterminate(group)" @change="toggleGroup(group)" />
-                <label :for="'group-' + group.resource" class="perm-group-label">{{ groupLabel(group.resource) }}</label>
+                <label :for="'group-' + group.resource" class="perm-group-label">
+                  {{ groupLabel(group.resource) }}
+                </label>
               </div>
+
               <div class="perm-items">
                 <label v-for="perm in group.permissions" :key="perm.id" class="perm-item">
                   <input type="checkbox" :value="perm.id" v-model="roleForm.permissionIds" />
-                  {{ operationLabel(perm.operation) }}
+                  <span class="perm-op-text">{{ operationLabel(perm.operation) }} {{ groupLabel(group.resource).toLowerCase() }}</span>
                 </label>
               </div>
+
             </div>
           </div>
         </div>
+
         <div class="form-actions">
           <button class="btn-save" :disabled="savingRole" @click="submitRole">
             {{ savingRole ? 'Salvando...' : 'Salvar função' }}
@@ -86,16 +97,21 @@
 
       <div v-if="loadingRoles" class="state">Carregando funções...</div>
       <div v-if="rolesError" class="state error">{{ rolesError }}</div>
+      
       <div v-if="!loadingRoles && !rolesError" class="roles-list">
         <div v-for="role in roles" :key="role.id" class="role-card">
           <div class="role-info">
             <span class="role-name">{{ role.name }}</span>
             <span v-if="role.description" class="role-desc">{{ role.description }}</span>
+            
             <div class="role-perms">
-              <span v-for="perm in role.permissions.slice(0, 6)" :key="perm.id" class="perm-tag">{{ perm.action }}</span>
+              <span v-for="perm in role.permissions.slice(0, 6)" :key="perm.id" class="perm-tag">
+                {{ traduzirAcaoBanco(perm.action, perm.resource) }}
+              </span>
               <span v-if="role.permissions.length > 6" class="perm-tag more">+{{ role.permissions.length - 6 }}</span>
             </div>
           </div>
+
           <div class="role-meta">
             <span class="role-count">{{ role._count.users }} usuário{{ role._count.users !== 1 ? 's' : '' }}</span>
             <button v-if="!role.isSystem && role._count.users === 0" class="btn-delete" @click="confirmDeleteRole(role)" title="Excluir função">
@@ -185,22 +201,46 @@ const roleFormErrors = reactive({ name: '', permissionIds: '' })
 const permissions = ref([])
 const loadingPermissions = ref(true)
 
-// DEPOIS — o back já retorna agrupado, só ordena
 const permissionGroups = computed(() => {
   return [...permissions.value].sort((a, b) => a.resource.localeCompare(b.resource))
 })
 
+// Mapeamento dos Módulos Focados em Negócio e Telas
 const GROUP_LABELS = {
-  users: 'Usuários', roles: 'Funções', buildings: 'Empreendimentos',
-  apartments: 'Apartamentos', checklists: 'Checklists', inspections: 'Inspeções',
-  services: 'Serviços', permissions: 'Permissões', analytics: 'Analytics',
-  'apartment-types': 'Tipos de Apto', visits: 'Visitas', photos: 'Fotos',
+  analytics: 'Dashboard e Indicadores',
+  visits: 'Acesso ao Mobile (Vistorias)',
+  inspections: 'Inspeções de Campo',
+  checklists: 'Checklists de Unidades',
   'non-conformities': 'Não Conformidades',
+  buildings: 'Empreendimentos (Obras)',
+  apartments: 'Unidades (Apartamentos)',
+  'apartment-types': 'Tipos de Apartamento',
+  services: 'Catálogo de Serviços',
+  users: 'Gestão da Equipe (Usuários)',
+  roles: 'Controle de Funções e Perfis',
+  permissions: 'Chaves de Sistema',
+  photos: 'Mídia e Fotos de Reparo'
 }
 function groupLabel(resource) { return GROUP_LABELS[resource] || resource }
 
-const OPERATION_LABELS = { read: 'Visualizar', create: 'Criar', update: 'Editar', delete: 'Excluir' }
+const OPERATION_LABELS = { 
+  read: 'Visualizar', 
+  create: 'Criar/Cadastrar', 
+  update: 'Editar/Atualizar', 
+  delete: 'Excluir' 
+}
 function operationLabel(op) { return OPERATION_LABELS[op] || op }
+
+// Função mágica para ler strings em inglês do banco (ex: "create:buildings") e traduzir no Front
+function traduzirAcaoBanco(actionString, resource) {
+  if (!actionString) return '—'
+  // Se a ação vier combinada (ex: "read:users") fazemos o split, senão pegamos o operador puro
+  const op = actionString.includes(':') ? actionString.split(':')[0] : actionString
+  const traduzaoOp = OPERATION_LABELS[op] || op
+  const traducaoModulo = GROUP_LABELS[resource] || resource
+  
+  return `${traduzaoOp} ${traducaoModulo}`
+}
 
 function isGroupChecked(group) {
   return group.permissions.every(p => roleForm.permissionIds.includes(p.id))
@@ -304,41 +344,46 @@ onMounted(async () => {
 .state.small { padding: 16px; font-size: 0.85rem; }
 .error { color: red; }
 .user-list { display: flex; flex-direction: column; gap: 12px; }
-.user-card { display: flex; align-items: center; gap: 16px; background: #6b6b6b; border-radius: 12px; padding: 20px 24px; color: #fff; font-size: 1rem; }
+.user-card { display: flex; align-items: center; gap: 16px; background: #2c3e50; border-radius: 12px; padding: 20px 24px; color: #fff; font-size: 1rem; }
 .user-icon { font-size: 1.3rem; color: #00e5cc; }
 .user-name { font-weight: 500; }
 .user-separator { color: rgba(255,255,255,0.5); }
 .user-role { color: rgba(255,255,255,0.85); flex: 1; }
 .roles-list { display: flex; flex-direction: column; gap: 12px; }
-.role-card { display: flex; align-items: flex-start; justify-content: space-between; background: #fff; border-radius: 12px; padding: 20px 24px; border: 1px solid #eee; }
+.role-card { display: flex; align-items: flex-start; justify-content: space-between; background: #fff; border-radius: 12px; padding: 20px 24px; border: 1px solid #eee; box-shadow: 0 2px 8px rgba(0,0,0,0.02); }
 .role-info { display: flex; flex-direction: column; gap: 6px; flex: 1; }
 .role-name { font-size: 1rem; font-weight: 700; color: #1a1a2e; }
 .role-desc { font-size: 0.85rem; color: #777; }
-.role-perms { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
-.perm-tag { background: #e8e8e8; color: #333; font-size: 0.72rem; padding: 3px 10px; border-radius: 20px; }
-.perm-tag.more { background: #0d0d2b; color: #fff; }
+.role-perms { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.perm-tag { background: #f0f1f5; color: #4a5568; font-size: 0.72rem; padding: 4px 12px; border-radius: 20px; font-weight: 500; border: 1px solid #e2e8f0; }
+.perm-tag.more { background: #0d0d2b; color: #fff; border: none; }
 .role-meta { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
-.role-count { font-size: 0.82rem; color: #888; white-space: nowrap; }
-.form-card { background: #fff; border-radius: 12px; padding: 28px; border: 1px solid #eee; max-width: 860px; display: flex; flex-direction: column; gap: 20px; margin-bottom: 28px; }
-.form-title { font-size: 1rem; font-weight: 700; color: #1a1a2e; margin: 0; }
+.role-count { font-size: 0.82rem; color: #888; white-space: nowrap; font-weight: 500; }
+.form-card { background: #fff; border-radius: 12px; padding: 32px; border: 1px solid #eee; max-width: 900px; display: flex; flex-direction: column; gap: 24px; margin-bottom: 28px; box-shadow: 0 4px 16px rgba(0,0,0,0.04); }
+.form-title { font-size: 1.1rem; font-weight: 700; color: #1a1a2e; margin: 0; }
 .form-group { display: flex; flex-direction: column; gap: 8px; }
-label { font-size: 0.9rem; font-weight: 500; color: #333; }
+label { font-size: 0.9rem; font-weight: 600; color: #2d3748; }
 .optional { font-weight: 400; color: #aaa; }
-input[type="text"] { padding: 12px 20px; border: none; border-radius: 30px; background: #e8e8e8; font-size: 0.95rem; outline: none; color: #333; }
+input[type="text"] { padding: 14px 20px; border: none; border-radius: 30px; background: #f0f2f5; font-size: 0.95rem; outline: none; color: #333; transition: background 0.2s; }
+input[type="text"]:focus { background: #e2e8f0; }
 input[type="text"].invalid { border: 2px solid #c0392b; background: #fff3f0; }
-.field-error { font-size: 0.78rem; color: #c0392b; padding-left: 4px; }
-.permissions-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; padding: 16px; background: #f8f8f8; border-radius: 12px; }
-.perm-group { display: flex; flex-direction: column; gap: 8px; }
-.perm-group-header { display: flex; align-items: center; gap: 8px; }
-.perm-group-label { font-size: 0.85rem; font-weight: 700; color: #1a1a2e; cursor: pointer; }
-.perm-items { display: flex; flex-direction: column; gap: 6px; padding-left: 20px; }
-.perm-item { display: flex; align-items: center; gap: 8px; font-size: 0.82rem; color: #444; cursor: pointer; }
-.perm-item input, .perm-group-header input { cursor: pointer; accent-color: #00e5cc; }
-.form-actions { display: flex; gap: 16px; justify-content: flex-end; }
-.btn-save { padding: 12px 32px; background: #00e5cc; border: none; border-radius: 30px; font-size: 0.95rem; font-weight: bold; color: #0d0d2b; cursor: pointer; }
+.field-error { font-size: 0.78rem; color: #c0392b; padding-left: 4px; font-weight: 500; }
+
+/* Grid melhorado em formato de Cards por Módulo */
+.permissions-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; padding: 4px 0; }
+.perm-group-card { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+.perm-group-header { display: flex; align-items: center; gap: 10px; border-bottom: 1px solid #edf2f7; padding-bottom: 8px; }
+.perm-group-label { font-size: 0.88rem; font-weight: 700; color: #0d0d2b; cursor: pointer; }
+.perm-items { display: flex; flex-direction: column; gap: 8px; padding-left: 4px; }
+.perm-item { display: flex; align-items: flex-start; gap: 10px; font-size: 0.82rem; color: #4a5568; cursor: pointer; line-height: 1.4; }
+.perm-op-text { padding-top: 1px; }
+.perm-item input, .perm-group-header input { cursor: pointer; accent-color: #00e5cc; width: 15px; height: 15px; }
+
+.form-actions { display: flex; gap: 16px; justify-content: flex-end; margin-top: 12px; }
+.btn-save { padding: 14px 36px; background: #00e5cc; border: none; border-radius: 30px; font-size: 0.95rem; font-weight: bold; color: #0d0d2b; cursor: pointer; }
 .btn-save:disabled { opacity: 0.6; cursor: not-allowed; }
-.btn-cancel { padding: 12px 32px; background: #e8e8e8; border: none; border-radius: 30px; font-size: 0.95rem; font-weight: bold; color: #333; cursor: pointer; }
-.btn-delete { background: none; border: none; color: #ccc; cursor: pointer; font-size: 1rem; padding: 6px 8px; border-radius: 6px; transition: color 0.2s; }
+.btn-cancel { padding: 14px 36px; background: #e8e8e8; border: none; border-radius: 30px; font-size: 0.95rem; font-weight: bold; color: #333; cursor: pointer; }
+.btn-delete { background: none; border: none; color: #cbd5e0; cursor: pointer; font-size: 1rem; padding: 6px 8px; border-radius: 6px; transition: color 0.2s; }
 .btn-delete:hover { color: #c0392b; }
 .alert { display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-radius: 8px; font-size: 0.9rem; font-weight: 500; }
 .alert.success { background: #e0faf6; color: #00897b; border: 1px solid #00e5cc; }
