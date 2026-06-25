@@ -12,7 +12,7 @@ const routes = [
   { path: '/register', component: () => import('../pages/Register/index.vue'), meta: { public: true } },
   { path: '/change-password', component: () => import('../pages/ChangePassword/index.vue'), meta: { requiresAuth: true } },
   
-  // AQUI: A rota de dashboard agora carregará a nossa nova Home Page do CheckObra
+  // ATUALIZADO: O Dashboard agora carrega a nova HomeView.vue que criamos do zero
   { path: '/dashboard', component: () => import('../pages/Dashboard/HomeView.vue'), meta: { requiresAuth: true } },
   
   { path: '/buildings', component: () => import('../pages/Buildings/index.vue'), meta: { requiresAuth: true } },
