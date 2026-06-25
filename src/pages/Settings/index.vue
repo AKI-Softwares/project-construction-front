@@ -95,10 +95,20 @@
 </template>
 
 <script setup>
+
 import { ref, computed, onMounted } from 'vue'
 import MainLayout from '../../components/Layout/MainLayout.vue'
-import { auth as authService } from '../../services/auth'
-import { users as usersService } from '../../services/users'
+import { useAuthStore } from '../../store/auth'
+
+// Importando os arquivos inteiros como objetos para garantir compatibilidade com o padrão do projeto
+import * as authService from '../../services/auth'
+import * as usersService from '../../services/users'
+
+const editing = ref(false)
+const salvando = ref(false)
+
+// ... restante do seu código (as chamadas authService.me e usersService.updateUser continuam iguaizinhas!)
+
 
 const editing = ref(false)
 const salvando = ref(false)
