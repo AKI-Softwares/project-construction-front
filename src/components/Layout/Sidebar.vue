@@ -48,7 +48,7 @@
       </router-link>
 
       <router-link to="/relatorios" class="menu-item" :title="aberta ? '' : 'Relatórios'">
-        <FontAwesomeIcon :icon="['fas', 'pen-to-square']" class="icone" />
+        <FontAwesomeIcon :icon="['fas', 'chart-bar']" class="icone" />
         <span v-if="aberta" class="label">Relatórios</span>
       </router-link>
 
@@ -123,4 +123,9 @@ function sair() {
 .label { font-size: 0.95rem; }
 .sair { color: #ffffff; }
 .menu-separator { font-size: 0.68rem; font-weight: 700; color: rgba(255,255,255,0.35); letter-spacing: 0.05em; padding: 14px 12px 4px; white-space: nowrap; overflow: hidden; }
+
+/* Ocultação da sidebar na impressão física para evitar faixas pretas laterais na folha */
+@media print {
+  .sidebar { display: none !important; }
+}
 </style>
