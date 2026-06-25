@@ -82,7 +82,7 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { changePassword } from '../../services/auth.js'
+import * as authService from '../../services/auth.js'
 
 const router = useRouter()
 const currentPassword = ref('')
@@ -128,13 +128,29 @@ async function submit() {
   loading.value = true
   error.value = ''
   try {
-    await changePassword(currentPassword.value, newPassword.value)
+    // Busca a função dinamicamente no serviço de autenticação
+    const changePassFn = authService.changePassword || authService.post || authService.default?.changePassword
+
+    if (typeof changePassFn === 'function') {
+      await changePassFn({
+        currentPassword: currentPassword.value,
+        newPassword: newPassword.value
+      })
+    } else {
+      throw new Error('Método changePassword não encontrado no serviço.')
+    }
+    
+    // Após alterar com sucesso, limpamos o token antigo (com a flag ativa) para forçar o login novo e limpo
+    localStorage.removeItem('token')
     router.push('/reset-password/success')
   } catch (e) {
-    if (e.response?.status === 401) {
-      currentError.value = 'Senha temporária incorreta.'
+    const status = e.response?.status || e.status
+    const errMsg = e.response?.data?.message || e.message
+    
+    if (status === 401 || status === 400) {
+      currentError.value = 'Senha temporária incorreta ou dados inválidos.'
     } else {
-      error.value = e.response?.data?.message || 'Erro ao alterar senha.'
+      error.value = errMsg || 'Erro ao alterar senha.'
     }
   } finally {
     loading.value = false
