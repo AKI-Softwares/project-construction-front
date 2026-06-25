@@ -96,20 +96,16 @@
 
 <script setup>
 
+
 import { ref, computed, onMounted } from 'vue'
 import MainLayout from '../../components/Layout/MainLayout.vue'
 import { useAuthStore } from '../../store/auth'
 
-// Importando os arquivos inteiros como objetos para garantir compatibilidade com o padrão do projeto
+// Importa os arquivos inteiros como objetos para garantir compatibilidade com as funções exportadas
 import * as authService from '../../services/auth'
 import * as usersService from '../../services/users'
 
-const editing = ref(false)
-const salvando = ref(false)
-
-// ... restante do seu código (as chamadas authService.me e usersService.updateUser continuam iguaizinhas!)
-
-
+const authStore = useAuthStore()
 const editing = ref(false)
 const salvando = ref(false)
 
@@ -138,7 +134,7 @@ const company = ref({
   }
 })
 
-// Backups para o botão "Cancelar"
+// Backup para o botão "Cancelar"
 const originalUser = ref({ ...userProfile.value })
 
 onMounted(async () => {
@@ -165,7 +161,7 @@ async function carregarDadosUsuario() {
     }
   } catch (error) {
     console.error('Erro ao carregar dados do endpoint /auth/me:', error)
-  } {
+  } finally {
     originalUser.value = JSON.parse(JSON.stringify(userProfile.value))
   }
 }
@@ -195,9 +191,11 @@ async function saveChanges() {
 
   salvando.value = true
   try {
-    if (usersService && typeof usersService.updateUser === 'function') {
-      // Adapte o nome do método caso seu arquivo users.js use outro nome (ex: patch, update)
-      await usersService.updateUser(userProfile.value.id, {
+    // Tenta encontrar a função de update dinamicamente no serviço de usuários
+    const updateFn = usersService.updateUser || usersService.patch || usersService.update
+    
+    if (typeof updateFn === 'function') {
+      await updateFn(userProfile.value.id, {
         name: userProfile.value.name,
         email: userProfile.value.email
       })
@@ -231,6 +229,7 @@ function upgradeNotAvailable() {
     detail: { message: 'Redirecionando para o ambiente seguro do gateway AbacatePay...', type: 'info' }
   }))
 }
+
 </script>
 
 <style scoped>
