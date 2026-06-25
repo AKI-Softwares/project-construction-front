@@ -28,7 +28,10 @@ const routes = [
   { path: '/team/register', component: () => import('../pages/Team/Register.vue'), meta: { requiresAuth: true } },
   { path: '/team', component: () => import('../pages/Team/index.vue'), meta: { requiresAuth: true } },
   { path: '/equipe', redirect: '/team' },
-  { path: '/relatorios', component: () => import('../pages/EmConstrucao/index.vue'), meta: { requiresAuth: true } },
+  
+  // Atualizado: Rota mapeada para o novo componente de Relatório PEO 19
+  { path: '/relatorios', component: () => import('../pages/Visits/Report.vue'), meta: { requiresAuth: true } },
+  
   { path: '/configuracoes', component: () => import('../pages/Settings/index.vue'), meta: { requiresAuth: true } },
 ]
 
