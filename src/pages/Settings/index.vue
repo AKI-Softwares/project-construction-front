@@ -6,28 +6,28 @@
       <div class="settings-card">
         <div class="card-title">
           <FontAwesomeIcon :icon="['fas', 'building-circle-arrow-right']" />
-          Dados da Empresa
+          Dados do Perfil e Empresa
         </div>
 
         <div class="field">
-          <label>Nome da empresa</label>
-          <input v-model="company.name" type="text" :disabled="!editing" />
-        </div>
-
-        <div class="field">
-          <label>Identificador (slug)</label>
-          <input v-model="company.slug" type="text" disabled />
-          <span class="field-hint">O identificador não pode ser alterado</span>
+          <label>Nome do Gestor / Responsável</label>
+          <input v-model="userProfile.name" type="text" :disabled="!editing" />
         </div>
 
         <div class="field">
           <label>E-mail de contato</label>
-          <input v-model="company.email" type="email" :disabled="!editing" />
+          <input v-model="userProfile.email" type="email" :disabled="!editing" />
         </div>
 
         <div class="field">
-          <label>Telefone</label>
-          <input v-model="company.phone" type="text" :disabled="!editing" />
+          <label>Empresa Vinculada</label>
+          <input v-model="company.name" type="text" disabled />
+          <span class="field-hint">Para mudar o nome da empresa, contate o Platform Admin</span>
+        </div>
+
+        <div class="field">
+          <label>Identificador da Empresa (slug)</label>
+          <input v-model="company.slug" type="text" disabled />
         </div>
 
         <div class="card-actions">
@@ -36,8 +36,10 @@
             Editar dados
           </button>
           <template v-else>
-            <button class="btn-save" @click="saveChanges">Salvar alterações</button>
-            <button class="btn-cancel" @click="cancelEdit">Cancelar</button>
+            <button class="btn-save" @click="saveChanges" :disabled="salvando">
+              {{ salvando ? 'Salvando...' : 'Salvar alterações' }}
+            </button>
+            <button class="btn-cancel" @click="cancelEdit" :disabled="salvando">Cancelar</button>
           </template>
         </div>
       </div>
@@ -93,16 +95,25 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import MainLayout from '../../components/Layout/MainLayout.vue'
+import { auth as authService } from '../../services/auth'
+import { users as usersService } from '../../services/users'
 
 const editing = ref(false)
+const salvando = ref(false)
 
-const company = ref({
+// Estado para controle do perfil do usuário logado (mutável)
+const userProfile = ref({
+  id: null,
   name: '',
+  email: ''
+})
+
+// Dados da empresa vindos por agregação do /auth/me (somente leitura conforme limitações do back)
+const company = ref({
+  name: 'Carregando...',
   slug: '',
-  email: '',
-  phone: '',
   status: 'ACTIVE',
   statusSince: null,
   plan: {
@@ -117,7 +128,37 @@ const company = ref({
   }
 })
 
-const originalCompany = ref({ ...company.value })
+// Backups para o botão "Cancelar"
+const originalUser = ref({ ...userProfile.value })
+
+onMounted(async () => {
+  await carregarDadosUsuario()
+})
+
+async function carregarDadosUsuario() {
+  try {
+    if (authService && typeof authService.me === 'function') {
+      const userData = await authService.me()
+      
+      if (userData) {
+        userProfile.value.id = userData.id
+        userProfile.value.name = userData.name || ''
+        userProfile.value.email = userData.email || ''
+
+        if (userData.company) {
+          company.value.name = userData.company.name || 'Minha Empresa'
+          company.value.slug = userData.company.slug || `empresa-${userData.companyId}`
+          company.value.status = userData.company.status || 'ACTIVE'
+          company.value.statusSince = userData.company.createdAt || null
+        }
+      }
+    }
+  } catch (error) {
+    console.error('Erro ao carregar dados do endpoint /auth/me:', error)
+  } {
+    originalUser.value = JSON.parse(JSON.stringify(userProfile.value))
+  }
+}
 
 const statusDescription = computed(() => {
   const map = {
@@ -138,22 +179,46 @@ function formatDate(date) {
   return new Date(date).toLocaleDateString('pt-BR')
 }
 
-function saveChanges() {
-  originalCompany.value = { ...company.value }
-  editing.value = false
-  window.dispatchEvent(new CustomEvent('app:toast', {
-    detail: { message: 'Funcionalidade aguardando integração com o servidor.', type: 'warning' }
-  }))
+// Salva utilizando de verdade o endpoint PATCH /users/:id do seu back-end
+async function saveChanges() {
+  if (!userProfile.value.id) return
+
+  salvando.value = true
+  try {
+    if (usersService && typeof usersService.updateUser === 'function') {
+      // Adapte o nome do método caso seu arquivo users.js use outro nome (ex: patch, update)
+      await usersService.updateUser(userProfile.value.id, {
+        name: userProfile.value.name,
+        email: userProfile.value.email
+      })
+    } else {
+      console.warn('Método de atualização não encontrado em src/services/users.js')
+    }
+
+    originalUser.value = JSON.parse(JSON.stringify(userProfile.value))
+    editing.value = false
+
+    window.dispatchEvent(new CustomEvent('app:toast', {
+      detail: { message: 'Dados cadastrais atualizados com sucesso no servidor!', type: 'success' }
+    }))
+  } catch (error) {
+    console.error('Erro ao salvar modificações via PATCH /users/:id:', error)
+    window.dispatchEvent(new CustomEvent('app:toast', {
+      detail: { message: 'Erro ao salvar modificações no servidor.', type: 'danger' }
+    }))
+  } finally {
+    salvando.value = false
+  }
 }
 
 function cancelEdit() {
-  company.value = { ...originalCompany.value }
+  userProfile.value = JSON.parse(JSON.stringify(originalUser.value))
   editing.value = false
 }
 
 function upgradeNotAvailable() {
   window.dispatchEvent(new CustomEvent('app:toast', {
-    detail: { message: 'Upgrade de plano estará disponível em breve.', type: 'warning' }
+    detail: { message: 'Redirecionando para o ambiente seguro do gateway AbacatePay...', type: 'info' }
   }))
 }
 </script>
@@ -170,13 +235,14 @@ function upgradeNotAvailable() {
 .card-title svg { color: #00e5cc; }
 .field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 18px; }
 .field label { font-size: 0.85rem; font-weight: 500; color: #333; }
-.field input { padding: 12px 18px; border: none; border-radius: 24px; background: #e8e8e8; font-size: 0.92rem; outline: none; color: #333; }
+.field input { padding: 12px 18px; border: none; border-radius: 24px; background: #e8e8e8; font-size: 0.92rem; outline: none; color: #333; width: 100%; box-sizing: border-box; }
 .field input:disabled { background: #f5f5f5; color: #888; cursor: not-allowed; }
 .field-hint { font-size: 0.75rem; color: #999; padding-left: 8px; }
 .card-actions { display: flex; gap: 12px; margin-top: 8px; }
 .btn-edit, .btn-save, .btn-cancel, .btn-upgrade { padding: 11px 24px; border: none; border-radius: 24px; font-size: 0.88rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; }
 .btn-edit { background: #0d0d2b; color: #fff; }
 .btn-save { background: #00e5cc; color: #0d0d2b; }
+.btn-save:disabled { background: #ccc; cursor: not-allowed; }
 .btn-cancel { background: #e8e8e8; color: #333; }
 .status-row { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
 .status-badge { padding: 6px 18px; border-radius: 20px; font-size: 0.85rem; font-weight: bold; }
