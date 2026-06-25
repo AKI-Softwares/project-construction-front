@@ -11,7 +11,10 @@ const routes = [
   { path: '/reset-password/success', component: () => import('../pages/ResetPassword/Success.vue'), meta: { public: true } },
   { path: '/register', component: () => import('../pages/Register/index.vue'), meta: { public: true } },
   { path: '/change-password', component: () => import('../pages/ChangePassword/index.vue'), meta: { requiresAuth: true } },
-  { path: '/dashboard', component: Dashboard, meta: { requiresAuth: true } },
+  
+  // AQUI: A rota de dashboard agora carregará a nossa nova Home Page do CheckObra
+  { path: '/dashboard', component: () => import('../pages/Dashboard/HomeView.vue'), meta: { requiresAuth: true } },
+  
   { path: '/buildings', component: () => import('../pages/Buildings/index.vue'), meta: { requiresAuth: true } },
   { path: '/buildings/:id', component: () => import('../pages/Buildings/index.vue'), meta: { requiresAuth: true } },
   { path: '/apartment-types', component: () => import('../pages/ApartmentTypes/index.vue'), meta: { requiresAuth: true } },
