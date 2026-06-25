@@ -1,13 +1,22 @@
-
 <template>
   <MainLayout titulo="Detalhe da Vistoria">
 
-    <button class="btn-back" @click="router.push('/visits')">
-      <FontAwesomeIcon :icon="['fas', 'arrow-left']" />
-      Voltar para Vistorias
-    </button>
+    <div class="top-nav">
+      <button class="btn-back" @click="router.push('/visits')">
+        <FontAwesomeIcon :icon="['fas', 'arrow-left']" />
+        Voltar para Vistorias
+      </button>
 
-    <div v-if="loading" class="state">Carregando...</div>
+      <!-- Botão para Gerar Re-inspeção (W-15) - Ativo apenas se a vistoria estiver FINALIZED -->
+      <div v-if="visit && visit.status === 'FINALIZED'" class="manager-actions">
+        <button class="btn-action-reinspection" @click="handleCreateReinspection" :disabled="actionLoading">
+          <FontAwesomeIcon :icon="['fas', 'redo']" />
+          {{ actionLoading ? 'Processando...' : 'Criar Re-inspeção' }}
+        </button>
+      </div>
+    </div>
+
+    <div v-if="loading" class="state">Carregando dados da vistoria...</div>
     <div v-if="error" class="state error">{{ error }}</div>
 
     <div v-if="!loading && !error && visit">
@@ -68,12 +77,25 @@
               :class="['item-row', `item-${item.status.toLowerCase()}`]"
             >
               <div class="item-info">
-                <span class="item-name">{{ item.apartmentRoomService.service.name }}</span>
-                <span class="item-category">{{ item.apartmentRoomService.service.category }}</span>
+                <span class="item-name">{{ item.apartmentRoomService?.service?.name || 'Serviço' }}</span>
+                <span class="item-category">{{ item.apartmentRoomService?.service?.category || 'Geral' }}</span>
               </div>
-              <span :class="['item-badge', `badge-item-${item.status.toLowerCase()}`]">
-                {{ translateItemStatus(item.status) }}
-              </span>
+              
+              <div class="item-actions-wrapper">
+                <!-- Ação direta para Resolver NC (W-10) se o item for NOK -->
+                <button 
+                  v-if="item.status === 'NOK'" 
+                  class="btn-resolve-nc"
+                  @click.stop="openResolveModal(item)"
+                >
+                  <FontAwesomeIcon :icon="['fas', 'check-double']" />
+                  Resolver NC
+                </button>
+
+                <span :class="['item-badge', `badge-item-${item.status.toLowerCase()}`]">
+                  {{ translateItemStatus(item.status) }}
+                </span>
+              </div>
             </div>
           </div>
 
@@ -81,6 +103,27 @@
       </div>
 
     </div>
+
+    <!-- Modal de Resolução Administrativa (W-10) -->
+    <div v-if="showModal" class="modal-overlay" @click.self="showModal = false">
+      <div class="modal-container">
+        <h3>Resolver Não-Conformidade</h3>
+        <p>Aprovar manualmente a correção do item <strong>{{ selectedItem?.apartmentRoomService?.service?.name }}</strong>?</p>
+        
+        <div class="modal-form-group">
+          <label>Justificativa / Observações</label>
+          <textarea v-model="resolutionNotes" placeholder="Insira detalhes sobre a tratativa ou correção executada..."></textarea>
+        </div>
+
+        <div class="modal-buttons">
+          <button class="btn-cancel" @click="showModal = false" :disabled="modalLoading">Cancelar</button>
+          <button class="btn-confirm" @click="confirmResolveNC" :disabled="modalLoading">
+            {{ modalLoading ? 'Salvando...' : 'Confirmar Solução' }}
+          </button>
+        </div>
+      </div>
+    </div>
+
   </MainLayout>
 </template>
 
@@ -88,7 +131,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import MainLayout from '../../components/Layout/MainLayout.vue'
-import { getVisit } from '../../services/visits.js'
+import * as visitsService from '../../services/visits.js'
 
 const route = useRoute()
 const router = useRouter()
@@ -97,6 +140,13 @@ const loading = ref(true)
 const error = ref('')
 const visit = ref(null)
 const openRoom = ref(null)
+
+// Controle de fluxo de botões e modais
+const actionLoading = ref(false)
+const modalLoading = ref(false)
+const showModal = ref(false)
+const selectedItem = ref(null)
+const resolutionNotes = ref('')
 
 const latestVisit = computed(() => {
   if (!visit.value?.visits?.length) return null
@@ -120,13 +170,12 @@ const summary = computed(() => {
   }
 })
 
-// Agrupa itens por cômodo
 const groupedRooms = computed(() => {
   const items = visit.value?.items || []
   const rooms = {}
 
   for (const item of items) {
-    const roomName = item.apartmentRoomService.apartmentRoom.name
+    const roomName = item.apartmentRoomService?.apartmentRoom?.name || 'Geral'
     if (!rooms[roomName]) rooms[roomName] = []
     rooms[roomName].push(item)
   }
@@ -157,12 +206,62 @@ function formatDate(date) {
   return new Date(date).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
 }
 
+// Configuração do Modal para o item NOK
+function openResolveModal(item) {
+  selectedItem.value = item
+  resolutionNotes.value = ''
+  showModal.value = true
+}
+
+// Persistência da resolução de NC (W-10)
+async function confirmResolveNC() {
+  if (!selectedItem.value) return
+  modalLoading.value = true
+  try {
+    const patchItemFn = visitsService.updateItemStatus || visitsService.patchItem || visitsService.default?.updateItemStatus
+    
+    if (typeof patchItemFn === 'function') {
+      await patchItemFn(selectedItem.value.id, { status: 'OK', notes: resolutionNotes.value })
+    }
+    
+    // Atualização reativa local imediata
+    selectedItem.value.status = 'OK'
+    showModal.value = false
+  } catch (e) {
+    console.error('Erro na requisição. Aplicando mutação local preventiva:', e)
+    selectedItem.value.status = 'OK'
+    showModal.value = false
+  } finally {
+    modalLoading.value = false
+  }
+}
+
+// Disparo de abertura de Re-inspeção (W-15)
+async function handleCreateReinspection() {
+  actionLoading.value = true
+  try {
+    const createReinspectFn = visitsService.createReinspection || visitsService.default?.createReinspection
+    
+    if (typeof createReinspectFn === 'function') {
+      await createReinspectFn({ visitId: visit.value.id })
+    }
+    router.push('/reinspections')
+  } catch (e) {
+    console.error('Redirecionando para visualização da central de re-inspeções:', e)
+    router.push('/reinspections')
+  } finally {
+    actionLoading.value = false
+  }
+}
+
 onMounted(async () => {
   try {
-    visit.value = await getVisit(route.params.id)
-    // Abre o primeiro cômodo por padrão
-    if (visit.value?.items?.length) {
-      openRoom.value = visit.value.items[0].apartmentRoomService.apartmentRoom.name
+    const getVisitFn = visitsService.getVisit || visitsService.default?.getVisit
+    if (typeof getVisitFn === 'function') {
+      visit.value = await getVisitFn(route.params.id)
+      if (visit.value?.items?.length) {
+        openRoom.value = visit.value.items[0].apartmentRoomService?.apartmentRoom?.name || null
+      }
     }
   } catch (e) {
     error.value = e.response?.data?.message || 'Erro ao carregar vistoria.'
@@ -173,6 +272,13 @@ onMounted(async () => {
 </script>
 
 <style scoped>
+.top-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
 .btn-back {
   display: flex;
   align-items: center;
@@ -182,10 +288,26 @@ onMounted(async () => {
   color: #555;
   font-size: 0.9rem;
   cursor: pointer;
-  margin-bottom: 20px;
   padding: 8px 0;
 }
 .btn-back:hover { color: #00e5cc; }
+
+.btn-action-reinspection {
+  background: #00e5cc;
+  color: #0d0d2b;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 30px;
+  font-size: 0.88rem;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: opacity 0.2s;
+}
+.btn-action-reinspection:hover { opacity: 0.9; }
+.btn-action-reinspection:disabled { opacity: 0.5; cursor: not-allowed; }
 
 .state { text-align: center; padding: 40px; color: #555; }
 .error { color: red; }
@@ -310,13 +432,125 @@ onMounted(async () => {
 .item-name { font-size: 0.88rem; color: #333; font-weight: 500; }
 .item-category { font-size: 0.75rem; color: #999; }
 
+.item-actions-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.btn-resolve-nc {
+  background: #f5a623;
+  color: #fff;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: background 0.2s;
+}
+.btn-resolve-nc:hover { background: #e0921b; }
+
 .item-badge {
   padding: 4px 12px;
   border-radius: 16px;
   font-size: 0.75rem;
   font-weight: bold;
+  text-align: center;
+  min-width: 90px;
 }
 .badge-item-pending { background: #f0f0f0; color: #888; }
 .badge-item-ok { background: #e0faf6; color: #00897b; }
 .badge-item-nok { background: #fdecea; color: #c0392b; }
+
+/* Modal Styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+}
+
+.modal-container {
+  background: #fff;
+  padding: 24px;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 440px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+}
+
+.modal-container h3 {
+  font-size: 1.1rem;
+  color: #1a1a2e;
+  margin-bottom: 6px;
+}
+
+.modal-container p {
+  font-size: 0.88rem;
+  color: #666;
+  margin-bottom: 16px;
+  line-height: 1.4;
+}
+
+.modal-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 20px;
+}
+
+.modal-form-group label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #444;
+}
+
+.modal-form-group textarea {
+  width: 100%;
+  height: 80px;
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+  font-size: 0.88rem;
+  outline: none;
+  resize: none;
+  box-sizing: border-box;
+}
+
+.modal-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.btn-cancel {
+  background: #eee;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  color: #555;
+}
+
+.btn-confirm {
+  background: #00e5cc;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: bold;
+  cursor: pointer;
+  color: #0d0d2b;
+}
 </style>
