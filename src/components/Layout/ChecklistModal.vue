@@ -2,12 +2,13 @@
   <div class="modal-overlay" @click.self="$emit('fechar')">
     <div class="modal" @click.stop>
 
-      <!-- Header -->
       <div class="modal-header">
-        <div>
-          <div class="modal-titulo">CHECKLIST DE INSPEÇÃO - Apartamento</div>
-          <div class="modal-subtitulo">{{ checklist.identifier }} - {{ checklist.block }}</div>
-          <div class="modal-desc">Itens de verificação de Obra</div>
+        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+          <div>
+            <div class="modal-titulo">CHECKLIST DE INSPEÇÃO - Apartamento</div>
+            <div class="modal-subtitulo">{{ checklist.identifier }} - {{ checklist.block }}</div>
+            <div class="modal-desc">Itens de verificação de Obra</div>
+          </div>
           <button class="btn-fechar" @click="$emit('fechar')">✕</button>
         </div>
         <div class="progresso-wrapper">
@@ -22,11 +23,9 @@
         </div>
       </div>
 
-      <!-- Lista de cômodos -->
       <div class="modal-body">
         <div v-for="room in ordenarComodos(checklist.rooms)" :key="room.id" class="comodo">
 
-          <!-- Cômodo destacado se tiver pendência -->
           <div
             :class="['comodo-header', temPendencia(room) ? 'comodo-pendente' : '']"
             @click="toggleComodo(room.id)"
@@ -55,7 +54,6 @@
                 <div v-if="item.status === 'PENDING'" class="item-problema">
                   <div class="item-foto-wrapper">
                     <div class="item-foto">
-                      <!-- Foto real do back quando disponível -->
                       <img v-if="item.photoUrl" :src="item.photoUrl" alt="Foto do problema" />
                       <div v-else class="foto-placeholder">
                         <span>📷</span>
@@ -81,7 +79,7 @@
                 </div>
 
                 <div v-else class="item-desc-simples">
-                  {{ item.description }}
+                  {{ item.description || 'Nenhuma não-conformidade registrada.' }}
                 </div>
 
               </div>
@@ -214,7 +212,7 @@ function downloadFoto(item) {
 }
 .progresso-segmento { height: 100%; transition: width 0.4s ease; }
 .seg-aprovado { background: #00e5cc; }
-.seg-pendente { background: #c0392b; } /* vermelho não muito forte */
+.seg-pendente { background: #c0392b; }
 
 .modal-body {
   padding: 24px;
@@ -223,7 +221,6 @@ function downloadFoto(item) {
   gap: 12px;
 }
 
-/* Cômodo normal */
 .comodo-header {
   display: flex;
   justify-content: space-between;
@@ -237,7 +234,6 @@ function downloadFoto(item) {
   color: #333;
 }
 
-/* Cômodo com pendência — laranja destacado */
 .comodo-pendente {
   background: #f99f56;
   color: #fff;
