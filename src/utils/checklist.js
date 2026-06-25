@@ -1,16 +1,5 @@
 // src/utils/checklist.js
 
-// Mapa de status: o back usa PENDING/OK/NOK no nível do item de checklist
-// (PENDING = ainda não avaliado, OK = aprovado, NOK = reprovado/com pendência).
-// O ChecklistModal foi construído em torno do vocabulário PENDING/WAITING/APPROVED
-// (PENDING = tem problema registrado, WAITING = aguardando vistoria, APPROVED = ok).
-// Mantemos o componente como está e fazemos a tradução aqui, na borda.
-const BACKEND_TO_MODAL_STATUS = {
-  PENDING: 'WAITING',
-  OK: 'APPROVED',
-  NOK: 'PENDING',
-}
-
 // Converte o checklist retornado por GET /checklists/:id (items em lista
 // plana, agrupados via apartmentRoomService.apartmentRoom) no formato
 // { rooms: [{ id, name, items: [...] }] } que o ChecklistModal espera.
@@ -28,21 +17,37 @@ export function groupChecklistByRoom(checklistDetail) {
       roomsById.set(room.id, { id: room.id, name: room.name, items: [] })
     }
 
-    // Descrição/foto/autor do problema vêm da não conformidade ligada ao
-    // item (via visita). O endpoint atual de GET /checklists/:id ainda não
-    // traz esse relacionamento — os campos vêm undefined até o back expor
-    // isso, e o modal já trata a ausência de foto/descrição com fallback.
-    const nonConformity = item.nonConformity ?? item.visitItem?.nonConformity
+    // Mapeia todas as não-conformidades vindas do array visitItems
+    const ncs = item.visitItems?.map(vi => vi.nonConformity).filter(Boolean) ?? []
+    
+    // Uma NC é considerada pendente se ainda não foi resolvida (resolvedAt === null)
+    const temPendenciaAtiva = ncs.some(nc => nc.resolvedAt === null)
+
+    // Definição do status baseado na regra do Modal:
+    // Se o back diz que é NOK e tem pendência ativa -> PENDING (Problema em aberto)
+    // Se o back diz que é OK -> APPROVED (Aprovado)
+    // Qualquer outro cenário (ex: PENDING no back) -> WAITING (Aguardando vistoria)
+    let modalStatus = 'WAITING'
+    if (item.status === 'NOK' && temPendenciaAtiva) {
+      modalStatus = 'PENDING'
+    } else if (item.status === 'OK') {
+      modalStatus = 'APPROVED'
+    }
+
+    // Pegamos a primeira NC ativa para servir de referência (ou a primeira do array)
+    const activeNC = ncs.find(nc => nc.resolvedAt === null) || ncs[0]
 
     roomsById.get(room.id).items.push({
       id: item.id,
       name: ars.service?.name ?? 'Item sem nome',
-      status: BACKEND_TO_MODAL_STATUS[item.status] ?? 'WAITING',
-      description: nonConformity?.description,
-      photoUrl: nonConformity?.photos?.[0]?.url,
-      photos: nonConformity?.photos?.length ?? 0,
-      reportedBy: nonConformity?.reportedBy?.name,
-      reportedAt: nonConformity?.createdAt,
+      status: modalStatus,
+      description: activeNC?.description,
+      // Os campos abaixo continuam mapeados por compatibilidade, 
+      // mas serão limpos/removidos no passo do ChecklistModal se necessário
+      photoUrl: activeNC?.photos?.[0]?.url,
+      photos: activeNC?.photos?.length ?? 0,
+      reportedBy: activeNC?.reportedBy?.name,
+      reportedAt: activeNC?.createdAt,
     })
   }
 
