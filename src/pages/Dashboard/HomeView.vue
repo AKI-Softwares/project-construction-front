@@ -1,15 +1,16 @@
 <template>
   <MainLayout titulo="Painel de Controle">
     
-    <!-- Boas-vindas baseada exclusivamente no Usuário Logado -->
+    <!-- Boas-vindas sem o incômodo dos três pontos fixos -->
     <div class="welcome-section">
       <div class="welcome-text">
-        <h2>Olá, {{ authStore.user?.name || '...' }}!</h2>
+        <h2 v-if="authStore.user?.name">Olá, {{ authStore.user.name }}!</h2>
+        <h2 v-else>Olá! Seja bem-vindo</h2>
         <p>Acompanhe os indicadores resumidos e acesse as ferramentas do sistema.</p>
       </div>
     </div>
 
-    <!-- Indicadores da Home (Padrão limpo puxando dados 100% reais) -->
+    <!-- Indicadores da Home (Padrão limpo e fiel à image_d9b248.png) -->
     <div class="metrics-grid">
       <div v-if="loading" class="loading-state">Carregando indicadores...</div>
       
@@ -36,7 +37,7 @@
       </template>
     </div>
 
-    <!-- Layout Principal da Home (Ações Rápidas + Vistorias Reais) -->
+    <!-- Layout Principal da Home -->
     <div class="home-layout-grid">
       
       <!-- COLUNA DA ESQUERDA: Ações Rápidas -->
@@ -74,7 +75,7 @@
         </div>
       </div>
 
-      <!-- COLUNA DA DIREITA: Histórico de Vistorias do Banco de Dados -->
+      <!-- COLUNA DA DIREITA: Histórico de Vistorias do Banco de Dados com Tradução de Status -->
       <div class="content-panel">
         <h3 class="panel-title">Últimas Vistorias do Sistema</h3>
         
@@ -90,9 +91,25 @@
               <span class="visit-title">{{ visit.title || 'Vistoria sem título' }}</span>
               <span class="visit-sub">{{ visit.buildingName || 'Empreendimento cadastrado' }}</span>
             </div>
+            <!-- Aplicada a formatação e tradução automática dos badges -->
             <span :class="['status-badge', visit.status?.toLowerCase()]">
-              {{ visit.status }}
+              {{ traduzirStatus(visit.status) }}
             </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- NOVO CONTEÚDO EXTRA: Barra de Meta e Progresso Real do Sistema (Ocupa largura total abaixo) -->
+      <div class="content-panel full-width-panel">
+        <h3 class="panel-title">Índice de Conclusão Geral de Vistorias</h3>
+        <div v-if="loading" class="panel-loading">Calculando eficiência...</div>
+        <div v-else class="progress-section">
+          <div class="progress-info-text">
+            <span>Eficiência operacional de vistorias fechadas</span>
+            <strong>{{ totalCalculatedVisits > 0 ? Math.round((finalizedCount / totalCalculatedVisits) * 100) : 0 }}% concluído</strong>
+          </div>
+          <div class="progress-bar-container">
+            <div class="progress-bar-fill" :style="{ width: totalCalculatedVisits > 0 ? ((finalizedCount / totalCalculatedVisits) * 100) + '%' : '0%' }"></div>
           </div>
         </div>
       </div>
@@ -120,6 +137,8 @@ const isRich = ref(false)
 const buildings = ref([])
 const apartments = ref([])
 const recentVisits = ref([])
+const totalCalculatedVisits = ref(0)
+const finalizedCount = ref(0)
 
 const overview = ref({
   visitsFinalized: 0,
@@ -134,9 +153,18 @@ function navigate(path) {
   router.push(path)
 }
 
+// Função utilitária para interceptar strings em inglês da API e traduzir na View
+function traduzirStatus(status) {
+  if (!status) return 'Desconhecido'
+  const s = status.toUpperCase()
+  if (s === 'PENDING') return 'Pendente'
+  if (s === 'FINALIZED') return 'Finalizada'
+  if (s === 'IN_PROGRESS' || s === 'PROGRESS') return 'Em andamento'
+  return status
+}
+
 onMounted(async () => {
   try {
-    // Carrega em paralelo tudo o que existe de real na API
     const [b, a, v] = await Promise.allSettled([
       getBuildings(),
       getApartments(),
@@ -146,8 +174,12 @@ onMounted(async () => {
     if (b.status === 'fulfilled') buildings.value = b.value
     if (a.status === 'fulfilled') apartments.value = a.value
     if (v.status === 'fulfilled' && v.value) {
-      // Exibe apenas as 4 últimas inseridas para manter o layout limpo
-      recentVisits.value = Array.isArray(v.value) ? v.value.slice(0, 4) : []
+      const listaVisitas = Array.isArray(v.value) ? v.value : []
+      recentVisits.value = listaVisitas.slice(0, 4)
+      
+      // Contadores reais para calcular o progresso dinâmico adicionado na home
+      totalCalculatedVisits.value = listaVisitas.length
+      finalizedCount.value = listaVisitas.filter(visit => visit.status?.toUpperCase() === 'FINALIZED').length
     }
 
     try {
@@ -175,7 +207,7 @@ onMounted(async () => {
 .welcome-text h2 { font-size: 1.6rem; font-weight: 700; color: #1a1a2e; margin: 0 0 4px 0; }
 .welcome-text p { font-size: 0.95rem; color: #666; margin: 0; }
 
-/* Bloco de Indicadores conforme o padrão de image_d92bdc.png */
+/* Bloco de Indicadores */
 .metrics-grid { 
   display: grid; 
   grid-template-columns: repeat(4, 1fr); 
@@ -215,11 +247,15 @@ onMounted(async () => {
 .border-coral { border-left: 5px solid #ff7a59; }
 .border-teal { border-left: 5px solid #00e5cc; }
 
-/* Layout Lado a Lado */
+/* Layout da Grid */
 .home-layout-grid { 
   display: grid; 
   grid-template-columns: 1fr 1fr; 
   gap: 24px; 
+}
+
+.full-width-panel {
+  grid-column: span 2;
 }
 
 .content-panel { 
@@ -245,7 +281,7 @@ onMounted(async () => {
 .bg-dark-light { background: #f0f1f5; color: #4a5568; }
 .bg-purple-light { background: #f3e8ff; color: #6b21a8; }
 
-/* Linhas do Histórico Real */
+/* Linhas do Histórico */
 .visit-list { display: flex; flex-direction: column; gap: 12px; }
 .visit-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; cursor: pointer; transition: background 0.2s; }
 .visit-item:hover { background: #f1f5f9; }
@@ -253,16 +289,24 @@ onMounted(async () => {
 .visit-title { font-size: 0.88rem; font-weight: 600; color: #1a1a2e; }
 .visit-sub { font-size: 0.78rem; color: #718096; }
 
-/* Emblemas de Status */
+/* Emblemas de Status Corrigidos */
 .status-badge { font-size: 0.75rem; font-weight: 700; padding: 4px 10px; border-radius: 12px; text-transform: uppercase; }
-.status-badge.pendente { background: #fff3e0; color: #ef6c00; }
-.status-badge.finalizada { background: #e0f2f1; color: #004d40; }
-.status-badge.andamento { background: #e8eaf6; color: #1a237e; }
+.status-badge.pending, .status-badge.pendente { background: #fff3e0; color: #ef6c00; }
+.status-badge.finalized, .status-badge.finalizada { background: #e0f2f1; color: #004d40; }
+.status-badge.in_progress, .status-badge.andamento { background: #e8eaf6; color: #1a237e; }
+
+/* Barra de Progresso Adicionada */
+.progress-section { display: flex; flex-direction: column; gap: 10px; }
+.progress-info-text { display: flex; justify-content: space-between; font-size: 0.88rem; color: #4a5568; }
+.progress-info-text strong { color: #00e5cc; font-weight: 700; }
+.progress-bar-container { width: 100%; height: 10px; background: #f1f5f9; border-radius: 6px; overflow: hidden; }
+.progress-bar-fill { height: 100%; background: #00e5cc; border-radius: 6px; transition: width 0.4s ease; }
 
 .panel-loading, .panel-empty { text-align: center; color: #a0aec0; padding: 40px 0; font-size: 0.88rem; }
 
 @media (max-width: 1024px) {
   .metrics-grid { grid-template-columns: repeat(2, 1fr); }
   .home-layout-grid { grid-template-columns: 1fr; }
+  .full-width-panel { grid-column: span 1; }
 }
 </style>
