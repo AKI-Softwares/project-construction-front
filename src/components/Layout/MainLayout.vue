@@ -1,142 +1,246 @@
 <template>
-  <div class="main-layout">
-    <Sidebar @update:aberta="onSidebarToggle" />
-    
-    <div :class="['conteudo-wrapper', { 'sidebar-expandida': isSidebarOpen }]">
-      <Header :titulo="titulo" />
-      <main class="conteudo">
-        <slot />
-      </main>
-    </div>
-
-    <transition name="toast">
-      <div v-if="toast.visible" :class="['toast', `toast--${toast.type}`]">
-        <span>{{ toast.message }}</span>
-        <button @click="toast.visible = false">✕</button>
+  <div class="layout-container">
+    aside class="sidebar">
+      
+      <div class="sidebar-brand">
+        <img 
+          src="../../assets/logo_check_hotizontal.png" 
+          alt="CheckObra Logo" 
+          class="brand-logo" 
+        />
       </div>
-    </transition>
+
+      <nav class="sidebar-menu">
+        <div class="menu-section">Home</div>
+        <router-link to="/dashboard" class="menu-item" active-class="active">
+          <FontAwesomeIcon :icon="['fas', 'chart-pie']" class="menu-icon" />
+          <span>Dashboard</span>
+        </router-link>
+
+        <div class="menu-section">Empreendimentos</div>
+        
+        <router-link to="/visits" class="menu-item" active-class="active">
+          <FontAwesomeIcon :icon="['fas', 'clipboard-list']" class="menu-icon" />
+          <span>Vistorias</span>
+        </router-link>
+
+        <router-link to="/apartment-types" class="menu-item" active-class="active">
+          <FontAwesomeIcon :icon="['fas', 'door-open']" class="menu-icon" />
+          <span>Tipos de Apartamento</span>
+        </router-link>
+
+        <router-link to="/services-catalog" class="menu-item" active-class="active">
+          <FontAwesomeIcon :icon="['fas', 'screwdriver-wrench']" class="menu-icon" />
+          <span>Catálogo de Serviços</span>
+        </router-link>
+
+        <router-link to="/re-inspections" class="menu-item" active-class="active">
+          <FontAwesomeIcon :icon="['fas', 'rotate']" class="menu-icon" />
+          <span>Re-inspeções</span>
+        </router-link>
+
+        <router-link to="/non-conformities" class="menu-item" active-class="active">
+          <FontAwesomeIcon :icon="['fas', 'triangle-exclamation']" class="menu-icon" />
+          <span>Não-Conformidades</span>
+        </router-link>
+
+        <router-link to="/team" class="menu-item" active-class="active">
+          <FontAwesomeIcon :icon="['fas', 'users']" class="menu-icon" />
+          <span>Equipe</span>
+        </router-link>
+
+        <router-link to="/reports" class="menu-item" active-class="active">
+          <FontAwesomeIcon :icon="['fas', 'file-lines']" class="menu-icon" />
+          <span>Relatórios</span>
+        </router-link>
+
+        <router-link to="/settings" class="menu-item" active-class="active">
+          <FontAwesomeIcon :icon="['fas', 'gear']" class="menu-icon" />
+          <span>Configurações</span>
+        </router-link>
+
+        <div class="menu-separator"></div>
+
+        <button class="menu-item btn-logout" @click="handleLogout">
+          <FontAwesomeIcon :icon="['fas', 'right-from-bracket']" class="menu-icon" />
+          <span>Sair</span>
+        </button>
+      </nav>
+    </aside>
+
+    <main class="main-content">
+      <header class="content-header no-print">
+        <h1 class="page-title">{{ titulo }}</h1>
+      </header>
+      <div class="page-body">
+        <slot />
+      </div>
+    </main>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
-import Sidebar from './Sidebar.vue'
-import Header from './Header.vue'
+import { defineProps } from 'vue'
+import { useRouter } from 'vue-router'
 
 defineProps({
   titulo: {
     type: String,
-    default: 'Dashboard'
+    default: ''
   }
 })
 
-const isSidebarOpen = ref(false)
-const toast = ref({ visible: false, message: '', type: 'error' })
-let timer = null
+const router = useRouter()
 
-function onSidebarToggle(val) {
-  isSidebarOpen.value = val
+function handleLogout() {
+  // Limpa estados de sessão se necessário e redireciona
+  localStorage.clear()
+  router.push('/login')
 }
-
-function showToast({ detail }) {
-  clearTimeout(timer)
-  toast.value = { visible: true, message: detail.message, type: detail.type || 'error' }
-  timer = setTimeout(() => { toast.value.visible = false }, 5000)
-}
-
-onMounted(() => window.addEventListener('app:toast', showToast))
-onUnmounted(() => window.removeEventListener('app:toast', showToast))
 </script>
 
 <style scoped>
-/* RESET GLOBAL PARA TRAVAR TOTALMENTE O SCROLL DA TELA INTEIRA */
-:global(html), :global(body), :global(#app) {
-  margin: 0 !important;
-  padding: 0 !important;
-  width: 100% !important;
-  height: 100% !important;
-  overflow: hidden !important; /* Remove permanentemente o scroll mestre do navegador */
-  background-color: #f4f4f4;
-}
-
-.main-layout {
+/* Estrutura Principal do Layout */
+.layout-container {
   display: flex;
-  width: 100vw;
-  height: 100vh;
-  overflow: hidden; /* Garante que nada passe das bordas do monitor */
+  min-height: 100vh;
+  background-color: #f8fafc;
 }
 
-.conteudo-wrapper {
-  margin-left: 60px; /* Alinhado com a largura fechada da sidebar */
-  flex: 1;
+/* ESTILIZAÇÃO COMPLETA E CORRIGIDA DO SIDEBAR */
+.sidebar {
+  width: 260px;
+  min-width: 260px;
+  height: 100vh;
+  background-color: #0b132b; /* Tom escuro idêntico ao do seu app */
   display: flex;
   flex-direction: column;
-  height: 100%;
-  overflow: hidden;
-  background-color: #f4f4f4;
-  transition: margin-left 0.25s ease; /* Transição suave idêntica à animação do menu */
+  position: sticky;
+  top: 0;
+  box-sizing: border-box;
+  border-right: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-/* Quando a sidebar expande via hover, o conteúdo empurra dinamicamente */
-.conteudo-wrapper.sidebar-expandida {
-  margin-left: 260px;
+/* CORREÇÃO DO TOPO: Garante o respiro para a logo não ser cortada */
+.sidebar-brand {
+  padding: 30px 24px 20px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
 }
 
-/* ÁREA DO MEIO - O ÚNICO LUGAR DA APLICAÇÃO PERMITIDO PARA ROLAGEM */
-.conteudo {
-  margin-top: 60px; /* Espaço fixado para o Header */
-  padding: 32px;
+/* Controle de tamanho da imagem da Logo Horizontal */
+.brand-logo {
+  max-width: 85%;
+  height: auto;
+  max-height: 45px;
+  object-fit: contain;
+}
+
+/* Menu de Navegação */
+.sidebar-menu {
+  display: flex;
+  flex-direction: column;
+  padding: 0 16px 20px 16px;
+  overflow-y: auto;
   flex: 1;
-  overflow-y: auto; /* Se a tabela ou os cards forem compridos, o scroll nasce só aqui dentro */
-  overflow-x: hidden;
+}
+
+/* Cabeçalhos de Seções do Menu (ex: Home, Empreendimentos) */
+.menu-section {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #4b5563;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 18px 0 8px 12px;
+}
+
+/* Links do Menu */
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 14px;
+  color: #9ca3af;
+  text-decoration: none;
+  font-size: 0.92rem;
+  font-weight: 500;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  background: transparent;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  width: 100%;
   box-sizing: border-box;
 }
 
-/* Customização fina e moderna do scroll interno da tabela */
-.conteudo::-webkit-scrollbar {
-  width: 6px;
-}
-.conteudo::-webkit-scrollbar-track {
-  background: #f4f4f4;
-}
-.conteudo::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 4px;
+.menu-item:hover {
+  color: #f3f4f6;
+  background-color: rgba(255, 255, 255, 0.03);
 }
 
-/* Toast mantido com as cores ajustadas */
-.toast {
-  position: fixed;
-  bottom: 24px;
-  right: 24px;
-  z-index: 9999;
+/* Estado Ativo (Dashboard Selecionado na Imagem) */
+.menu-item.active {
+  color: #001e2b;
+  background-color: #00e5cc; /* Cor ciano vibrante da sua identidade */
+  font-weight: 600;
+}
+
+.menu-icon {
+  font-size: 1.1rem;
+  width: 20px;
+  text-align: center;
+}
+
+.menu-separator {
+  margin: 15px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Botão Sair Especializado */
+.btn-logout {
+  color: #f87171;
+  margin-top: auto; /* Joga o botão de sair para o final do menu */
+}
+
+.btn-logout:hover {
+  background-color: rgba(239, 68, 68, 0.1);
+  color: #f87171;
+}
+
+/* Estrutura do Conteúdo à Direita */
+.main-content {
+  flex: 1;
   display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 14px 20px;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 500;
-  color: #fff;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
-  max-width: 380px;
+  flex-direction: column;
+  min-width: 0;
 }
-.toast--error   { background-color: #c0392b; }
-.toast--warning { background-color: #f5a623; }
-.toast--success { background-color: #0099b8; color: #fff; }
 
-.toast button {
-  background: none;
-  border: none;
-  color: inherit;
-  cursor: pointer;
-  font-size: 16px;
-  line-height: 1;
-  padding: 0;
-  opacity: 0.8;
+.content-header {
+  background-color: #fff;
+  padding: 20px 32px;
+  border-bottom: 1px solid #e5e7eb;
 }
-.toast button:hover { opacity: 1; }
 
-.toast-enter-active, .toast-leave-active { transition: all 0.3s ease; }
-.toast-enter-from, .toast-leave-to      { opacity: 0; transform: translateY(12px); }
+.page-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #111827;
+  margin: 0;
+}
+
+.page-body {
+  padding: 32px;
+  flex: 1;
+  overflow-y: auto;
+}
+
+/* Oculta elementos na impressão do relatório */
+@media print {
+  .no-print, .sidebar { display: none !important; }
+  .main-content { padding: 0; }
+  .page-body { padding: 0; }
+}
 </style>
