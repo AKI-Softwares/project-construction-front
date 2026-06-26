@@ -1,11 +1,6 @@
 <template>
   <div :class="['sidebar', { expandida: aberta }]" @mouseenter="toggleSidebar(true)" @mouseleave="toggleSidebar(false)">
 
-    <div class="logo">
-      <FontAwesomeIcon :icon="['far', 'building']" class="logo-icone" />
-      <span v-if="aberta" class="logo-nome">CheckObra</span>
-    </div>
-
     <nav class="menu">
       <router-link to="/dashboard" class="menu-item" :title="aberta ? '' : 'Home'">
         <FontAwesomeIcon :icon="['fas', 'house']" class="icone" />
@@ -110,7 +105,7 @@ const aberta = ref(false)
 
 function toggleSidebar(estado) {
   aberta.value = estado
-  emit('update:aberta', estado) // Sincroniza dinamicamente a margem esquerda com o MainLayout
+  emit('update:aberta', estado)
 }
 
 function sair() {
@@ -120,25 +115,23 @@ function sair() {
 </script>
 
 <style scoped>
-/* ESTILO PREMIUM SEM SCROLL E COM CORES CORRIGIDAS */
 .sidebar { 
   width: 60px; 
-  height: 100vh; /* Ocupa 100% da tela para eliminar frestas abaixo do menu */
-  background-color: #0b1120; /* Azul escuro oficial do layout de login */
+  height: calc(100vh - 60px); /* CORREÇÃO: Ocupa o espaço restante abaixo do Header */
+  background-color: #0b1120; 
   display: flex; 
   flex-direction: column; 
-  padding: 24px 8px; 
+  padding: 16px 8px; 
   position: fixed; 
-  top: 0; 
+  top: 60px; /* CORREÇÃO: Começa exatamente onde o Header de 60px termina */
   left: 0; 
-  z-index: 200; 
+  z-index: 90; /* CORREÇÃO: Fica por baixo do Header (z-index 100) para não tampar a logo */
   transition: width 0.25s ease; 
-  overflow-y: auto; /* Cria scroll se houver muitos submenus e a tela do PC for muito baixa */
+  overflow-y: auto; 
   overflow-x: hidden; 
   box-sizing: border-box;
 }
 
-/* Scroll discreto interno caso precise rolar o menu */
 .sidebar::-webkit-scrollbar {
   width: 4px;
 }
@@ -149,30 +142,6 @@ function sair() {
 
 .sidebar.expandida { 
   width: 260px; 
-}
-
-.logo { 
-  display: flex; 
-  align-items: center; 
-  gap: 12px; 
-  margin-bottom: 40px; 
-  padding: 0 8px; 
-  white-space: nowrap; 
-  overflow: hidden; 
-}
-
-.logo-icone { 
-  font-size: 1.4rem; 
-  color: #00d5cc; /* Ciano oficial da marca CheckObra */
-  flex-shrink: 0; 
-  width: 24px; 
-  text-align: center; 
-}
-
-.logo-nome { 
-  color: #00d5cc; 
-  font-size: 1.2rem; 
-  font-weight: bold; 
 }
 
 .menu { 
@@ -186,7 +155,7 @@ function sair() {
   display: flex; 
   flex-direction: column; 
   gap: 4px; 
-  margin-top: auto; /* Empurra o botão Sair e Configurações sempre para o rodapé */
+  margin-top: auto; 
 }
 
 .menu-item { 
@@ -195,7 +164,7 @@ function sair() {
   gap: 12px; 
   padding: 12px 8px; 
   border-radius: 8px; 
-  color: #9ca3af; /* Cinza de boa legibilidade para itens inativos */
+  color: #9ca3af; 
   text-decoration: none; 
   font-size: 0.95rem; 
   transition: all 0.2s; 
@@ -214,7 +183,6 @@ function sair() {
   color: #ffffff;
 }
 
-/* CLASSE DINÂMICA DO VUE ROUTER - CIANO BRILHANTE NAS ABAS SELECIONADAS */
 .menu-item.router-link-active { 
   background-color: #00d5cc !important; 
   color: #0b1120 !important; 
@@ -234,7 +202,7 @@ function sair() {
 }
 
 .sair { 
-  color: #f87171; /* Destaque sutil em vermelho para o logout */
+  color: #f87171; 
 }
 
 .sair:hover {
