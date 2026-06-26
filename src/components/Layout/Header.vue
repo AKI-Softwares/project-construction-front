@@ -1,6 +1,13 @@
 <template>
-  <header class="header">
-    <h1 class="titulo">{{ titulo }}</h1>
+  <div class="header">
+    <div class="header-left">
+      <img 
+        src="../../assets/logo_check_hotizontal.png" 
+        alt="CheckObra Logo" 
+        class="header-logo" 
+      />
+      <h1 class="titulo">{{ titulo }}</h1>
+    </div>
 
     <div class="perfil">
       <div class="perfil-info">
@@ -9,7 +16,7 @@
       </div>
       <div class="perfil-avatar">{{ initials }}</div>
     </div>
-  </header>
+  </div>
 </template>
 
 <script setup>
@@ -36,7 +43,6 @@ onMounted(async () => {
   try {
     user.value = await me()
   } catch (e) {
-    // fallback: lê do token JWT salvo no localStorage
     try {
       const token = localStorage.getItem('token')
       if (token) {
@@ -51,56 +57,39 @@ onMounted(async () => {
 <style scoped>
 .header {
   height: 60px;
-  background-color: #0b1120; /* Ajustado para o azul escuro oficial, eliminando o roxo */
-  border-bottom: 1px solid #1e293b; /* Linha sutil divisória para dar acabamento */
+  background-color: #2a2a4a;
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 32px;
-  
-  /* Mudança crucial: removemos o position fixed e left fixo.
-     Quem gerencia o espaço agora é o Flexbox do MainLayout, 
-     evitando que as coisas fiquem embaixo do header ou sumam. */
-  width: 100%; 
+  position: fixed;
+  top: 0;
+  left: 60px;
+  right: 0;
+  z-index: 100;
   box-sizing: border-box;
 }
-
-.titulo { 
-  color: #00d5cc; /* Tom ciano limpo alinhado com a marca */
-  font-size: 1.4rem; 
-  font-weight: 600; 
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
 }
-
-.perfil { 
-  display: flex; 
-  align-items: center; 
-  gap: 12px; 
-  cursor: pointer; 
+.header-logo {
+  height: 32px;
+  width: auto;
+  object-fit: contain;
 }
-
-.perfil-info { 
-  display: flex; 
-  flex-direction: column; 
-  align-items: flex-end; 
-}
-
-.perfil-nome { 
-  color: #ffffff; 
-  font-size: 0.9rem; 
-  font-weight: 600; 
-}
-
-.perfil-cargo { 
-  color: #9ca3af; /* Cinza claro com boa leitura sobre o fundo escuro */
-  font-size: 0.75rem; 
-}
-
+.titulo { color: #00e5cc; font-size: 1.4rem; font-weight: 600; }
+.perfil { display: flex; align-items: center; gap: 12px; cursor: pointer; }
+.perfil-info { display: flex; flex-direction: column; align-items: flex-end; }
+.perfil-nome { color: #ffffff; font-size: 0.9rem; font-weight: 600; }
+.perfil-cargo { color: rgba(255,255,255,0.5); font-size: 0.75rem; }
 .perfil-avatar {
   width: 38px;
   height: 38px;
   border-radius: 50%;
-  background-color: #00d5cc; /* Ciano de destaque */
-  color: #0b1120; /* Texto escuro por dentro para legibilidade extrema */
+  background-color: #00e5cc;
+  color: #0d0d2b;
   display: flex;
   align-items: center;
   justify-content: center;
