@@ -1,9 +1,6 @@
 <template>
-  <div 
-    :class="['sidebar', { expandida: aberta }]" 
-    @mouseenter="toggleSidebar(true)" 
-    @mouseleave="toggleSidebar(false)"
-  >
+  <div :class="['sidebar', { expandida: aberta }]" @mouseenter="toggleSidebar(true)" @mouseleave="toggleSidebar(false)">
+
     <div class="logo">
       <FontAwesomeIcon :icon="['far', 'building']" class="logo-icone" />
       <span v-if="aberta" class="logo-nome">CheckObra</span>
@@ -97,6 +94,7 @@
         <span v-if="aberta" class="label">Sair</span>
       </button>
     </div>
+
   </div>
 </template>
 
@@ -112,7 +110,7 @@ const aberta = ref(false)
 
 function toggleSidebar(estado) {
   aberta.value = estado
-  emit('update:aberta', estado) // Avisa o layout mestre para mover o conteúdo
+  emit('update:aberta', estado) // Sincroniza dinamicamente a margem esquerda com o MainLayout
 }
 
 function sair() {
@@ -122,11 +120,11 @@ function sair() {
 </script>
 
 <style scoped>
-/* CONFIGURAÇÃO COMPACTA E CORREÇÃO DE COR DO SIDEBAR */
+/* ESTILO PREMIUM SEM SCROLL E COM CORES CORRIGIDAS */
 .sidebar { 
   width: 60px; 
-  height: 100vh; /* Ocupa 100% da lateral vertical sem deixar frestas no fundo */
-  background-color: #0b1120; /* Tom azul escuro idêntico ao login */
+  height: 100vh; /* Ocupa 100% da tela para eliminar frestas abaixo do menu */
+  background-color: #0b1120; /* Azul escuro oficial do layout de login */
   display: flex; 
   flex-direction: column; 
   padding: 24px 8px; 
@@ -135,12 +133,12 @@ function sair() {
   left: 0; 
   z-index: 200; 
   transition: width 0.25s ease; 
-  overflow-y: auto; /* Permite scroll no menu apenas se a tela for muito baixa verticalmente */
-  overflow-x: hidden;
+  overflow-y: auto; /* Cria scroll se houver muitos submenus e a tela do PC for muito baixa */
+  overflow-x: hidden; 
   box-sizing: border-box;
 }
 
-/* Customização discreta do scroll interno se o menu estourar verticalmente */
+/* Scroll discreto interno caso precise rolar o menu */
 .sidebar::-webkit-scrollbar {
   width: 4px;
 }
@@ -165,14 +163,14 @@ function sair() {
 
 .logo-icone { 
   font-size: 1.4rem; 
-  color: #0099b8; /* Tom ciano ajustado para a marca */
+  color: #00d5cc; /* Ciano oficial da marca CheckObra */
   flex-shrink: 0; 
   width: 24px; 
   text-align: center; 
 }
 
 .logo-nome { 
-  color: #0099b8; 
+  color: #00d5cc; 
   font-size: 1.2rem; 
   font-weight: bold; 
 }
@@ -188,7 +186,7 @@ function sair() {
   display: flex; 
   flex-direction: column; 
   gap: 4px; 
-  margin-top: auto; 
+  margin-top: auto; /* Empurra o botão Sair e Configurações sempre para o rodapé */
 }
 
 .menu-item { 
@@ -197,7 +195,7 @@ function sair() {
   gap: 12px; 
   padding: 12px 8px; 
   border-radius: 8px; 
-  color: #9ca3af; /* Cinza claro suave para itens inativos */
+  color: #9ca3af; /* Cinza de boa legibilidade para itens inativos */
   text-decoration: none; 
   font-size: 0.95rem; 
   transition: all 0.2s; 
@@ -216,7 +214,7 @@ function sair() {
   color: #ffffff;
 }
 
-/* Corrigido o ciano ativo idêntico ao das Vistorias */
+/* CLASSE DINÂMICA DO VUE ROUTER - CIANO BRILHANTE NAS ABAS SELECIONADAS */
 .menu-item.router-link-active { 
   background-color: #00d5cc !important; 
   color: #0b1120 !important; 
@@ -236,8 +234,9 @@ function sair() {
 }
 
 .sair { 
-  color: #f87171; /* Cor vermelha sutil para ação de sair */
+  color: #f87171; /* Destaque sutil em vermelho para o logout */
 }
+
 .sair:hover {
   background-color: rgba(239, 68, 68, 0.1);
   color: #f87171;
