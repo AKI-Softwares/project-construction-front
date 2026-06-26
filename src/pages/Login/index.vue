@@ -1,128 +1,214 @@
 <template>
-  <div class="login-page">
-    <div class="left-panel">
-      <h1 class="brand-name">CheckObra</h1>
-      <p class="brand-slogan">Transformando a vistoria de obras em processo digital</p>
+  <div class="login-container">
+    <!-- Lado Esquerdo: Branding -->
+    <div class="brand-side">
+      <div class="brand-content">
+        <!-- Logo carregado a partir de assets conforme repositório -->
+        <img 
+          src="@/assets/logo_check_obra.png" 
+          alt="CheckObra Logo" 
+          class="main-logo"
+        />
+        <p class="tagline">
+          Transformando a vistoria de obras em processo digital
+        </p>
+      </div>
     </div>
 
-    <div class="right-panel">
-      <h2 class="form-title">Login</h2>
+    <!-- Lado Direito: Formulário -->
+    <div class="form-side">
+      <div class="login-box">
+        <h2>Login</h2>
+        
+        <form @submit.prevent="handleLogin">
+          <div class="input-group">
+            <label for="email">E-mail</label>
+            <input 
+              type="email" 
+              id="email" 
+              placeholder="Digite seu e-mail" 
+              required
+            />
+          </div>
 
-      <label>E-mail</label>
-      <input type="email" v-model="email" />
+          <div class="input-group">
+            <label for="password">Senha</label>
+            <input 
+              type="password" 
+              id="password" 
+              placeholder="Digite sua senha" 
+              required
+            />
+          </div>
 
-      <label>Senha</label>
-      <input type="password" v-model="senha" @keyup.enter="entrar" />
+          <!-- Ajustado para o centro conforme solicitado -->
+          <div class="forgot-password-container">
+            <a href="#" class="forgot-password">Esqueceu a senha?</a>
+          </div>
 
-      <router-link to="/forgot-password" class="forgot-link">Esqueceu a senha?</router-link>
-
-      <p class="erro" v-if="erro">{{ erro }}</p>
-
-      <button @click="entrar" :disabled="carregando">
-        {{ carregando ? 'Entrando...' : 'Entrar' }}
-      </button>
-      <p>Não tem uma conta? <router-link to="/register">Cadastre-se</router-link></p>
+          <button type="submit" class="btn-submit">
+            Entrar
+          </button>
+        </form>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
-import { login } from '../../services/auth.js'
-import { useAuthStore } from '../../store/auth.js'
-
-const router = useRouter()
-const authStore = useAuthStore()
-const email = ref('')
-const senha = ref('')
-const erro = ref('')
-const carregando = ref(false)
-
-function decodeToken(token) {
-  try {
-    const payload = token.split('.')[1]
-    return JSON.parse(atob(payload))
-  } catch {
-    return {}
-  }
-}
-
-async function entrar() {
-  erro.value = ''
-  carregando.value = true
-  try {
-    const data = await login(email.value, senha.value)
-    // Usa a action da store (e não localStorage.setItem direto) para que o
-    // state.token reativo seja atualizado — isso é o que permite os getters
-    // hasPermission/isPlatformAdmin recalcularem corretamente ao trocar de
-    // conta na mesma aba, sem precisar de F5.
-    authStore.setToken(data.token)
-
-    // Verifica se precisa trocar senha
-    const payload = decodeToken(data.token)
-    if (payload.mustChangePassword) {
-      router.push('/change-password')
-    } else {
-      router.push('/dashboard')
-    }
-  } catch (e) {
-    erro.value = e.response?.data?.message || 'E-mail ou senha incorretos.'
-  } finally {
-    carregando.value = false
-  }
+function handleLogin() {
+  // Ação de login futura
+  console.log('Tentativa de login enviada');
 }
 </script>
 
 <style scoped>
-* { box-sizing: border-box; margin: 0; padding: 0; }
-.login-page { display: flex; height: 100vh; }
-.left-panel {
-  width: 40%;
-  background-color: #0d0d2b;
+/* Container Principal ocupando toda a tela */
+.login-container {
   display: flex;
-  flex-direction: column;
-  justify-content: center;
+  width: 100vw;
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+  font-family: sans-serif;
+  overflow: hidden;
+}
+
+/* Lado Esquerdo: Branco com o Logo */
+.brand-side {
+  flex: 1;
+  background-color: #ffffff;
+  display: flex;
   align-items: center;
-  padding: 40px;
-  text-align: center;
+  justify-content: center;
+  padding: 2rem;
 }
-.brand-name { color: #00e5cc; font-size: 2rem; margin-bottom: 16px; }
-.brand-slogan { color: #ffffff; font-size: 1rem; line-height: 1.6; }
-.right-panel {
-  width: 60%;
+
+.brand-content {
+  text-align: center;
+  max-width: 400px;
+}
+
+.main-logo {
+  max-width: 280px;
+  height: auto;
+  margin-bottom: 2rem;
+}
+
+.tagline {
+  color: #111827;
+  font-size: 1.25rem;
+  font-weight: 500;
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* Lado Direito: Escuro com os Inputs */
+.form-side {
+  flex: 1;
+  background-color: #0b1120; /* Tom azul escuro idêntico ao mockup */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.login-box {
+  width: 100%;
+  max-width: 400px;
+}
+
+.login-box h2 {
+  color: #ffffff;
+  font-size: 2rem;
+  font-weight: 400;
+  margin-bottom: 2.5rem;
+}
+
+/* Grupos de Input */
+.input-group {
+  margin-bottom: 1.5rem;
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  padding: 60px 80px;
 }
-.form-title { font-size: 2rem; margin-bottom: 32px; color: #1a1a2e; }
-label { font-size: 0.9rem; margin-bottom: 6px; color: #333; }
-input {
-  width: 100%;
-  padding: 14px 20px;
+
+.input-group label {
+  color: #ffffff;
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.input-group input {
+  background-color: #1e293b; /* Fundo do input acinzentado escuro */
   border: none;
-  border-radius: 30px;
-  background-color: #e8e8e8;
-  margin-bottom: 20px;
+  border-radius: 12px;
+  padding: 1rem;
+  color: #ffffff;
   font-size: 1rem;
   outline: none;
+  transition: background-color 0.2s;
 }
-.forgot-link { color: #00e5cc; text-decoration: none; font-size: 0.9rem; margin-bottom: 4px; display: block; text-align: right; }
-a { color: #00e5cc; text-decoration: none; font-size: 0.9rem; }
-button {
+
+.input-group input:focus {
+  background-color: #273549;
+}
+
+/* Centralização do "Esqueceu a senha?" */
+.forgot-password-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.forgot-password {
+  color: #9ca3af;
+  font-size: 0.875rem;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.forgot-password:hover {
+  color: #ffffff;
+}
+
+/* Botão Entrar Ciano */
+.btn-submit {
   width: 100%;
-  padding: 16px;
-  background-color: #00e5cc;
+  background-color: #0099b8; /* Ciano idêntico à imagem */
+  color: #ffffff;
   border: none;
-  border-radius: 30px;
-  font-size: 1rem;
+  border-radius: 12px;
+  padding: 1rem;
+  font-size: 1.2rem;
   font-weight: bold;
-  color: #fff;
   cursor: pointer;
-  margin: 20px 0;
+  transition: background-color 0.2s, transform 0.1s;
 }
-button:disabled { opacity: 0.7; cursor: not-allowed; }
-.erro { color: red; font-size: 0.85rem; text-align: left; margin-bottom: 8px; }
-p { text-align: center; font-size: 0.9rem; color: #555; }
+
+.btn-submit:hover {
+  background-color: #00b0d4;
+}
+
+.btn-submit:active {
+  transform: scale(0.98);
+}
+
+/* Responsividade Básica para telas pequenas */
+@media (max-width: 768px) {
+  .login-container {
+    flex-direction: column;
+  }
+  .brand-side, .form-side {
+    flex: none;
+    height: 50vh;
+  }
+  .main-logo {
+    max-width: 200px;
+    margin-bottom: 1rem;
+  }
+  .login-box h2 {
+    margin-bottom: 1.5rem;
+  }
+}
 </style>
