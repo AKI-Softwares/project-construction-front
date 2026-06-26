@@ -7,15 +7,20 @@
     </div>
 
     <nav class="menu">
-      <router-link to="/dashboard" class="menu-item" :title="aberta ? '' : 'Dashboard'">
-        <FontAwesomeIcon :icon="['fas', 'chart-simple']" class="icone" />
-        <span v-if="aberta" class="label">Dashboard</span>
-      </router-link>
+  <router-link to="/dashboard" class="menu-item" active-class="active">
+    <FontAwesomeIcon :icon="['fas', 'house']" />
+    <span>Home</span>
+  </router-link>
 
-      <router-link to="/buildings" class="menu-item" :title="aberta ? '' : 'Empreendimentos'">
-        <FontAwesomeIcon :icon="['fas', 'building-circle-arrow-right']" class="icone" />
-        <span v-if="aberta" class="label">Empreendimentos</span>
-      </router-link>
+  <router-link to="/platform/dashboard" class="menu-item" active-class="active">
+    <FontAwesomeIcon :icon="['fas', 'chart-pie']" />
+    <span>Dashboard</span>
+  </router-link>
+
+  <router-link to="/buildings" class="menu-item" active-class="active">
+    <FontAwesomeIcon :icon="['fas', 'building']" />
+    <span>Empreendimentos</span>
+  </router-link>
 
       <router-link to="/visits" class="menu-item" :title="aberta ? '' : 'Vistorias'">
         <FontAwesomeIcon :icon="['fas', 'clipboard-list']" class="icone" />
