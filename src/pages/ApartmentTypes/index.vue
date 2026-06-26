@@ -292,4 +292,85 @@ async function removeRoom(room) {
     selectedType.value.rooms = selectedType.value.rooms.filter(r => r.id !== room.id)
     const idx = types.value.findIndex(t => t.id === selectedType.value.id)
     if (idx !== -1) types.value[idx].rooms = selectedType.value.rooms
-  } catch (
+  } catch (e) {
+    roomError.value = e.response?.data?.message || 'Erro ao remover cômodo.'
+  }
+}
+
+onMounted(async () => {
+  try {
+    const [typesData, servicesData] = await Promise.all([
+      getApartmentTypes(),
+      getServices()
+    ])
+    types.value = typesData
+    catalogServices.value = servicesData
+  } catch (e) {
+    loadError.value = 'Erro ao carregar a estrutura de dados.'
+    console.error(e)
+  } finally {
+    loading.value = false
+  }
+})
+</script>
+
+<style scoped>
+.layout { display: flex; flex-direction: column; gap: 24px; }
+.layout-split { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 24px; align-items: start; }
+.col-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+.col-title { font-size: 1.1rem; font-weight: 700; color: #1a1a2e; margin: 0; }
+.btn-primary { display: flex; align-items: center; gap: 8px; background: #0d0d2b; color: #fff; border: none; border-radius: 30px; padding: 10px 20px; font-size: 0.9rem; font-weight: 600; cursor: pointer; }
+.btn-close { background: none; border: 1px solid #ccc; border-radius: 30px; padding: 8px 16px; font-size: 0.85rem; color: #555; cursor: pointer; }
+.form-card { background: #fff; border-radius: 12px; padding: 24px; border: 1px solid #eee; display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; }
+.form-title { font-size: 0.95rem; font-weight: 700; color: #1a1a2e; margin: 0; }
+input[type="text"] { width: 100%; padding: 12px 18px; border: none; border-radius: 30px; background: #e8e8e8; font-size: 0.9rem; outline: none; color: #333; box-sizing: border-box; }
+input[type="text"].invalid { border: 2px solid #c0392b; background: #fff3f0; }
+textarea { width: 100%; padding: 12px 18px; border: none; border-radius: 12px; background: #e8e8e8; font-size: 0.9rem; outline: none; color: #333; resize: vertical; box-sizing: border-box; font-family: inherit; }
+.field-error { font-size: 0.78rem; color: #c0392b; padding-left: 4px; }
+.form-actions { display: flex; gap: 12px; justify-content: flex-end; }
+.btn-save { padding: 10px 28px; background: #00e5cc; border: none; border-radius: 30px; font-size: 0.9rem; font-weight: bold; color: #0d0d2b; cursor: pointer; }
+.btn-save:disabled { opacity: 0.6; cursor: not-allowed; }
+.btn-cancel { padding: 10px 28px; background: #e8e8e8; border: none; border-radius: 30px; font-size: 0.9rem; font-weight: bold; color: #333; cursor: pointer; }
+.state { text-align: center; padding: 32px; color: #888; }
+.state.small { padding: 12px; font-size: 0.85rem; }
+.type-list { display: flex; flex-direction: column; gap: 10px; }
+.type-card { background: #fff; border-radius: 12px; padding: 18px 20px; border: 2px solid #eee; cursor: pointer; display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; transition: border-color 0.2s; }
+.type-card:hover { border-color: #00e5cc; }
+.type-card.active { border-color: #00e5cc; background: #f0fdfb; }
+.type-card-info { display: flex; flex-direction: column; gap: 4px; flex: 1; }
+.type-name { font-size: 1rem; font-weight: 700; color: #1a1a2e; }
+.type-meta { font-size: 0.8rem; color: #888; }
+.type-desc { font-size: 0.82rem; color: #555; }
+.type-card-actions { display: flex; gap: 8px; }
+.btn-icon { background: none; border: none; color: #bbb; cursor: pointer; font-size: 0.9rem; padding: 6px; border-radius: 6px; transition: color 0.2s; }
+.btn-icon:hover { color: #555; }
+.btn-icon.danger:hover { color: #c0392b; }
+.btn-icon.small { font-size: 0.8rem; padding: 4px; }
+.col-detail { background: #fff; border-radius: 12px; padding: 24px; border: 1px solid #eee; }
+.room-add { display: flex; gap: 10px; margin-bottom: 8px; }
+.room-btn { padding: 10px 20px; white-space: nowrap; flex-shrink: 0; }
+.alert { display: flex; align-items: center; gap: 10px; padding: 10px 16px; border-radius: 8px; font-size: 0.88rem; font-weight: 500; margin-bottom: 12px; }
+.alert.small { padding: 8px 14px; font-size: 0.82rem; }
+.alert.success { background: #e0faf6; color: #00897b; border: 1px solid #00e5cc; }
+.alert.error { background: #fff3f0; color: #c0392b; border: 1px solid #f99f56; }
+.rooms-list { display: flex; flex-direction: column; gap: 12px; }
+.room-card { background: #f8f8f8; border-radius: 10px; padding: 14px 16px; border: 1px solid #eef0f2; }
+.room-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.room-title-group { display: flex; flex-direction: column; flex: 1; }
+.room-icon { color: #00e5cc; font-size: 1.1rem; }
+.room-name { font-size: 0.98rem; font-weight: 700; color: #1a1a2e; }
+.room-suggested-label { font-size: 0.72rem; color: #718096; font-weight: 600; text-transform: uppercase; margin-top: 2px; }
+.services-section { padding-left: 4px; margin-top: 8px; }
+.services-list { display: flex; flex-wrap: wrap; gap: 6px; }
+.service-tag { display: inline-flex; align-items: center; gap: 6px; background: #0d0d2b; color: #fff; padding: 6px 12px; border-radius: 20px; font-size: 0.78rem; font-weight: 600; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+.category-badge { background: rgba(255, 255, 255, 0.2); color: #00e5cc; padding: 1px 6px; border-radius: 10px; font-size: 0.68rem; text-transform: uppercase; font-weight: 700; }
+.no-services { font-size: 0.8rem; color: #a0aec0; font-style: italic; padding: 4px 0; }
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+.modal { background: #fff; border-radius: 16px; padding: 40px; width: 400px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 16px; }
+.modal-icon { font-size: 2.5rem; color: #f99f56; }
+.modal h3 { font-size: 1.1rem; color: #1a1a2e; margin: 0; }
+.modal p { font-size: 0.88rem; color: #555; line-height: 1.5; margin: 0; }
+.modal-actions { display: flex; gap: 12px; }
+.btn-confirm-delete { padding: 10px 24px; background: #c0392b; border: none; border-radius: 30px; color: #fff; font-size: 0.9rem; font-weight: bold; cursor: pointer; }
+.btn-confirm-delete:disabled { opacity: 0.6; cursor: not-allowed; }
+</style>
