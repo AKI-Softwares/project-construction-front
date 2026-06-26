@@ -135,7 +135,7 @@ const dateTo = ref('')
 
 // Extrai dinamicamente a lista de edifícios únicos da resposta para popular o select
 const uniqueBuildings = computed(() => {
-  const names = visits.value.map(v => v.apartment?.building?.name).filter(Boolean)
+  const names = visits.value.map(v => v.apartment?.building?.name || v.apartment?.building?.title).filter(Boolean)
   return [...new Set(names)]
 })
 
@@ -145,13 +145,13 @@ const uniqueInspectors = computed(() => {
   return [...new Set(names)]
 })
 
-// Processamento de todos os filtros de forma cumulativa em memória
+// Processamento de todos os filtros de forma cumulativa em memória (Corrigido)
 const filteredVisits = computed(() => {
   let result = visits.value
 
   // 1. Filtro por texto global
   if (search.value) {
-    const q = search.value.toLowerCase()
+    const q = search.value.toLowerCase().trim()
     result = result.filter(v =>
       v.apartment?.identifier?.toLowerCase().includes(q) ||
       v.title?.toLowerCase().includes(q)
@@ -163,14 +163,22 @@ const filteredVisits = computed(() => {
     result = result.filter(v => v.status === activeFilter.value)
   }
 
-  // 3. Filtro por Empreendimento
+  // 3. Filtro por Empreendimento (CORRIGIDO: normaliza strings e aceita chaves alternativas 'name' ou 'title')
   if (selectedBuilding.value !== 'ALL') {
-    result = result.filter(v => v.apartment?.building?.name === selectedBuilding.value)
+    const targetBuilding = selectedBuilding.value.toLowerCase().trim()
+    result = result.filter(v => {
+      const buildingName = v.apartment?.building?.name || v.apartment?.building?.title || ''
+      return buildingName.toLowerCase().trim() === targetBuilding
+    })
   }
 
-  // 4. Filtro por Inspetor
+  // 4. Filtro por Inspetor (CORRIGIDO: previne quebras caso o nome do usuário venha nulo)
   if (selectedInspector.value !== 'ALL') {
-    result = result.filter(v => v.user?.name === selectedInspector.value)
+    const targetInspector = selectedInspector.value.toLowerCase().trim()
+    result = result.filter(v => {
+      const inspectorName = v.user?.name || ''
+      return inspectorName.toLowerCase().trim() === targetInspector
+    })
   }
 
   // 5. Filtro por Período (Data Inicial)
