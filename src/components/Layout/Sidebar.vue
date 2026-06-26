@@ -1,73 +1,65 @@
 <template>
-  <div :class="['sidebar', { expandida: aberta }]" @mouseenter="aberta = true" @mouseleave="aberta = false">
-
+  <div 
+    :class="['sidebar', { expandida: aberta }]" 
+    @mouseenter="toggleSidebar(true)" 
+    @mouseleave="toggleSidebar(false)"
+  >
     <div class="logo">
       <FontAwesomeIcon :icon="['far', 'building']" class="logo-icone" />
       <span v-if="aberta" class="logo-nome">CheckObra</span>
     </div>
 
- <nav class="menu">
-      <!-- 1. HOME PAGE (Ações Rápidas) -->
+    <nav class="menu">
       <router-link to="/dashboard" class="menu-item" :title="aberta ? '' : 'Home'">
         <FontAwesomeIcon :icon="['fas', 'house']" class="icone" />
         <span v-if="aberta" class="label">Home</span>
       </router-link>
 
-      <!-- 2. DASHBOARD (Admin de Empresa - Tela antiga restaurada) -->
       <router-link to="/analytics" class="menu-item" :title="aberta ? '' : 'Dashboard'">
         <FontAwesomeIcon :icon="['fas', 'chart-pie']" class="icone" />
         <span v-if="aberta" class="label">Dashboard</span>
       </router-link>
 
-      <!-- 3. EMPREENDIMENTOS -->
       <router-link to="/buildings" class="menu-item" :title="aberta ? '' : 'Empreendimentos'">
         <FontAwesomeIcon :icon="['fas', 'building']" class="icone" />
         <span v-if="aberta" class="label">Empreendimentos</span>
       </router-link>
 
-      <!-- 4. VISTORIAS -->
       <router-link to="/visits" class="menu-item" :title="aberta ? '' : 'Vistorias'">
         <FontAwesomeIcon :icon="['fas', 'clipboard-list']" class="icone" />
         <span v-if="aberta" class="label">Vistorias</span>
       </router-link>
 
-      <!-- 5. TIPOS DE APARTAMENTO -->
       <router-link to="/apartment-types" class="menu-item" :title="aberta ? '' : 'Tipos de Apartamento'">
         <FontAwesomeIcon :icon="['fas', 'door-open']" class="icone" />
         <span v-if="aberta" class="label">Tipos de Apartamento</span>
       </router-link>
 
-      <!-- 6. CATÁLOGO DE SERVIÇOS -->
       <router-link to="/services" class="menu-item" :title="aberta ? '' : 'Catálogo de Serviços'">
         <FontAwesomeIcon :icon="['fas', 'screwdriver-wrench']" class="icone" />
         <span v-if="aberta" class="label">Catálogo de Serviços</span>
       </router-link>
 
-      <!-- 7. RE-INSPEÇÕES -->
       <router-link to="/reinspections" class="menu-item" :title="aberta ? '' : 'Re-inspeções'">
         <FontAwesomeIcon :icon="['fas', 'rotate']" class="icone" />
         <span v-if="aberta" class="label">Re-inspeções</span>
       </router-link>
 
-      <!-- 8. NÃO-CONFORMIDADES -->
       <router-link to="/non-conformities" class="menu-item" :title="aberta ? '' : 'Não-Conformidades'">
         <FontAwesomeIcon :icon="['fas', 'triangle-exclamation']" class="icone" />
         <span v-if="aberta" class="label">Não-Conformidades</span>
       </router-link>
 
-      <!-- 9. EQUIPE -->
       <router-link to="/equipe" class="menu-item" :title="aberta ? '' : 'Equipe'">
         <FontAwesomeIcon :icon="['fas', 'users']" class="icone" />
         <span v-if="aberta" class="label">Equipe</span>
       </router-link>
 
-      <!-- 10. RELATÓRIOS (Tela isolada de relatórios) -->
       <router-link to="/relatorios" class="menu-item" :title="aberta ? '' : 'Relatórios'">
         <FontAwesomeIcon :icon="['fas', 'chart-bar']" class="icone" />
         <span v-if="aberta" class="label">Relatórios</span>
       </router-link>
 
-      <!-- SEÇÃO EXCLUSIVA DO PLATFORM ADMIN (SUPER ADMIN) -->
       <template v-if="authStore.isPlatformAdmin">
         <div class="menu-separator"><span v-if="aberta">PLATAFORMA</span></div>
         <router-link to="/platform/dashboard" class="menu-item" :title="aberta ? '' : 'Dashboard da Plataforma'">
@@ -105,18 +97,23 @@
         <span v-if="aberta" class="label">Sair</span>
       </button>
     </div>
-
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, defineEmits } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../../store/auth.js'
 
+const emit = defineEmits(['update:aberta'])
 const router = useRouter()
 const authStore = useAuthStore()
 const aberta = ref(false)
+
+function toggleSidebar(estado) {
+  aberta.value = estado
+  emit('update:aberta', estado) // Avisa o layout mestre para mover o conteúdo
+}
 
 function sair() {
   localStorage.removeItem('token')
@@ -125,22 +122,137 @@ function sair() {
 </script>
 
 <style scoped>
-.sidebar { width: 60px; height: 97vh; background-color: #0d0d2b; display: flex; flex-direction: column; padding: 24px 8px; position: fixed; top: 0; left: 0; z-index: 200; transition: width 0.25s ease; overflow: hidden; }
-.sidebar.expandida { width: 260px; }
-.logo { display: flex; align-items: center; gap: 12px; margin-bottom: 40px; padding: 0 8px; white-space: nowrap; overflow: hidden; }
-.logo-icone { font-size: 1.4rem; color: #00e5cc; flex-shrink: 0; width: 24px; text-align: center; }
-.logo-nome { color: #00e5cc; font-size: 1.2rem; font-weight: bold; }
-.menu { display: flex; flex-direction: column; gap: 4px; flex: 1; }
-.menu-inferior { display: flex; flex-direction: column; gap: 4px; }
-.menu-item { display: flex; align-items: center; gap: 12px; padding: 12px 8px; border-radius: 8px; color: #ffffff; text-decoration: none; font-size: 0.95rem; transition: background 0.2s; background: none; border: none; cursor: pointer; width: 100%; text-align: left; white-space: nowrap; overflow: hidden; }
-.menu-item:hover { background-color: rgba(255, 255, 255, 0.08); }
-.menu-item.router-link-active { background-color: #00e5cc; color: #0d0d2b; font-weight: bold; }
-.icone { font-size: 1.1rem; flex-shrink: 0; width: 24px; text-align: center; }
-.label { font-size: 0.95rem; }
-.sair { color: #ffffff; }
-.menu-separator { font-size: 0.68rem; font-weight: 700; color: rgba(255,255,255,0.35); letter-spacing: 0.05em; padding: 14px 12px 4px; white-space: nowrap; overflow: hidden; }
+/* CONFIGURAÇÃO COMPACTA E CORREÇÃO DE COR DO SIDEBAR */
+.sidebar { 
+  width: 60px; 
+  height: 100vh; /* Ocupa 100% da lateral vertical sem deixar frestas no fundo */
+  background-color: #0b1120; /* Tom azul escuro idêntico ao login */
+  display: flex; 
+  flex-direction: column; 
+  padding: 24px 8px; 
+  position: fixed; 
+  top: 0; 
+  left: 0; 
+  z-index: 200; 
+  transition: width 0.25s ease; 
+  overflow-y: auto; /* Permite scroll no menu apenas se a tela for muito baixa verticalmente */
+  overflow-x: hidden;
+  box-sizing: border-box;
+}
 
-/* Ocultação da sidebar na impressão física para evitar faixas pretas laterais na folha */
+/* Customização discreta do scroll interno se o menu estourar verticalmente */
+.sidebar::-webkit-scrollbar {
+  width: 4px;
+}
+.sidebar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+
+.sidebar.expandida { 
+  width: 260px; 
+}
+
+.logo { 
+  display: flex; 
+  align-items: center; 
+  gap: 12px; 
+  margin-bottom: 40px; 
+  padding: 0 8px; 
+  white-space: nowrap; 
+  overflow: hidden; 
+}
+
+.logo-icone { 
+  font-size: 1.4rem; 
+  color: #0099b8; /* Tom ciano ajustado para a marca */
+  flex-shrink: 0; 
+  width: 24px; 
+  text-align: center; 
+}
+
+.logo-nome { 
+  color: #0099b8; 
+  font-size: 1.2rem; 
+  font-weight: bold; 
+}
+
+.menu { 
+  display: flex; 
+  flex-direction: column; 
+  gap: 4px; 
+  flex: 1; 
+}
+
+.menu-inferior { 
+  display: flex; 
+  flex-direction: column; 
+  gap: 4px; 
+  margin-top: auto; 
+}
+
+.menu-item { 
+  display: flex; 
+  align-items: center; 
+  gap: 12px; 
+  padding: 12px 8px; 
+  border-radius: 8px; 
+  color: #9ca3af; /* Cinza claro suave para itens inativos */
+  text-decoration: none; 
+  font-size: 0.95rem; 
+  transition: all 0.2s; 
+  background: none; 
+  border: none; 
+  cursor: pointer; 
+  width: 100%; 
+  text-align: left; 
+  white-space: nowrap; 
+  overflow: hidden; 
+  box-sizing: border-box;
+}
+
+.menu-item:hover { 
+  background-color: rgba(255, 255, 255, 0.06); 
+  color: #ffffff;
+}
+
+/* Corrigido o ciano ativo idêntico ao das Vistorias */
+.menu-item.router-link-active { 
+  background-color: #00d5cc !important; 
+  color: #0b1120 !important; 
+  font-weight: bold; 
+}
+
+.icone { 
+  font-size: 1.1rem; 
+  flex-shrink: 0; 
+  width: 24px; 
+  text-align: center; 
+  color: inherit;
+}
+
+.label { 
+  font-size: 0.95rem; 
+}
+
+.sair { 
+  color: #f87171; /* Cor vermelha sutil para ação de sair */
+}
+.sair:hover {
+  background-color: rgba(239, 68, 68, 0.1);
+  color: #f87171;
+}
+
+.menu-separator { 
+  font-size: 0.68rem; 
+  font-weight: 700; 
+  color: rgba(255,255,255,0.25); 
+  letter-spacing: 0.05em; 
+  padding: 14px 12px 4px; 
+  white-space: nowrap; 
+  overflow: hidden; 
+}
+
 @media print {
   .sidebar { display: none !important; }
 }
