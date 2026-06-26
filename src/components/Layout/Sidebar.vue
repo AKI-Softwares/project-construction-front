@@ -6,57 +6,63 @@
       <span v-if="aberta" class="logo-nome">CheckObra</span>
     </div>
 
-    <nav class="menu">
-  <router-link to="/dashboard" class="menu-item" active-class="active">
-    <FontAwesomeIcon :icon="['fas', 'house']" />
-    <span>Home</span>
-  </router-link>
+    
+  <nav class="menu">
+      <!-- 1. HOME: Aponta para a HomeView com as ações e os cards novos -->
+      <router-link to="/dashboard" class="menu-item" :title="aberta ? '' : 'Home'">
+        <FontAwesomeIcon :icon="['fas', 'house']" class="icone" />
+        <span v-if="aberta" class="label">Home</span>
+      </router-link>
 
-  <router-link to="/platform/dashboard" class="menu-item" active-class="active">
-    <FontAwesomeIcon :icon="['fas', 'chart-pie']" />
-    <span>Dashboard</span>
-  </router-link>
+      <!-- 2. DASHBOARD: Agora aponta para /relatorios, que é onde estão suas métricas e gráficos normais -->
+      <router-link to="/relatorios" class="menu-item" :title="aberta ? '' : 'Dashboard'">
+        <FontAwesomeIcon :icon="['fas', 'chart-pie']" class="icone" />
+        <span v-if="aberta" class="label">Dashboard</span>
+      </router-link>
 
-  <router-link to="/buildings" class="menu-item" active-class="active">
-    <FontAwesomeIcon :icon="['fas', 'building']" />
-    <span>Empreendimentos</span>
-  </router-link>
+      <!-- 3. EMPREENDIMENTOS -->
+      <router-link to="/buildings" class="menu-item" :title="aberta ? '' : 'Empreendimentos'">
+        <FontAwesomeIcon :icon="['fas', 'building']" class="icone" />
+        <span v-if="aberta" class="label">Empreendimentos</span>
+      </router-link>
 
+      <!-- 4. VISTORIAS -->
       <router-link to="/visits" class="menu-item" :title="aberta ? '' : 'Vistorias'">
         <FontAwesomeIcon :icon="['fas', 'clipboard-list']" class="icone" />
         <span v-if="aberta" class="label">Vistorias</span>
       </router-link>
 
+      <!-- 5. TIPOS DE APARTAMENTO -->
       <router-link to="/apartment-types" class="menu-item" :title="aberta ? '' : 'Tipos de Apartamento'">
         <FontAwesomeIcon :icon="['fas', 'door-open']" class="icone" />
         <span v-if="aberta" class="label">Tipos de Apartamento</span>
       </router-link>
 
+      <!-- 6. CATÁLOGO DE SERVIÇOS -->
       <router-link to="/services" class="menu-item" :title="aberta ? '' : 'Catálogo de Serviços'">
         <FontAwesomeIcon :icon="['fas', 'screwdriver-wrench']" class="icone" />
         <span v-if="aberta" class="label">Catálogo de Serviços</span>
       </router-link>
 
+      <!-- 7. RE-INSPEÇÕES -->
       <router-link to="/reinspections" class="menu-item" :title="aberta ? '' : 'Re-inspeções'">
         <FontAwesomeIcon :icon="['fas', 'rotate']" class="icone" />
         <span v-if="aberta" class="label">Re-inspeções</span>
       </router-link>
 
+      <!-- 8. NÃO-CONFORMIDADES -->
       <router-link to="/non-conformities" class="menu-item" :title="aberta ? '' : 'Não-Conformidades'">
         <FontAwesomeIcon :icon="['fas', 'triangle-exclamation']" class="icone" />
         <span v-if="aberta" class="label">Não-Conformidades</span>
       </router-link>
 
+      <!-- 9. EQUIPE -->
       <router-link to="/equipe" class="menu-item" :title="aberta ? '' : 'Equipe'">
         <FontAwesomeIcon :icon="['fas', 'users']" class="icone" />
         <span v-if="aberta" class="label">Equipe</span>
       </router-link>
 
-      <router-link to="/relatorios" class="menu-item" :title="aberta ? '' : 'Relatórios'">
-        <FontAwesomeIcon :icon="['fas', 'chart-bar']" class="icone" />
-        <span v-if="aberta" class="label">Relatórios</span>
-      </router-link>
-
+      <!-- Seção administrativa restrita (Mantida intacta lá embaixo) -->
       <template v-if="authStore.isPlatformAdmin">
         <div class="menu-separator"><span v-if="aberta">PLATAFORMA</span></div>
         <router-link to="/platform/dashboard" class="menu-item" :title="aberta ? '' : 'Dashboard da Plataforma'">
@@ -76,6 +82,7 @@
           <span v-if="aberta" class="label">Templates de Funções</span>
         </router-link>
       </template>
+    
     </nav>
 
     <div class="menu-inferior">
