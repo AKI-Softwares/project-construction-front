@@ -57,11 +57,11 @@ onMounted(async () => {
 <style scoped>
 .header {
   height: 60px;
-  background-color: #2a2a4a;
+  background-color: #0b1120; /* CORRIGIDO: Mesma cor da Sidebar */
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 32px;
+  padding: 0 32px 0 12px; /* CORRIGIDO: Colado mais na borda esquerda (de 32px para 12px) */
   position: fixed;
   top: 0;
   left: 60px;
@@ -72,10 +72,10 @@ onMounted(async () => {
 .header-left {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 8px; /* CORRIGIDO: Logo mais próxima do título da página */
 }
 .header-logo {
-  height: 32px;
+  height: 42px; /* CORRIGIDO: Logo ampliada de 32px para 42px para dar destaque */
   width: auto;
   object-fit: contain;
 }
