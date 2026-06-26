@@ -1,5 +1,5 @@
 <template>
-  <div class="header">
+  <header class="header">
     <h1 class="titulo">{{ titulo }}</h1>
 
     <div class="perfil">
@@ -9,7 +9,7 @@
       </div>
       <div class="perfil-avatar">{{ initials }}</div>
     </div>
-  </div>
+  </header>
 </template>
 
 <script setup>
@@ -51,28 +51,56 @@ onMounted(async () => {
 <style scoped>
 .header {
   height: 60px;
-  background-color: #2a2a4a;
+  background-color: #0b1120; /* Ajustado para o azul escuro oficial, eliminando o roxo */
+  border-bottom: 1px solid #1e293b; /* Linha sutil divisória para dar acabamento */
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 32px;
-  position: fixed;
-  top: 0;
-  left: 60px;
-  right: 0;
-  z-index: 100;
+  
+  /* Mudança crucial: removemos o position fixed e left fixo.
+     Quem gerencia o espaço agora é o Flexbox do MainLayout, 
+     evitando que as coisas fiquem embaixo do header ou sumam. */
+  width: 100%; 
+  box-sizing: border-box;
 }
-.titulo { color: #00e5cc; font-size: 1.4rem; font-weight: 600; }
-.perfil { display: flex; align-items: center; gap: 12px; cursor: pointer; }
-.perfil-info { display: flex; flex-direction: column; align-items: flex-end; }
-.perfil-nome { color: #ffffff; font-size: 0.9rem; font-weight: 600; }
-.perfil-cargo { color: rgba(255,255,255,0.5); font-size: 0.75rem; }
+
+.titulo { 
+  color: #00d5cc; /* Tom ciano limpo alinhado com a marca */
+  font-size: 1.4rem; 
+  font-weight: 600; 
+}
+
+.perfil { 
+  display: flex; 
+  align-items: center; 
+  gap: 12px; 
+  cursor: pointer; 
+}
+
+.perfil-info { 
+  display: flex; 
+  flex-direction: column; 
+  align-items: flex-end; 
+}
+
+.perfil-nome { 
+  color: #ffffff; 
+  font-size: 0.9rem; 
+  font-weight: 600; 
+}
+
+.perfil-cargo { 
+  color: #9ca3af; /* Cinza claro com boa leitura sobre o fundo escuro */
+  font-size: 0.75rem; 
+}
+
 .perfil-avatar {
   width: 38px;
   height: 38px;
   border-radius: 50%;
-  background-color: #00e5cc;
-  color: #0d0d2b;
+  background-color: #00d5cc; /* Ciano de destaque */
+  color: #0b1120; /* Texto escuro por dentro para legibilidade extrema */
   display: flex;
   align-items: center;
   justify-content: center;
