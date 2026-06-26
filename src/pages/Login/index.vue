@@ -4,8 +4,8 @@
     <div class="brand-side">
       <div class="brand-content">
         <!-- Logo carregado a partir de assets conforme repositório -->
-       <img 
-  src="@/assets/logo_check_obra.png" 
+<img 
+  src="../../assets/logo_check_obra.png" 
   alt="CheckObra Logo" 
   class="main-logo"
 />
