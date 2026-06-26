@@ -4,11 +4,11 @@
     <div class="brand-side">
       <div class="brand-content">
         <!-- Logo carregado a partir de assets conforme repositório -->
-        <img 
-          src="@/assets/logo_check_obra.png" 
-          alt="CheckObra Logo" 
-          class="main-logo"
-        />
+       <img 
+  src="@/assets/logo_check_obra.png" 
+  alt="CheckObra Logo" 
+  class="main-logo"
+/>
         <p class="tagline">
           Transformando a vistoria de obras em processo digital
         </p>
