@@ -194,7 +194,6 @@ onMounted(async () => {
 
 // MINERAÇÃO E AGREGAÇÃO DINÂMICA SOB DEMANDA
 async function gerarRelatorioReal() {
-  // Trava de segurança: se limpou a seleção, reseta o estado.
   if (!selectedBuildingId.value) {
     apartmentsReportData.value = []
     dynamicRoomsMap.value = {}
@@ -206,12 +205,17 @@ async function gerarRelatorioReal() {
   const tempRoomsMap = {}
 
   try {
-    // 1. Busca todos os apartamentos vinculados ao prédio selecionado
-    const maisAptos = await getApartments({ buildingId: selectedBuildingId.value })
+    // CORRIGIDO: Passando apenas o ID direto, exatamente como a getApartments(buildingId) espera receber
+    const maisAptos = await getApartments(selectedBuildingId.value)
     const listaAptos = maisAptos?.data || maisAptos || []
 
-    // 2. Varre cada apartamento de forma síncrona para extrair e consolidar métricas da inspeção
+    // Varre os apartamentos com a trava de segurança baseada no buildingId real do seu arquivo apartments.js
     for (const apto of listaAptos) {
+      
+      if (apto.buildingId && String(apto.buildingId) !== String(selectedBuildingId.value)) {
+        continue
+      }
+
       let nonConformitiesCount = 0
       let temChecklist = false
 
@@ -225,7 +229,6 @@ async function gerarRelatorioReal() {
             const roomName = item.apartmentRoomService?.apartmentRoom?.name || 'Geral'
             tempRoomsMap[roomName] = (tempRoomsMap[roomName] || 0) + 1
 
-            // Incrementa se o item possuir falhas/reparos registrados
             if (item.status === 'NC' || item.status === 'REPARO' || item.hasIssues) {
               nonConformitiesCount++
             }
@@ -244,7 +247,6 @@ async function gerarRelatorioReal() {
       })
     }
 
-    // Alimenta o estado do componente de forma reativa pós-mineração
     apartmentsReportData.value = tempReportData
     dynamicRoomsMap.value = tempRoomsMap
 
