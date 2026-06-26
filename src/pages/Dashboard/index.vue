@@ -149,35 +149,45 @@ const users = ref([])
 const isRich = ref(false)
 const qualityRows = ref([])
 
-// Novo estado reativo para controlar o filtro ativo da tela
+// Estado reativo para o filtro
 const selectedBuildingId = ref('todos')
 
+// Inicialização segura do overview para evitar ler propriedade de undefined
 const overview = ref({
-  totalApartments: 0, visitsFinalized: 0, visitsPending: 0,
-  nokRate: 0, totalNonConformities: 0, totalInspectors: 0,
+  totalApartments: 0, 
+  visitsFinalized: 0, 
+  visitsPending: 0,
+  nokRate: 0, 
+  totalNonConformities: 0, 
+  totalInspectors: 0,
 })
 
-// Computeds para tratar os contadores superiores baseado no filtro
+// Computeds protegidos contra arrays vazios
 const totalBuildingsExibidos = computed(() => {
-  return selectedBuildingId.value === 'todos' ? buildings.value.length : 1
+  return Array.isArray(buildings.value) ? (selectedBuildingId.value === 'todos' ? buildings.value.length : 1) : 0
 })
 
 const metricasFiltradas = computed(() => {
+  // Garantia de que os arrays existem antes de operar
+  const totalAptsGeral = Array.isArray(apartments.value) ? apartments.value.length : 0
+  const ov = overview.value || { visitsPending: 0, visitsFinalized: 0, totalApartments: 0 }
+
   if (selectedBuildingId.value === 'todos') {
     return {
-      pendentes: isRich.value ? overview.value.visitsPending : 0,
-      aguardando: isRich.value ? Math.max(0, apartments.value.length - overview.value.visitsFinalized) : apartments.value.length,
-      finalizados: isRich.value ? overview.value.visitsFinalized : apartments.value.length
+      pendentes: isRich.value ? (ov.visitsPending || 0) : 0,
+      aguardando: isRich.value ? Math.max(0, totalAptsGeral - (ov.visitsFinalized || 0)) : totalAptsGeral,
+      finalizados: isRich.value ? (ov.visitsFinalized || 0) : totalAptsGeral
     }
   }
 
-  // Se tem um id selecionado, filtramos os apartamentos locais desse prédio específico
-  const aptsDoPredio = apartments.value.filter(a => a.buildingId === selectedBuildingId.value)
+  if (!Array.isArray(apartments.value)) return { pendentes: 0, aguardando: 0, finalizados: 0 }
+
+  // Filtro seguro por prédio
+  const aptsDoPredio = apartments.value.filter(a => a && a.buildingId === selectedBuildingId.value)
   const totalDestePredio = aptsDoPredio.length
 
-  // Proporção matemática front-end simulando o filtro do back-end
-  const fatorFinalizado = isRich.value && overview.value.totalApartments > 0 
-    ? (overview.value.visitsFinalized / overview.value.totalApartments) 
+  const fatorFinalizado = isRich.value && ov.totalApartments > 0 
+    ? ((ov.visitsFinalized || 0) / ov.totalApartments) 
     : 0.6
 
   const finalizados = Math.round(totalDestePredio * fatorFinalizado)
@@ -187,7 +197,6 @@ const metricasFiltradas = computed(() => {
   return { pendentes, aguardando, finalizados }
 })
 
-// Proporções para o gráfico donut baseadas nas métricas do filtro ativo
 const porcentagensDonut = computed(() => {
   const m = metricasFiltradas.value
   const total = m.pendentes + m.aguardando + m.finalizados
@@ -200,30 +209,34 @@ const porcentagensDonut = computed(() => {
   }
 })
 
-// GRÁFICO 1: Renderiza dados dinâmicos baseados no filtro selecionado
 const dadosGraficoBarras = computed(() => {
+  if (!Array.isArray(buildings.value) || !Array.isArray(apartments.value)) return []
+
   if (selectedBuildingId.value === 'todos') {
     return buildings.value.map(b => {
-      const totalAptsDoPredio = apartments.value.filter(a => a.buildingId === b.id).length
+      if (!b) return { id: Math.random(), name: 'Sem nome', porcentagem: 0 }
+      const totalAptsDoPredio = apartments.value.filter(a => a && a.buildingId === b.id).length
       const porcentagemCalculada = totalAptsDoPredio > 0 
         ? Math.min(Math.round((totalAptsDoPredio / (apartments.value.length || 1)) * 100) + 40, 100) 
         : 50
-      return { id: b.id, name: b.name, porcentagem: porcentagemCalculada }
+      return { id: b.id, name: b.name || 'Obra sem nome', porcentagem: porcentagemCalculada }
     }).slice(0, 7)
   }
 
-  // Se fixou um prédio, detalha as primeiras unidades dele para compor as colunas do gráfico
-  const unidadesDestePredio = apartments.value.filter(a => a.buildingId === selectedBuildingId.value)
-  return unidadesDestePredio.map(apt => ({
-    id: apt.id,
-    name: `Apto ${apt.number || apt.id}`,
-    porcentagem: apt.status?.toUpperCase() === 'FINALIZED' ? 100 : (apt.status?.toUpperCase() === 'IN_PROGRESS' ? 65 : 40)
-  })).slice(0, 7)
+  const unidadesDestePredio = apartments.value.filter(a => a && a.buildingId === selectedBuildingId.value)
+  return unidadesDestePredio.map(apt => {
+    if (!apt) return { id: Math.random(), name: 'Apto', porcentagem: 0 }
+    const statusNormalizado = String(apt.status || '').toUpperCase()
+    return {
+      id: apt.id,
+      name: `Apto ${apt.number || apt.id}`,
+      porcentagem: statusNormalizado === 'FINALIZED' ? 100 : (statusNormalizado === 'IN_PROGRESS' ? 65 : 40)
+    }
+  }).slice(0, 7)
 })
 
-// Ajusta o gradiente do gráfico circular dinamicamente
 const estiloDonut = computed(() => {
-  const p = porcentagensDonut.value
+  const p = porcentagensDonut.value || { aprovados: 0, pendentes: 0, aguardando: 100 }
   return {
     background: `conic-gradient(
       #00e5cc 0deg ${p.aprovados * 3.6}deg, 
@@ -233,36 +246,49 @@ const estiloDonut = computed(() => {
   }
 })
 
-function obtenerClasseCor(porcentagem) {
+function obterClasseCor(porcentagem) {
   if (porcentagem >= 100) return 'teal-bg'
   if (porcentagem >= 65) return 'orange-bg'
   return 'yellow-bg'
 }
 
-const topQualityIssues = computed(() =>
-  [...qualityRows.value]
-    .filter(r => r.nokCount > 0)
-    .sort((a, b) => b.nokRate - a.nokRate)
+const topQualityIssues = computed(() => {
+  if (!Array.isArray(qualityRows.value)) return []
+  return [...qualityRows.value]
+    .filter(r => r && r.nokCount > 0)
+    .sort((a, b) => (b.nokRate || 0) - (a.nokRate || 0))
     .slice(0, 5)
-)
+})
 
 onMounted(async () => {
   try {
+    // Busca os dados base tratando falhas individuais com Promise.allSettled
     const [b, a, u] = await Promise.allSettled([getBuildings(), getApartments(), getUsers()])
-    if (b.status === 'fulfilled') buildings.value = b.value
-    if (a.status === 'fulfilled') apartments.value = a.value
-    if (u.status === 'fulfilled') users.value = u.value
+    
+    if (b.status === 'fulfilled' && b.value) {
+      // Se a resposta do back vier envelopada em .data, desestruturamos corretamente
+      buildings.value = Array.isArray(b.value) ? b.value : (b.value.data || [])
+    }
+    if (a.status === 'fulfilled' && a.value) {
+      apartments.value = Array.isArray(a.value) ? a.value : (a.value.data || [])
+    }
+    if (u.status === 'fulfilled' && u.value) {
+      users.value = Array.isArray(u.value) ? u.value : (u.value.data || [])
+    }
 
+    // Busca dados analíticos ricos
     try {
       const [ov, q] = await Promise.all([getOverview(), getQuality()])
-      overview.value = ov.data
-      qualityRows.value = q.data
+      if (ov && ov.data) overview.value = ov.data
+      if (q && q.data) qualityRows.value = q.data
       isRich.value = true
-    } catch {
+    } catch (analyticsError) {
+      console.warn('Analytics adicionais indisponíveis, usando fallback local:', analyticsError)
       isRich.value = false
     }
   } catch (e) {
-    error.value = 'Erro ao montar gráficos corporativos.'
+    console.error('Erro crítico na montagem da dashboard:', e)
+    error.value = 'Não foi possível carregar os gráficos. Verifique a conexão.'
   } finally {
     loading.value = false
   }
