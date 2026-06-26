@@ -206,10 +206,40 @@ async function openChecklist(apt) {
   checklistError.value = ''
   loadingChecklist.value = true
   try {
-    const detail = await getChecklistByApartment(apt.id)
-    if (!detail) { checklistError.value = 'Este apartamento ainda não tem checklist de vistoria.'; return }
+    // 1. Busca os dados da API
+    let detail = await getChecklistByApartment(apt.id)
+    
+    // 2. SE A API VIER VAZIA (Casos dos apartamentos novos):
+    // Se não houver detail ou se a lista de cômodos (rooms) estiver vazia
+    if (!detail || !detail.rooms || detail.rooms.length === 0) {
+      
+      // Encontra o tipo desse apartamento para saber quais cômodos ele deveria ter
+      const tipoDoApt = apartmentTypes.value.find(t => t.id === apt.apartmentTypeId)
+      
+      if (tipoDoApt && tipoDoApt.rooms) {
+        // Montamos a estrutura na memória do front-end para o modal aceitar
+        detail = {
+          identifier: apt.identifier,
+          block: apt.block || '—',
+          // Criamos a propriedade .rooms que o modal exige para o v-for
+          rooms: tipoDoApt.rooms.map(room => ({
+            id: room.id,
+            name: room.name,
+            // Criamos a propriedade .items vazia ou simulada para não quebrar as propriedades computadas
+            items: [] 
+          }))
+        }
+      } else {
+        checklistError.value = 'Este apartamento está sem checklist no banco e não encontramos o Tipo dele.'
+        return
+      }
+    }
+
+    // 3. Passa os dados estruturados para o utilitário e abre o modal
     selectedChecklist.value = groupChecklistByRoom(detail)
+    
   } catch (e) {
+    console.error(e)
     checklistError.value = e.response?.data?.message || 'Erro ao carregar o checklist.'
   } finally {
     loadingChecklist.value = false
