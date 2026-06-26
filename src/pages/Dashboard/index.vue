@@ -289,23 +289,39 @@ onMounted(async () => {
   try {
     const [b, a, u] = await Promise.allSettled([getBuildings(), getApartments(), getUsers()])
     
+    // 🔍 LOGS PARA DEBUG: Abra o console do navegador (F12) e veja o que aparece aqui
+    console.log('Retorno de Buildings:', b)
+    console.log('Retorno de Apartments:', a)
+
     if (b.status === 'fulfilled' && b.value) {
-      buildings.value = Array.isArray(b.value) ? b.value : (b.value.data || [])
+      // Tenta mapear o array independente do nível de envelopamento do Axios
+      if (Array.isArray(b.value)) buildings.value = b.value
+      else if (b.value.data && Array.isArray(b.value.data)) buildings.value = b.value.data
+      else if (b.value.data && b.value.data.data) buildings.value = b.value.data.data
+      else buildings.value = []
     }
+    
     if (a.status === 'fulfilled' && a.value) {
-      apartments.value = Array.isArray(a.value) ? a.value : (a.value.data || [])
+      // Tenta mapear as unidades/apartamentos
+      if (Array.isArray(a.value)) apartments.value = a.value
+      else if (a.value.data && Array.isArray(a.value.data)) apartments.value = a.value.data
+      else if (a.value.data && a.value.data.data) apartments.value = a.value.data.data
+      else apartments.value = []
     }
+    
     if (u.status === 'fulfilled' && u.value) {
       users.value = Array.isArray(u.value) ? u.value : (u.value.data || [])
     }
 
     try {
       const [ov, q] = await Promise.all([getOverview(), getQuality()])
+      console.log('Retorno do Overview:', ov)
+      
       if (ov && ov.data) overview.value = ov.data
       if (q && q.data) qualityRows.value = q.data
       isRich.value = true
     } catch (analyticsError) {
-      console.warn('Serviço de análise avançada offline ou restrito. Usando fallback reativo local.', analyticsError)
+      console.warn('Serviço de análise avançada offline. Rodando no modo reativo local.')
       isRich.value = false
     }
   } catch (e) {
