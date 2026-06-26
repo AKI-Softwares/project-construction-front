@@ -4,7 +4,7 @@
     <div class="welcome-section">
       <div class="welcome-text">
         <h2>Olá, {{ authStore.user?.name || 'Usuário' }}!</h2>
-        <p>Acompanhe os indicadores e dados em tempo real das vistorias e obras cadastrados no sistema.</p>
+        <p>Acompanhe os indicadores e dados em tempo real de todos os empreendimentos cadastrados no sistema.</p>
       </div>
       <div class="current-date">
         <FontAwesomeIcon :icon="['fas', 'calendar-days']" />
@@ -15,45 +15,27 @@
     <div class="metrics-grid">
       <div v-if="loadingStats" class="loading-metrics">Carregando indicadores...</div>
       <template v-else>
-        <div class="metric-card shadow-sm">
-          <div class="metric-icon bg-blue">
-            <FontAwesomeIcon :icon="['fas', 'building']" />
-          </div>
-          <div class="metric-info">
-            <span class="metric-label">Obras Ativas</span>
-            <span class="metric-value">{{ stats.activeBuildings || 0 }}</span>
-          </div>
+        
+        <div class="metric-card border-total">
+          <span class="metric-label">Obras Ativas</span>
+          <span class="metric-value">{{ stats.activeBuildings ?? 0 }}</span>
         </div>
 
-        <div class="metric-card shadow-sm">
-          <div class="metric-icon bg-cyan">
-            <FontAwesomeIcon :icon="['fas', 'clipboard-check']" />
-          </div>
-          <div class="metric-info">
-            <span class="metric-label">Vistorias Realizadas</span>
-            <span class="metric-value">{{ stats.totalInspections || 0 }}</span>
-          </div>
+        <div class="metric-card border-pendentes">
+          <span class="metric-label">Vistorias Realizadas</span>
+          <span class="metric-value">{{ stats.totalInspections ?? 0 }}</span>
         </div>
 
-        <div class="metric-card shadow-sm">
-          <div class="metric-icon bg-warning">
-            <FontAwesomeIcon :icon="['fas', 'triangle-exclamation']" />
-          </div>
-          <div class="metric-info">
-            <span class="metric-label">Não Conformidades</span>
-            <span class="metric-value">{{ stats.pendingIssues || 0 }}</span>
-          </div>
+        <div class="metric-card border-andamento">
+          <span class="metric-label">Não Conformidades</span>
+          <span class="metric-value">{{ stats.pendingIssues ?? 0 }}</span>
         </div>
 
-        <div class="metric-card shadow-sm">
-          <div class="metric-icon bg-success">
-            <FontAwesomeIcon :icon="['fas', 'circle-check']" />
-          </div>
-          <div class="metric-info">
-            <span class="metric-label">Unidades Entregues</span>
-            <span class="metric-value">{{ stats.deliveredUnits || 0 }}</span>
-          </div>
+        <div class="metric-card border-finalizadas">
+          <span class="metric-label">Unidades Entregues</span>
+          <span class="metric-value">{{ stats.deliveredUnits ?? 0 }}</span>
         </div>
+
       </template>
     </div>
 
@@ -127,12 +109,14 @@ function navigate(path) {
 onMounted(async () => {
   try {
     loadingStats.value = true
+    
+    // getOverview sem parâmetros traz o consolidado global (todos os empreendimentos)
     const response = await getOverview()
     if (response && response.data) {
       stats.value = response.data
     }
   } catch (error) {
-    console.error('Erro ao carregar dados do dashboard:', error)
+    console.error('Erro ao carregar dados globais do dashboard:', error)
   } finally {
     loadingStats.value = false
   }
@@ -147,32 +131,61 @@ onMounted(async () => {
 .current-date { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; font-weight: 600; color: #4a5568; background: #e2e8f0; padding: 10px 18px; border-radius: 20px; }
 
 /* Grid de Métricas */
-.metrics-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 20px; margin-bottom: 32px; min-height: 88px; }
+.metrics-grid { 
+  display: grid; 
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); 
+  gap: 20px; 
+  margin-bottom: 32px; 
+  min-height: 140px; 
+}
 .loading-metrics { grid-column: 1 / -1; color: #718096; font-style: italic; padding: 20px 0; }
-.metric-card { display: flex; align-items: center; gap: 16px; background: #fff; border: 1px solid #eee; border-radius: 12px; padding: 20px; }
-.metric-icon { width: 48px; height: 48px; border-radius: 50px; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; color: #fff; flex-shrink: 0; }
-.metric-info { display: flex; flex-direction: column; gap: 2px; }
-.metric-label { font-size: 0.82rem; font-weight: 600; color: #718096; text-transform: uppercase; letter-spacing: 0.5px; }
-.metric-value { font-size: 1.6rem; font-weight: 700; color: #1a1a2e; }
 
-/* Cores dos Ícones das Métricas */
-.bg-blue { background: #0d0d2b; }
-.bg-cyan { background: #00e5cc; color: #0d0d2b; }
-.bg-warning { background: #f99f56; }
-.bg-success { background: #2ecc71; }
+/* Cards idênticos à tela de Vistorias */
+.metric-card { 
+  display: flex; 
+  flex-direction: column; 
+  justify-content: flex-start;
+  align-items: flex-start;
+  gap: 12px; 
+  background: #fff; 
+  border: 1px solid #eee; 
+  border-radius: 12px; 
+  padding: 24px; 
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.01);
+  min-height: 130px;
+}
 
+.metric-label { 
+  font-size: 0.85rem; 
+  color: #555555; 
+  font-weight: 500;
+}
+
+.metric-value { 
+  font-size: 2.6rem; /* Fonte grande e robusta igual ao print */
+  font-weight: 700; 
+  color: #0f1123; 
+  line-height: 1;
+}
+
+/* Cores exatas das bordas esquerdas do print */
+.border-total { border-left: 5px solid #11142d; }       /* Escuro / Total */
+.border-pendentes { border-left: 5px solid #f99f56; }   /* Laranja / Pendentes */
+.border-andamento { border-left: 5px solid #ff7a59; }   /* Coral / Em Andamento */
+.border-finalizadas { border-left: 5px solid #00e5cc; }  /* Ciano / Finalizadas */
+
+/* Conteúdo de Ações */
 .dashboard-content { display: grid; grid-template-columns: 1fr; gap: 24px; }
-.content-panel { background: #fff; border: 1px solid #eee; border-radius: 12px; padding: 24px; display: flex; flex-direction: column; gap: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.01); }
+.content-panel { background: #fff; border: 1px solid #eee; border-radius: 12px; padding: 24px; display: flex; flex-direction: column; gap: 20px; }
 .panel-title { font-size: 1.05rem; font-weight: 700; color: #1a1a2e; margin: 0; border-bottom: 1px solid #f0f2f5; padding-bottom: 12px; }
 
-/* Painel de Ações Rápidas */
+/* Botões de Ações Rápidas */
 .actions-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 16px; }
 .action-btn { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; background: #f8fafc; border: 1px solid #e2e8f0; padding: 24px 16px; border-radius: 12px; cursor: pointer; transition: all 0.2s ease; }
 .action-btn:hover { background: #ffffff; border-color: #00e5cc; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,229,204,0.08); }
 .action-btn span { font-size: 0.88rem; font-weight: 600; color: #2d3748; text-align: center; }
 .action-icon { width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.15rem; }
 
-/* Cores Suaves dos Fundos de Ações */
 .bg-cyan-light { background: #e0faf6; color: #00897b; }
 .bg-blue-light { background: #e0eafc; color: #0d0d2b; }
 .bg-dark-light { background: #f0f1f5; color: #4a5568; }
