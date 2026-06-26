@@ -6,16 +6,15 @@
       <span v-if="aberta" class="logo-nome">CheckObra</span>
     </div>
 
-    
-  <nav class="menu">
-      <!-- 1. HOME: Aponta para a HomeView com as ações e os cards novos -->
+ <nav class="menu">
+      <!-- 1. HOME PAGE (Ações Rápidas) -->
       <router-link to="/dashboard" class="menu-item" :title="aberta ? '' : 'Home'">
         <FontAwesomeIcon :icon="['fas', 'house']" class="icone" />
         <span v-if="aberta" class="label">Home</span>
       </router-link>
 
-      <!-- 2. DASHBOARD: Agora aponta para /relatorios, que é onde estão suas métricas e gráficos normais -->
-      <router-link to="/relatorios" class="menu-item" :title="aberta ? '' : 'Dashboard'">
+      <!-- 2. DASHBOARD (Admin de Empresa - Tela antiga restaurada) -->
+      <router-link to="/analytics" class="menu-item" :title="aberta ? '' : 'Dashboard'">
         <FontAwesomeIcon :icon="['fas', 'chart-pie']" class="icone" />
         <span v-if="aberta" class="label">Dashboard</span>
       </router-link>
@@ -62,7 +61,13 @@
         <span v-if="aberta" class="label">Equipe</span>
       </router-link>
 
-      <!-- Seção administrativa restrita (Mantida intacta lá embaixo) -->
+      <!-- 10. RELATÓRIOS (Tela isolada de relatórios) -->
+      <router-link to="/relatorios" class="menu-item" :title="aberta ? '' : 'Relatórios'">
+        <FontAwesomeIcon :icon="['fas', 'chart-bar']" class="icone" />
+        <span v-if="aberta" class="label">Relatórios</span>
+      </router-link>
+
+      <!-- SEÇÃO EXCLUSIVA DO PLATFORM ADMIN (SUPER ADMIN) -->
       <template v-if="authStore.isPlatformAdmin">
         <div class="menu-separator"><span v-if="aberta">PLATAFORMA</span></div>
         <router-link to="/platform/dashboard" class="menu-item" :title="aberta ? '' : 'Dashboard da Plataforma'">
@@ -82,7 +87,6 @@
           <span v-if="aberta" class="label">Templates de Funções</span>
         </router-link>
       </template>
-    
     </nav>
 
     <div class="menu-inferior">
