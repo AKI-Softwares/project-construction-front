@@ -3,12 +3,12 @@
     <!-- Lado Esquerdo: Branding -->
     <div class="brand-side">
       <div class="brand-content">
-        <!-- Logo carregado a partir de assets conforme repositório -->
-<img 
-  src="../../assets/logo_check_obra.png" 
-  alt="CheckObra Logo" 
-  class="main-logo"
-/>
+        <!-- Caminho relativo corrigido para passar direto no build -->
+        <img 
+          src="../../assets/logo_check_obra.png" 
+          alt="CheckObra Logo" 
+          class="main-logo"
+        />
         <p class="tagline">
           Transformando a vistoria de obras em processo digital
         </p>
@@ -41,7 +41,7 @@
             />
           </div>
 
-          <!-- Ajustado para o centro conforme solicitado -->
+          <!-- Centralizado perfeitamente -->
           <div class="forgot-password-container">
             <a href="#" class="forgot-password">Esqueceu a senha?</a>
           </div>
@@ -57,24 +57,34 @@
 
 <script setup>
 function handleLogin() {
-  // Ação de login futura
   console.log('Tentativa de login enviada');
 }
 </script>
 
 <style scoped>
-/* Container Principal ocupando toda a tela */
+/* Reset local para garantir que nada herde margens externas que gerem scroll */
+:deep(body), :deep(html) {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  width: 100%;
+  height: 100%;
+}
+
+/* Container travado no tamanho exato da tela visível */
 .login-container {
   display: flex;
-  width: 100vw;
+  width: 100%;
   height: 100vh;
+  height: 100dvh; /* Evita quebras em navegadores mobile e desktop */
   margin: 0;
   padding: 0;
   font-family: sans-serif;
-  overflow: hidden;
+  overflow: hidden; /* Força o sumiço de qualquer barra de rolagem */
+  box-sizing: border-box;
 }
 
-/* Lado Esquerdo: Branco com o Logo */
+/* Lado Esquerdo: Branco */
 .brand-side {
   flex: 1;
   background-color: #ffffff;
@@ -82,6 +92,7 @@ function handleLogin() {
   align-items: center;
   justify-content: center;
   padding: 2rem;
+  box-sizing: border-box;
 }
 
 .brand-content {
@@ -91,6 +102,7 @@ function handleLogin() {
 
 .main-logo {
   max-width: 280px;
+  width: 100%;
   height: auto;
   margin-bottom: 2rem;
 }
@@ -103,14 +115,15 @@ function handleLogin() {
   margin: 0;
 }
 
-/* Lado Direito: Escuro com os Inputs */
+/* Lado Direito: Escuro */
 .form-side {
   flex: 1;
-  background-color: #0b1120; /* Tom azul escuro idêntico ao mockup */
+  background-color: #0b1120;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 2rem;
+  box-sizing: border-box;
 }
 
 .login-box {
@@ -120,12 +133,13 @@ function handleLogin() {
 
 .login-box h2 {
   color: #ffffff;
-  font-size: 2rem;
+  font-size: 2.25rem;
   font-weight: 400;
-  margin-bottom: 2.5rem;
+  margin-top: 0;
+  margin-bottom: 2rem;
 }
 
-/* Grupos de Input */
+/* Inputs e Labels */
 .input-group {
   margin-bottom: 1.5rem;
   display: flex;
@@ -136,29 +150,41 @@ function handleLogin() {
   color: #ffffff;
   font-size: 1rem;
   margin-bottom: 0.5rem;
+  text-align: left;
 }
 
 .input-group input {
-  background-color: #1e293b; /* Fundo do input acinzentado escuro */
+  background-color: #1e293b;
   border: none;
   border-radius: 12px;
   padding: 1rem;
   color: #ffffff;
   font-size: 1rem;
   outline: none;
+  width: 100%;
+  box-sizing: border-box;
   transition: background-color 0.2s;
+}
+
+/* Solução para o preenchimento automático do navegador não mudar a cor do input */
+.input-group input:-webkit-autofill,
+.input-group input:-webkit-autofill:hover, 
+.input-group input:-webkit-autofill:focus {
+  -webkit-text-fill-color: #ffffff !important;
+  -webkit-box-shadow: 0 0 0px 1000px #1e293b inset !important;
+  transition: background-color 5000s ease-in-out 0s;
 }
 
 .input-group input:focus {
   background-color: #273549;
 }
 
-/* Centralização do "Esqueceu a senha?" */
+/* Link Centralizado */
 .forgot-password-container {
   display: flex;
   justify-content: center;
   margin-top: 1rem;
-  margin-bottom: 1.5rem;
+  margin-bottom: 2rem;
 }
 
 .forgot-password {
@@ -172,10 +198,10 @@ function handleLogin() {
   color: #ffffff;
 }
 
-/* Botão Entrar Ciano */
+/* Botão Customizado */
 .btn-submit {
   width: 100%;
-  background-color: #0099b8; /* Ciano idêntico à imagem */
+  background-color: #0099b8;
   color: #ffffff;
   border: none;
   border-radius: 12px;
@@ -183,6 +209,7 @@ function handleLogin() {
   font-size: 1.2rem;
   font-weight: bold;
   cursor: pointer;
+  box-sizing: border-box;
   transition: background-color 0.2s, transform 0.1s;
 }
 
@@ -191,24 +218,21 @@ function handleLogin() {
 }
 
 .btn-submit:active {
-  transform: scale(0.98);
+  transform: scale(0.99);
 }
 
-/* Responsividade Básica para telas pequenas */
+/* Responsividade limpa */
 @media (max-width: 768px) {
   .login-container {
     flex-direction: column;
   }
   .brand-side, .form-side {
-    flex: none;
+    flex: 1;
     height: 50vh;
   }
   .main-logo {
     max-width: 200px;
     margin-bottom: 1rem;
-  }
-  .login-box h2 {
-    margin-bottom: 1.5rem;
   }
 }
 </style>
