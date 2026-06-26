@@ -62,26 +62,30 @@ function handleLogin() {
 </script>
 
 <style scoped>
-/* Reset local para garantir que nada herde margens externas que gerem scroll */
-:deep(body), :deep(html) {
-  margin: 0;
-  padding: 0;
-  overflow: hidden;
-  width: 100%;
-  height: 100%;
+/* Remove qualquer margem, padding ou scroll que venha do App.vue ou index.html */
+:global(html), :global(body), :global(#app) {
+  margin: 0 !important;
+  padding: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  overflow: hidden !important;
+  background-color: #0b1120; /* Evita flashes brancos no fundo global */
 }
 
-/* Container travado no tamanho exato da tela visível */
+/* Container travado no tamanho exato do ecrã */
 .login-container {
   display: flex;
-  width: 100%;
+  width: 100vw;
   height: 100vh;
-  height: 100dvh; /* Evita quebras em navegadores mobile e desktop */
+  height: 100dvh;
   margin: 0;
   padding: 0;
   font-family: sans-serif;
-  overflow: hidden; /* Força o sumiço de qualquer barra de rolagem */
+  overflow: hidden;
   box-sizing: border-box;
+  position: fixed; /* Força o componente a fixar-se no ecrã sem criar bordas */
+  top: 0;
+  left: 0;
 }
 
 /* Lado Esquerdo: Branco */
@@ -166,7 +170,7 @@ function handleLogin() {
   transition: background-color 0.2s;
 }
 
-/* Solução para o preenchimento automático do navegador não mudar a cor do input */
+/* Mantém o estilo escuro mesmo com preenchimento automático */
 .input-group input:-webkit-autofill,
 .input-group input:-webkit-autofill:hover, 
 .input-group input:-webkit-autofill:focus {
