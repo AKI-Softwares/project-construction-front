@@ -1,104 +1,100 @@
 <template>
-  <div class="header">
-    <div class="header-left">
-      <img 
-        src="../../assets/logo_check_hotizontal.png" 
-        alt="CheckObra Logo" 
-        class="header-logo" 
-      />
-      <h1 class="titulo">{{ titulo }}</h1>
+  <div class="main-layout">
+    <Sidebar />
+    <div class="conteudo-wrapper">
+      <Header :titulo="titulo" />
+      <main class="conteudo">
+        <slot />
+      </main>
     </div>
 
-    <div class="perfil">
-      <div class="perfil-info">
-        <span class="perfil-nome">{{ user.name || '...' }}</span>
-        <span class="perfil-cargo">{{ user.role?.name || '...' }}</span>
+    <!-- Toast global -->
+    <transition name="toast">
+      <div v-if="toast.visible" :class="['toast', `toast--${toast.type}`]">
+        <span>{{ toast.message }}</span>
+        <button @click="toast.visible = false">✕</button>
       </div>
-      <div class="perfil-avatar">{{ initials }}</div>
-    </div>
+    </transition>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
-import { me } from '../../services/auth.js'
+import { ref, onMounted, onUnmounted } from 'vue'
+import Sidebar from './Sidebar.vue'
+import Header from './Header.vue'
 
 defineProps({
-  titulo: { type: String, default: 'Dashboard' }
-})
-
-const user = ref({ name: '', role: null })
-
-const initials = computed(() => {
-  if (!user.value.name) return '?'
-  return user.value.name
-    .split(' ')
-    .slice(0, 2)
-    .map(n => n[0])
-    .join('')
-    .toUpperCase()
-})
-
-onMounted(async () => {
-  try {
-    user.value = await me()
-  } catch (e) {
-    // fallback: lê do token JWT salvo no localStorage
-    try {
-      const token = localStorage.getItem('token')
-      if (token) {
-        const payload = JSON.parse(atob(token.split('.')[1]))
-        user.value = { name: payload.name || 'Usuário', role: { name: payload.role || '' } }
-      }
-    } catch {}
+  titulo: {
+    type: String,
+    default: 'Dashboard'
   }
 })
+
+const toast = ref({ visible: false, message: '', type: 'error' })
+let timer = null
+
+function showToast({ detail }) {
+  clearTimeout(timer)
+  toast.value = { visible: true, message: detail.message, type: detail.type || 'error' }
+  timer = setTimeout(() => { toast.value.visible = false }, 5000)
+}
+
+onMounted(() => window.addEventListener('app:toast', showToast))
+onUnmounted(() => window.removeEventListener('app:toast', showToast))
 </script>
 
 <style scoped>
-.header {
-  height: 60px;
-  background-color: #2a2a4a;
+.main-layout {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 32px;
+  min-height: 100vh;
+}
+.conteudo-wrapper {
+  margin-left: 60px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background-color: #f4f4f4;
+  transition: margin-left 0.25s ease;
+}
+.conteudo {
+  margin-top: 60px;
+  padding: 32px;
+}
+
+/* Toast */
+.toast {
   position: fixed;
-  top: 0;
-  left: 60px;
-  right: 0;
-  z-index: 100;
-}
-
-/* Novo container para agrupar e alinhar a Logo com o Título */
-.header-left {
+  bottom: 24px;
+  right: 24px;
+  z-index: 9999;
   display: flex;
   align-items: center;
-  gap: 16px; /* Espaço sutil entre a imagem e o texto do título */
+  gap: 12px;
+  padding: 14px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #fff;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  max-width: 380px;
 }
+.toast--error   { background-color: #c0392b; }
+.toast--warning { background-color: #f5a623; }
+.toast--success { background-color: #00e5cc; color: #0d0d2b; }
 
-/* Controle de dimensões da Logo para não estourar o Header de 60px */
-.header-logo {
-  height: 32px;
-  width: auto;
-  object-fit: contain;
+.toast button {
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  padding: 0;
+  opacity: 0.8;
 }
+.toast button:hover { opacity: 1; }
 
-.titulo { color: #00e5cc; font-size: 1.4rem; font-weight: 600; }
-.perfil { display: flex; align-items: center; gap: 12px; cursor: pointer; }
-.perfil-info { display: flex; flex-direction: column; align-items: flex-end; }
-.perfil-nome { color: #ffffff; font-size: 0.9rem; font-weight: 600; }
-.perfil-cargo { color: rgba(255,255,255,0.5); font-size: 0.75rem; }
-.perfil-avatar {
-  width: 38px;
-  height: 38px;
-  border-radius: 50%;
-  background-color: #00e5cc;
-  color: #0d0d2b;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: bold;
-  font-size: 0.85rem;
-}
+/* Animação */
+.toast-enter-active, .toast-leave-active { transition: all 0.3s ease; }
+.toast-enter-from, .toast-leave-to      { opacity: 0; transform: translateY(12px); }
 </style>
