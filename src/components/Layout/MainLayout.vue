@@ -1,15 +1,7 @@
 <template>
   <div class="layout-container">
-    aside class="sidebar">
-      
-      <div class="sidebar-brand">
-        <img 
-          src="../../assets/logo_check_hotizontal.png" 
-          alt="CheckObra Logo" 
-          class="brand-logo" 
-        />
-      </div>
-
+    
+    <aside class="sidebar no-print">
       <nav class="sidebar-menu">
         <div class="menu-section">Home</div>
         <router-link to="/dashboard" class="menu-item" active-class="active">
@@ -68,14 +60,24 @@
       </nav>
     </aside>
 
-    <main class="main-content">
+    <div class="main-wrapper">
+      
       <header class="content-header no-print">
+        <div class="header-logo-box">
+          <img 
+            src="../../assets/logo_check_hotizontal.png" 
+            alt="CheckObra Logo" 
+            class="header-logo" 
+          />
+        </div>
         <h1 class="page-title">{{ titulo }}</h1>
       </header>
-      <div class="page-body">
+
+      <main class="page-body">
         <slot />
-      </div>
-    </main>
+      </main>
+    </div>
+
   </div>
 </template>
 
@@ -93,7 +95,6 @@ defineProps({
 const router = useRouter()
 
 function handleLogout() {
-  // Limpa estados de sessão se necessário e redireciona
   localStorage.clear()
   router.push('/login')
 }
@@ -107,46 +108,35 @@ function handleLogout() {
   background-color: #f8fafc;
 }
 
-/* ESTILIZAÇÃO COMPLETA E CORRIGIDA DO SIDEBAR */
+/* Envoltório do Conteúdo à direita do Sidebar */
+.main-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+/* ESTILIZAÇÃO DO SIDEBAR */
 .sidebar {
   width: 260px;
   min-width: 260px;
   height: 100vh;
-  background-color: #0b132b; /* Tom escuro idêntico ao do seu app */
-  display: flex;
-  flex-direction: column;
+  background-color: #0b132b;
   position: sticky;
   top: 0;
   box-sizing: border-box;
   border-right: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-/* CORREÇÃO DO TOPO: Garante o respiro para a logo não ser cortada */
-.sidebar-brand {
-  padding: 30px 24px 20px 24px;
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-}
-
-/* Controle de tamanho da imagem da Logo Horizontal */
-.brand-logo {
-  max-width: 85%;
-  height: auto;
-  max-height: 45px;
-  object-fit: contain;
-}
-
-/* Menu de Navegação */
 .sidebar-menu {
   display: flex;
   flex-direction: column;
-  padding: 0 16px 20px 16px;
+  padding: 24px 16px;
   overflow-y: auto;
-  flex: 1;
+  height: 100%;
+  box-sizing: border-box;
 }
 
-/* Cabeçalhos de Seções do Menu (ex: Home, Empreendimentos) */
 .menu-section {
   font-size: 0.75rem;
   font-weight: 700;
@@ -156,7 +146,6 @@ function handleLogout() {
   margin: 18px 0 8px 12px;
 }
 
-/* Links do Menu */
 .menu-item {
   display: flex;
   align-items: center;
@@ -181,10 +170,9 @@ function handleLogout() {
   background-color: rgba(255, 255, 255, 0.03);
 }
 
-/* Estado Ativo (Dashboard Selecionado na Imagem) */
 .menu-item.active {
   color: #001e2b;
-  background-color: #00e5cc; /* Cor ciano vibrante da sua identidade */
+  background-color: #00e5cc;
   font-weight: 600;
 }
 
@@ -199,48 +187,57 @@ function handleLogout() {
   border-top: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-/* Botão Sair Especializado */
 .btn-logout {
   color: #f87171;
-  margin-top: auto; /* Joga o botão de sair para o final do menu */
+  margin-top: auto;
 }
 
 .btn-logout:hover {
   background-color: rgba(239, 68, 68, 0.1);
-  color: #f87171;
 }
 
-/* Estrutura do Conteúdo à Direita */
-.main-content {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
-
+/* AJUSTE E CORREÇÃO DO HEADER (CABEÇALHO) */
 .content-header {
-  background-color: #fff;
-  padding: 20px 32px;
-  border-bottom: 1px solid #e5e7eb;
+  background-color: #0b132b; /* Alinhado com a cor escura do app para destacar a logo */
+  padding: 16px 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between; /* Mantém a logo à esquerda e o título à direita */
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  box-sizing: border-box;
+}
+
+/* Caixa da Logo para controlar o alinhamento e respiro */
+.header-logo-box {
+  display: flex;
+  align-items: center;
+}
+
+/* Dimensões da Logo Horizontal no topo */
+.header-logo {
+  height: 38px;
+  width: auto;
+  object-fit: contain;
 }
 
 .page-title {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #111827;
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: #ffffff; /* Título em branco para contrastar com o cabeçalho escuro */
   margin: 0;
 }
 
+/* Corpo da página */
 .page-body {
   padding: 32px;
   flex: 1;
   overflow-y: auto;
 }
 
-/* Oculta elementos na impressão do relatório */
+/* Configuração para impressão do relatório */
 @media print {
-  .no-print, .sidebar { display: none !important; }
-  .main-content { padding: 0; }
+  .no-print, .sidebar, .content-header { display: none !important; }
+  .main-wrapper { padding: 0; }
   .page-body { padding: 0; }
 }
 </style>
