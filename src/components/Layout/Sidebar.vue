@@ -3,17 +3,17 @@
 
     <nav class="menu">
       <router-link to="/dashboard" class="menu-item" :title="aberta ? '' : 'Home'">
-        <FontAwesomeIcon :icon="['fas', 'house']" class="icone" />
+        <FontAwesomeIcon icon="fa-solid fa-house" class="icone" />
         <span v-if="aberta" class="label">Home</span>
       </router-link>
 
       <router-link to="/analytics" class="menu-item" :title="aberta ? '' : 'Dashboard'">
-        <FontAwesomeIcon :icon="['fas', 'chart-pie']" class="icone" />
+        <FontAwesomeIcon icon="fa-solid fa-chart-pie" class="icone" />
         <span v-if="aberta" class="label">Dashboard</span>
       </router-link>
 
       <router-link to="/buildings" class="menu-item" :title="aberta ? '' : 'Empreendimentos'">
-        <FontAwesomeIcon :icon="['fas', 'building']" class="icone" />
+        <FontAwesomeIcon icon="fa-solid fa-building" class="icone" />
         <span v-if="aberta" class="label">Empreendimentos</span>
       </router-link>
 
@@ -117,15 +117,15 @@ function sair() {
 <style scoped>
 .sidebar { 
   width: 60px; 
-  height: calc(100vh - 60px); /* CORREÇÃO: Ocupa o espaço restante abaixo do Header */
+  height: calc(100vh - 60px); 
   background-color: #0b1120; 
   display: flex; 
   flex-direction: column; 
-  padding: 16px 8px; 
+  padding: 8px 8px 16px 8px; /* CORREGIDO: Reduzido padding superior para eliminar o quadrado vazio */
   position: fixed; 
-  top: 60px; /* CORREÇÃO: Começa exatamente onde o Header de 60px termina */
+  top: 60px; 
   left: 0; 
-  z-index: 90; /* CORREÇÃO: Fica por baixo do Header (z-index 100) para não tampar a logo */
+  z-index: 90; 
   transition: width 0.25s ease; 
   overflow-y: auto; 
   overflow-x: hidden; 
