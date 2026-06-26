@@ -1,4 +1,10 @@
-<slot />
+<template>
+  <div class="main-layout">
+    <Sidebar />
+    <div class="conteudo-wrapper">
+      <Header :titulo="titulo" />
+      <main class="conteudo">
+        <slot />
       </main>
     </div>
 
@@ -17,7 +23,9 @@ import { ref, onMounted, onUnmounted } from 'vue'
 import Sidebar from './Sidebar.vue'
 import Header from './Header.vue'
 
-@@ -20,25 +29,72 @@ defineProps({
+defineProps({
+  titulo: {
+    type: String,
     default: 'Dashboard'
   }
 })
@@ -40,7 +48,6 @@ onUnmounted(() => window.removeEventListener('app:toast', showToast))
   display: flex;
   min-height: 100vh;
 }
-
 .conteudo-wrapper {
   margin-left: 60px;
   flex: 1;
@@ -49,7 +56,6 @@ onUnmounted(() => window.removeEventListener('app:toast', showToast))
   background-color: #f4f4f4;
   transition: margin-left 0.25s ease;
 }
-
 .conteudo {
   margin-top: 60px;
   padding: 32px;
