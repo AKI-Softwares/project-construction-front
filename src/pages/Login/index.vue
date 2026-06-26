@@ -3,7 +3,6 @@
     <!-- Lado Esquerdo: Branding -->
     <div class="brand-side">
       <div class="brand-content">
-        <!-- Caminho relativo corrigido para passar direto no build -->
         <img 
           src="../../assets/logo_check_obra.png" 
           alt="CheckObra Logo" 
@@ -24,8 +23,10 @@
           <div class="input-group">
             <label for="email">E-mail</label>
             <input 
+              v-model="email"
               type="email" 
               id="email" 
+              name="email"
               placeholder="Digite seu e-mail" 
               required
             />
@@ -34,8 +35,10 @@
           <div class="input-group">
             <label for="password">Senha</label>
             <input 
+              v-model="password"
               type="password" 
               id="password" 
+              name="password"
               placeholder="Digite sua senha" 
               required
             />
@@ -56,8 +59,17 @@
 </template>
 
 <script setup>
+import { ref } from 'vue'
+
+const email = ref('')
+const password = ref('')
+
 function handleLogin() {
-  console.log('Tentativa de login enviada');
+  // Agora os dados estão capturados e prontos para o envio do formulário
+  console.log('Dados enviados:', { email: email.value, password: password.value })
+  
+  // Aqui você pode chamar a sua função de autenticação da API, ex:
+  // authService.login(email.value, password.value)
 }
 </script>
 
@@ -69,10 +81,10 @@ function handleLogin() {
   width: 100% !important;
   height: 100% !important;
   overflow: hidden !important;
-  background-color: #0b1120; /* Evita flashes brancos no fundo global */
+  background-color: #0b1120;
 }
 
-/* Container travado no tamanho exato do ecrã */
+/* Container travado no tamanho exato da tela */
 .login-container {
   display: flex;
   width: 100vw;
@@ -83,7 +95,7 @@ function handleLogin() {
   font-family: sans-serif;
   overflow: hidden;
   box-sizing: border-box;
-  position: fixed; /* Força o componente a fixar-se no ecrã sem criar bordas */
+  position: fixed;
   top: 0;
   left: 0;
 }
@@ -225,7 +237,7 @@ function handleLogin() {
   transform: scale(0.99);
 }
 
-/* Responsividade limpa */
+/* Responsividade */
 @media (max-width: 768px) {
   .login-container {
     flex-direction: column;
