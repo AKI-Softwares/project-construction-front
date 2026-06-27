@@ -111,6 +111,7 @@
       </div>
 
     </div>
+
     <div v-if="loadingVisit" class="modal-loading-overlay">
       <div class="modal-loading-box">Carregando vistoria...</div>
     </div>
@@ -131,7 +132,6 @@ const loading = ref(true)
 const error = ref('')
 const visits = ref([])
 
-// Estados dos filtros reativos (Exigências da demanda W-10)
 const search = ref('')
 const activeFilter = ref('ALL')
 const selectedBuilding = ref('ALL')
@@ -139,23 +139,19 @@ const selectedInspector = ref('ALL')
 const dateFrom = ref('')
 const dateTo = ref('')
 
-// Extrai dinamicamente a lista de edifícios únicos da resposta para popular o select
 const uniqueBuildings = computed(() => {
   const names = visits.value.map(v => v.apartment?.building?.name || v.apartment?.building?.title).filter(Boolean)
   return [...new Set(names)]
 })
 
-// Extrai dinamicamente os nomes dos inspetores/usuários vinculados
 const uniqueInspectors = computed(() => {
   const names = visits.value.map(v => v.user?.name).filter(Boolean)
   return [...new Set(names)]
 })
 
-// Processamento de todos os filtros de forma cumulativa em memória (Corrigido)
 const filteredVisits = computed(() => {
   let result = visits.value
 
-  // 1. Filtro por texto global
   if (search.value) {
     const q = search.value.toLowerCase().trim()
     result = result.filter(v =>
@@ -164,12 +160,10 @@ const filteredVisits = computed(() => {
     )
   }
 
-  // 2. Filtro por Status
   if (activeFilter.value !== 'ALL') {
     result = result.filter(v => v.status === activeFilter.value)
   }
 
-  // 3. Filtro por Empreendimento (CORRIGIDO: normaliza strings e aceita chaves alternativas 'name' ou 'title')
   if (selectedBuilding.value !== 'ALL') {
     const targetBuilding = selectedBuilding.value.toLowerCase().trim()
     result = result.filter(v => {
@@ -178,7 +172,6 @@ const filteredVisits = computed(() => {
     })
   }
 
-  // 4. Filtro por Inspetor (CORRIGIDO: previne quebras caso o nome do usuário venha nulo)
   if (selectedInspector.value !== 'ALL') {
     const targetInspector = selectedInspector.value.toLowerCase().trim()
     result = result.filter(v => {
@@ -187,13 +180,11 @@ const filteredVisits = computed(() => {
     })
   }
 
-  // 5. Filtro por Período (Data Inicial)
   if (dateFrom.value) {
     const from = new Date(dateFrom.value + 'T00:00:00')
     result = result.filter(v => new Date(v.createdAt) >= from)
   }
 
-  // 6. Filtro por Período (Data Final)
   if (dateTo.value) {
     const to = new Date(dateTo.value + 'T23:59:59')
     result = result.filter(v => new Date(v.createdAt) <= to)
@@ -207,11 +198,7 @@ function countByStatus(status) {
 }
 
 function translateStatus(status) {
-  const map = {
-    PENDING: 'Pendente',
-    ONGOING: 'Em andamento',
-    FINALIZED: 'Finalizada',
-  }
+  const map = { PENDING: 'Pendente', ONGOING: 'Em andamento', FINALIZED: 'Finalizada' }
   return map[status] || status
 }
 
@@ -243,151 +230,39 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.filters-panel {
-  background: #fff;
-  padding: 20px;
-  border-radius: 12px;
-  border: 1px solid #eee;
-  margin-bottom: 24px;
-}
-
-.search-box {
-  margin-bottom: 16px;
-}
-
-.search-input {
-  width: 100%;
-  padding: 12px 20px;
-  border: 1px solid #ddd;
-  border-radius: 30px;
-  font-size: 0.92rem;
-  outline: none;
-  box-sizing: border-box;
-}
-
-.filter-controls {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-  gap: 16px;
-}
-
-.control-group {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.control-group label {
-  font-size: 0.78rem;
-  font-weight: 600;
-  color: #666;
-  text-transform: uppercase;
-}
-
-.control-group select,
-.control-group input[type="date"] {
-  padding: 10px 14px;
-  border-radius: 8px;
-  border: 1px solid #ddd;
-  background: #f9f9f9;
-  font-size: 0.88rem;
-  color: #333;
-  outline: none;
-}
-
+.filters-panel { background: #fff; padding: 20px; border-radius: 12px; border: 1px solid #eee; margin-bottom: 24px; }
+.search-box { margin-bottom: 16px; }
+.search-input { width: 100%; padding: 12px 20px; border: 1px solid #ddd; border-radius: 30px; font-size: 0.92rem; outline: none; box-sizing: border-box; }
+.filter-controls { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 16px; }
+.control-group { display: flex; flex-direction: column; gap: 6px; }
+.control-group label { font-size: 0.78rem; font-weight: 600; color: #666; text-transform: uppercase; }
+.control-group select, .control-group input[type="date"] { padding: 10px 14px; border-radius: 8px; border: 1px solid #ddd; background: #f9f9f9; font-size: 0.88rem; color: #333; outline: none; }
 .state { text-align: center; padding: 40px; color: #555; }
 .error { color: red; }
-
-.cards {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 20px;
-  margin-bottom: 24px;
-}
-
-.card {
-  border-radius: 12px;
-  padding: 20px;
-  background: #fff;
-  border-left: 6px solid transparent;
-}
+.cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 24px; }
+.card { border-radius: 12px; padding: 20px; background: #fff; border-left: 6px solid transparent; }
 .card-dark { border-left-color: #1a1a2e; }
 .card-yellow { border-left-color: #f5a623; }
 .card-orange { border-left-color: #f99f56; }
 .card-teal { border-left-color: #00e5cc; }
-
-.card-header {
-  font-size: 0.85rem;
-  color: #555;
-  margin-bottom: 8px;
-}
-
-.card-number {
-  font-size: 2.5rem;
-  font-weight: bold;
-  color: #1a1a2e;
-}
-
-.table-card {
-  background: #fff;
-  border-radius: 12px;
-  border: 1px solid #eee;
-  overflow: hidden;
-}
-
-.table-header {
-  display: grid;
-  grid-template-columns: 2fr 1fr 2.5fr 1.2fr 1.2fr 1.2fr;
-  padding: 14px 24px;
-  background: #f5f5f5;
-  font-size: 0.8rem;
-  color: #555;
-  font-weight: 600;
-  border-bottom: 1px solid #eee;
-}
-
-.table-row {
-  display: grid;
-  grid-template-columns: 2fr 1fr 2.5fr 1.2fr 1.2fr 1.2fr;
-  padding: 16px 24px;
-  font-size: 0.88rem;
-  color: #333;
-  border-bottom: 1px solid #f5f5f5;
-  cursor: pointer;
-  transition: background 0.15s;
-  align-items: center;
-}
-
+.card-header { font-size: 0.85rem; color: #555; margin-bottom: 8px; }
+.card-number { font-size: 2.5rem; font-weight: bold; color: #1a1a2e; }
+.table-card { background: #fff; border-radius: 12px; border: 1px solid #eee; overflow: hidden; }
+.table-header { display: grid; grid-template-columns: 2fr 1fr 2.5fr 1.2fr 1.2fr 1.2fr; padding: 14px 24px; background: #f5f5f5; font-size: 0.8rem; color: #555; font-weight: 600; border-bottom: 1px solid #eee; }
+.table-row { display: grid; grid-template-columns: 2fr 1fr 2.5fr 1.2fr 1.2fr 1.2fr; padding: 16px 24px; font-size: 0.88rem; color: #333; border-bottom: 1px solid #f5f5f5; cursor: pointer; transition: background 0.15s; align-items: center; }
 .table-row:last-child { border-bottom: none; }
 .table-row:hover { background: #f9f9f9; }
-
 .row-building { font-weight: 500; color: #1a1a2e; }
 .row-apt { font-weight: bold; color: #00e5cc; }
 .row-title-container { display: flex; flex-direction: column; }
 .row-title { color: #333; font-weight: 500; }
 .row-inspector { font-size: 0.75rem; color: #777; margin-top: 2px; }
 .row-date { color: #888; font-size: 0.82rem; }
-
-.row-badge {
-  display: inline-flex;
-  padding: 4px 12px;
-  border-radius: 20px;
-  font-size: 0.78rem;
-  font-weight: bold;
-  width: fit-content;
-}
-
+.row-badge { display: inline-flex; padding: 4px 12px; border-radius: 20px; font-size: 0.78rem; font-weight: bold; width: fit-content; }
 .badge-pending { background: #fff3e0; color: #f99f56; }
 .badge-ongoing { background: #e3f2fd; color: #1976d2; }
 .badge-finalized { background: #e0faf6; color: #00897b; }
-
-.empty {
-  text-align: center;
-  padding: 40px;
-  color: #aaa;
-  font-size: 0.9rem;
-}
-
+.empty { text-align: center; padding: 40px; color: #aaa; font-size: 0.9rem; }
 .modal-loading-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; z-index: 999; }
 .modal-loading-box { background: #fff; padding: 20px 32px; border-radius: 10px; font-size: 0.9rem; color: #333; }
 </style>
