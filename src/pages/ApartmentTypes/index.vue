@@ -88,7 +88,7 @@
               <FontAwesomeIcon :icon="['fas', 'door-open']" class="room-icon" />
               <div class="room-title-group">
                 <span class="room-name">{{ room.name }}</span>
-                <span class="room-suggested-label">Serviços sugeridos pelo catálogo:</span>
+                <span class="room-suggested-label">Selecione os serviços deste cômodo:</span>
               </div>
               <button class="btn-icon danger small" @click="removeRoom(room)" title="Remover cômodo">
                 <FontAwesomeIcon :icon="['fas', 'trash']" />
@@ -96,13 +96,26 @@
             </div>
             
             <div class="services-section">
-              <div class="services-list">
-                <span v-for="svc in obterServicosSugeridos(room.name)" :key="svc.id" class="service-tag">
-                  {{ svc.name }}
+              <div v-if="loadingRoomServices[room.id]" class="services-loading">
+                Carregando serviços...
+              </div>
+              <div v-else class="services-list">
+                <label
+                  v-for="svc in catalogServices"
+                  :key="svc.id"
+                  :class="['service-checkbox-label', { 'is-active': isServiceLinked(room, svc.id), 'is-toggling': togglingService[room.id + '-' + svc.id] }]"
+                >
+                  <input
+                    type="checkbox"
+                    :checked="isServiceLinked(room, svc.id)"
+                    :disabled="togglingService[room.id + '-' + svc.id]"
+                    @change="toggleRoomService(room, svc)"
+                  />
+                  <span class="service-checkbox-name">{{ svc.name }}</span>
                   <span class="category-badge">{{ svc.category }}</span>
-                </span>
-                <span v-if="obterServicosSugeridos(room.name).length === 0" class="no-services">
-                  Nenhum serviço correspondente encontrado no catálogo para este cômodo.
+                </label>
+                <span v-if="catalogServices.length === 0" class="no-services">
+                  Nenhum serviço no catálogo. Cadastre serviços primeiro.
                 </span>
               </div>
             </div>
@@ -138,6 +151,7 @@ import MainLayout from '../../components/Layout/MainLayout.vue'
 import {
   getApartmentTypes, createApartmentType, updateApartmentType, deleteApartmentType,
   addRoom as apiAddRoom, deleteRoom as apiDeleteRoom,
+  getRoomServices, addRoomService, deleteRoomService,
 } from '../../services/apartmentTypes.js'
 import { getServices } from '../../services/services.js'
 
@@ -229,39 +243,63 @@ async function doDelete() {
 
 function selectType(t) {
   selectedType.value = t
+  // Carrega os serviços vinculados de cada cômodo existente
+  if (t.rooms?.length) {
+    t.rooms.forEach(room => loadRoomServices(t.id, room))
+  }
 }
 
-// Nome da função rigorosamente alinhado com o Template do Vue
-function obterServicosSugeridos(roomName) {
-  if (!roomName || !Array.isArray(catalogServices.value)) return []
-  
-  const nameLower = roomName.toLowerCase()
+// Estado: quais serviços cada cômodo já tem vinculados
+// { [roomId]: Set<serviceId> }
+const roomLinkedServices = ref({})
+const loadingRoomServices = ref({})
+const togglingService = ref({})
 
-  if (nameLower.includes('banheiro') || nameLower.includes('wc') || nameLower.includes('bwc') || nameLower.includes('lavabo')) {
-    return catalogServices.value.filter(s => {
-      const cat = String(s.category || '').toLowerCase()
-      return cat.includes('hidráulica') || cat.includes('pintura') || cat.includes('revestimento') || cat.includes('banheiro')
-    })
-  }
-  
-  if (nameLower.includes('cozinha') || nameLower.includes('serviço') || nameLower.includes('lavanderia') || nameLower.includes('gourmet')) {
-    return catalogServices.value.filter(s => {
-      const cat = String(s.category || '').toLowerCase()
-      return cat.includes('hidráulica') || cat.includes('revestimento') || cat.includes('elétrica') || cat.includes('cozinha')
-    })
-  }
+// Verifica se um serviço já está vinculado ao cômodo
+function isServiceLinked(room, serviceId) {
+  return roomLinkedServices.value[room.id]?.has(serviceId) ?? false
+}
 
-  if (nameLower.includes('quarto') || nameLower.includes('sala') || nameLower.includes('circulação') || nameLower.includes('corredor') || nameLower.includes('suíte') || nameLower.includes('dormitório')) {
-    return catalogServices.value.filter(s => {
-      const cat = String(s.category || '').toLowerCase()
-      return cat.includes('pintura') || cat.includes('elétrica') || cat.includes('esquadria') || cat.includes('marcenaria') || cat.includes('acabamento')
-    })
+// Carrega os serviços vinculados de um cômodo específico via API
+async function loadRoomServices(typeId, room) {
+  if (loadingRoomServices.value[room.id]) return
+  loadingRoomServices.value[room.id] = true
+  try {
+    const linked = await getRoomServices(typeId, room.id)
+    roomLinkedServices.value[room.id] = new Set(linked.map(s => s.serviceId ?? s.id))
+  } catch (e) {
+    console.error('Erro ao carregar serviços do cômodo', e)
+    roomLinkedServices.value[room.id] = new Set()
+  } finally {
+    loadingRoomServices.value[room.id] = false
   }
+}
 
-  return catalogServices.value.filter(s => {
-    const cat = String(s.category || '').toLowerCase()
-    return cat.includes('pintura') || cat.includes('geral') || cat.includes('acabamento')
-  })
+// Vincula ou desvincula um serviço do cômodo, chamando a API
+async function toggleRoomService(room, svc) {
+  const key = `${room.id}-${svc.id}`
+  if (togglingService.value[key]) return
+  togglingService.value[key] = true
+
+  const typeId = selectedType.value.id
+  const linked = roomLinkedServices.value[room.id] ?? new Set()
+  const isLinked = linked.has(svc.id)
+
+  try {
+    if (isLinked) {
+      await deleteRoomService(typeId, room.id, svc.id)
+      linked.delete(svc.id)
+    } else {
+      await addRoomService(typeId, room.id, svc.id)
+      linked.add(svc.id)
+    }
+    // Força reatividade
+    roomLinkedServices.value = { ...roomLinkedServices.value, [room.id]: new Set(linked) }
+  } catch (e) {
+    roomError.value = e.response?.data?.message || `Erro ao ${isLinked ? 'remover' : 'adicionar'} serviço.`
+  } finally {
+    togglingService.value[key] = false
+  }
 }
 
 const newRoomName = ref('')
@@ -278,6 +316,8 @@ async function addRoom() {
     selectedType.value.rooms.push(room)
     const idx = types.value.findIndex(t => t.id === selectedType.value.id)
     if (idx !== -1) types.value[idx].rooms = selectedType.value.rooms
+    // Inicializa o estado de serviços para o novo cômodo (começa vazio)
+    roomLinkedServices.value[room.id] = new Set()
     newRoomName.value = ''
   } catch (e) {
     roomError.value = e.response?.data?.message || 'Erro ao adicionar cômodo.'
@@ -292,6 +332,8 @@ async function removeRoom(room) {
     selectedType.value.rooms = selectedType.value.rooms.filter(r => r.id !== room.id)
     const idx = types.value.findIndex(t => t.id === selectedType.value.id)
     if (idx !== -1) types.value[idx].rooms = selectedType.value.rooms
+    // Limpa o estado de serviços do cômodo removido
+    delete roomLinkedServices.value[room.id]
   } catch (e) {
     roomError.value = e.response?.data?.message || 'Erro ao remover cômodo.'
   }
@@ -361,9 +403,16 @@ textarea { width: 100%; padding: 12px 18px; border: none; border-radius: 12px; b
 .room-name { font-size: 0.98rem; font-weight: 700; color: #1a1a2e; }
 .room-suggested-label { font-size: 0.72rem; color: #718096; font-weight: 600; text-transform: uppercase; margin-top: 2px; }
 .services-section { padding-left: 4px; margin-top: 8px; }
+.services-loading { font-size: 0.8rem; color: #a0aec0; font-style: italic; padding: 4px 0; }
 .services-list { display: flex; flex-wrap: wrap; gap: 6px; }
-.service-tag { display: inline-flex; align-items: center; gap: 6px; background: #0d0d2b; color: #fff; padding: 6px 12px; border-radius: 20px; font-size: 0.78rem; font-weight: 600; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-.category-badge { background: rgba(255, 255, 255, 0.2); color: #00e5cc; padding: 1px 6px; border-radius: 10px; font-size: 0.68rem; text-transform: uppercase; font-weight: 700; }
+.service-checkbox-label { display: inline-flex; align-items: center; gap: 6px; background: #f0f0f0; color: #333; padding: 6px 12px; border-radius: 20px; font-size: 0.78rem; font-weight: 600; cursor: pointer; border: 2px solid transparent; transition: background 0.15s, border-color 0.15s; user-select: none; }
+.service-checkbox-label input[type="checkbox"] { display: none; }
+.service-checkbox-label.is-active { background: #0d0d2b; color: #fff; border-color: #00e5cc; }
+.service-checkbox-label.is-toggling { opacity: 0.5; cursor: wait; }
+.service-checkbox-label:hover:not(.is-toggling) { border-color: #00e5cc; }
+.service-checkbox-name { flex: 1; }
+.category-badge { background: rgba(0,0,0,0.12); color: #555; padding: 1px 6px; border-radius: 10px; font-size: 0.68rem; text-transform: uppercase; font-weight: 700; }
+.service-checkbox-label.is-active .category-badge { background: rgba(255,255,255,0.2); color: #00e5cc; }
 .no-services { font-size: 0.8rem; color: #a0aec0; font-style: italic; padding: 4px 0; }
 .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; }
 .modal { background: #fff; border-radius: 16px; padding: 40px; width: 400px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 16px; }
