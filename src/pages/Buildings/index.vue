@@ -155,6 +155,26 @@ onMounted(async () => {
 </script>
 
 <style scoped>
+
+  <!-- Dentro do seu v-for de apartamentos -->
+<div v-for="apt in apartmentsFiltered" :key="apt.id" class="sua-classe-original-de-linha">
+  
+  <!-- Sua área de clique original para abrir o checklist -->
+  <div @click="openChecklist(apt)">
+    <span>{{ getBuildingName(apt.buildingId) }} - Apt {{ apt.identifier }}</span>
+  </div>
+
+  <!-- APENAS ESTA INCLUSÃO: O seletor rápido sem alterar seu estilo -->
+  <select 
+    :value="apt.currentInspectorId || ''" 
+    @change="assignInline(apt, $event.target.value)"
+    style="margin-left: 10px; padding: 4px; border-radius: 4px;"
+  >
+    <option value="">Sem vistoriador</option>
+    <option v-for="u in users" :key="u.id" :value="u.id">{{ u.name }}</option>
+  </select>
+
+</div>
 /* Redefinição do grid de colunas para abrir espaço para o seletor inline */
 .apt-table-header, .apt-row { 
   display: grid; 
