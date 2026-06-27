@@ -11,6 +11,13 @@ export async function getVisit(id) {
   return response.data
 }
 
+export async function createVisit(checklistId, inspectorId) {
+  const response = await api.post(`/checklists/${checklistId}/visits`, {
+    inspectorId: Number(inspectorId)
+  })
+  return response.data
+}
+
 // ─── Re-inspeções (usadas pela tela W-15) ──────────────────────
 // O back não expõe uma listagem geral de visitas por empresa (GET /visits
 // sem filtro de "mine" não existe — ver observações do guia de telas).
