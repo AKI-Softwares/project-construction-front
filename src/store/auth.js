@@ -10,10 +10,14 @@ function decodeToken(token) {
 }
 
 export const useAuthStore = defineStore('auth', {
-  state: () => ({
-    token: localStorage.getItem('token') || null,
-    user: null,
-  }),
+  state: () => {
+    const token = localStorage.getItem('token') || null
+    const payload = decodeToken(token)
+    return {
+      token,
+      user: payload ? { name: payload.name, email: payload.email, id: payload.sub ?? payload.id } : null,
+    }
+  },
   getters: {
     isAuthenticated: (state) => !!state.token,
     hasPermission: (state) => (action) => {
@@ -40,6 +44,8 @@ export const useAuthStore = defineStore('auth', {
     setToken(token) {
       this.token = token
       localStorage.setItem('token', token)
+      const payload = decodeToken(token)
+      this.user = payload ? { name: payload.name, email: payload.email, id: payload.sub ?? payload.id } : null
     },
     logout() {
       this.token = null
