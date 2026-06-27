@@ -22,17 +22,17 @@
 
         <div class="metric-card border-orange">
           <span class="metric-label">Vistorias Realizadas</span>
-          <span class="metric-value">{{ isRich ? overview.visitsFinalized : totalApartments }}</span>
+          <span class="metric-value">{{ isRich ? overview.visitsFinalized : '—' }}</span>
         </div>
 
         <div class="metric-card border-coral">
           <span class="metric-label">Não Conformidades</span>
-          <span class="metric-value">{{ isRich ? overview.totalNonConformities : 0 }}</span>
+          <span class="metric-value">{{ isRich ? overview.totalNonConformities : '—' }}</span>
         </div>
 
         <div class="metric-card border-teal">
           <span class="metric-label">Unidades Entregues</span>
-          <span class="metric-value">{{ isRich ? (totalApartments - overview.visitsPending) : totalApartments }}</span>
+          <span class="metric-value">{{ isRich ? (totalApartments - overview.visitsPending) : '—' }}</span>
         </div>
       </template>
     </div>
