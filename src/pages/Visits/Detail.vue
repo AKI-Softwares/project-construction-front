@@ -16,6 +16,7 @@
       </div>
     </div>
 
+      <div v-if="reinspectionError" class="state error" style="margin-bottom:12px;">{{ reinspectionError }}</div>
     <div v-if="loading" class="state">Carregando dados da vistoria...</div>
     <div v-if="error" class="state error">{{ error }}</div>
 
@@ -184,7 +185,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import MainLayout from '../../components/Layout/MainLayout.vue'
-import * as visitsService from '../../services/visits.js'
+import { getVisit, createReinspection } from '../../services/visits.js'
 import { updateChecklistItem } from '../../services/checklists.js'
 
 const route = useRoute()
@@ -202,6 +203,7 @@ function toggleItem(itemId) {
 
 // Controle de fluxo de botões e modais
 const actionLoading = ref(false)
+const reinspectionError = ref('')
 const modalLoading = ref(false)
 const showModal = ref(false)
 const selectedItem = ref(null)
@@ -295,16 +297,12 @@ async function confirmResolveNC() {
 // Disparo de abertura de Re-inspeção (W-15)
 async function handleCreateReinspection() {
   actionLoading.value = true
+  reinspectionError.value = ''
   try {
-    const createReinspectFn = visitsService.createReinspection || visitsService.default?.createReinspection
-    
-    if (typeof createReinspectFn === 'function') {
-      await createReinspectFn(visit.value.id)
-    }
+    await createReinspection(visit.value.id)
     router.push('/reinspections')
   } catch (e) {
-    console.error('Redirecionando para visualização da central de re-inspeções:', e)
-    router.push('/reinspections')
+    reinspectionError.value = e.response?.data?.message || 'Erro ao criar re-inspeção. Tente novamente.'
   } finally {
     actionLoading.value = false
   }
@@ -312,12 +310,9 @@ async function handleCreateReinspection() {
 
 onMounted(async () => {
   try {
-    const getVisitFn = visitsService.getVisit || visitsService.default?.getVisit
-    if (typeof getVisitFn === 'function') {
-      visit.value = await getVisitFn(route.params.id)
-      if (visit.value?.items?.length) {
-        openRoom.value = visit.value.items[0].apartmentRoomService?.apartmentRoom?.name || null
-      }
+    visit.value = await getVisit(route.params.id)
+    if (visit.value?.items?.length) {
+      openRoom.value = visit.value.items[0].apartmentRoomService?.apartmentRoom?.name || null
     }
   } catch (e) {
     error.value = e.response?.data?.message || 'Erro ao carregar vistoria.'
