@@ -18,7 +18,6 @@
     <div v-if="loadError" class="state error">{{ loadError }}</div>
 
     <div v-if="!loading && !loadError">
-      <!-- Ajustado grid para 6 colunas incluindo o Inspetor -->
       <div class="table-header">
         <span>Empreendimento</span>
         <span>Apartamento</span>
@@ -41,7 +40,6 @@
         </span>
         <span class="created-at">{{ formatDate(visit.createdAt) }}</span>
         
-        <!-- Coluna de Atribuição inline para a Re-inspeção -->
         <div class="reassign-inline">
           <select :value="visit.inspectorId || ''" @change="assignReinspection(visit, $event.target.value)">
             <option value="">Selecionar...</option>
@@ -61,7 +59,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import MainLayout from '../../components/Layout/MainLayout.vue'
-import { getAvailableReinspections } from '../../services/visits.js'
+import { getAvailableReinspections, createReinspection } from '../../services/visits.js'
 import { getUsers } from '../../services/users.js'
 
 const reinspections = ref([])
@@ -89,19 +87,19 @@ function isOverdue(date) {
   return new Date(date) < new Date()
 }
 
-// Lógica para salvar o inspetor na re-inspeção
 async function assignReinspection(visit, userId) {
   if (!userId) return
   try {
-    // Nota: Como o registro de VisitType REINSPECTION já existe no banco sem inspetor, 
-    // a ação correta é atualizar a visita ou chamar o service de atribuição passando o visit.id
-    // Se o seu service aceitar a atualização do inspector, descomente ou ajuste a linha abaixo:
-    // await updateVisit(visit.id, { inspectorId: Number(userId) })
+    // Dispara para a rota correta mapeada na API passando o inspectorId esperado
+    await createReinspection(visit.id, {
+      inspectorId: Number(userId)
+    })
     
     alert('Inspetor atribuído à re-inspeção com sucesso!')
-    // Remove da lista local já que a tela só mostra os "Sem inspetor designado"
+    // Filtra localmente para remover da lista, já que agora ela tem um dono e sairá de "disponíveis"
     reinspections.value = reinspections.value.filter(r => r.id !== visit.id)
   } catch (e) {
+    console.error(e)
     alert('Erro ao atribuir inspetor: ' + (e.response?.data?.message || e.message))
   }
 }
@@ -139,18 +137,14 @@ onMounted(async () => {
 .info-banner p { margin: 0; line-height: 1.5; color: #555; }
 .state { text-align: center; padding: 40px; color: #888; }
 .error { color: red; }
-
-/* Grid de 6 colunas atualizado */
 .table-header { display: grid; grid-template-columns: 2fr 1fr 1.5fr 1.5fr 1.2fr 1.8fr; padding: 10px 20px; font-size: 0.8rem; font-weight: 700; color: #888; border-bottom: 2px solid #eee; margin-bottom: 4px; }
 .table-row { display: grid; grid-template-columns: 2fr 1fr 1.5fr 1.5fr 1.2fr 1.8fr; padding: 14px 20px; font-size: 0.88rem; color: #333; border-bottom: 1px solid #f5f5f5; align-items: center; background: #fff; border-radius: 8px; margin-bottom: 4px; }
-
 .building-name { font-weight: 600; color: #1a1a2e; }
 .created-at { color: #888; font-size: 0.82rem; }
 .no-date { color: #bbb; font-style: italic; }
 .overdue { color: #c0392b; font-weight: 600; }
 .overdue-tag { background: #fff3f0; color: #c0392b; font-size: 0.7rem; padding: 2px 8px; border-radius: 12px; margin-left: 6px; font-weight: 700; }
 
-/* Select inline adaptado ao tema claro da tabela */
 .reassign-inline select {
   width: 100%;
   padding: 6px 12px;
