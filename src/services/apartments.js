@@ -20,12 +20,3 @@ export async function createApartment(data) {
   const response = await api.post('/apartments', data)
   return response.data
 }
-
-export async function getApartmentTypes() {
-  try {
-    const response = await api.get('/apartment-types')
-    return response.data
-  } catch (error) {
-    return []
-  }
-}
