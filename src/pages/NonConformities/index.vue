@@ -92,8 +92,8 @@ async function carregarNaoConformidades() {
 
   try {
     // 1. Busca todos os apartamentos do prédio selecionado
-    const maisAptos = await getApartments({ buildingId: selectedBuildingId.value })
-    const listaAptos = maisAptos?.data || maisAptos || []
+    const maisAptos = await getApartments(selectedBuildingId.value)
+    const listaAptos = Array.isArray(maisAptos) ? maisAptos : (maisAptos?.data || [])
 
     // 2. Percorre os checklists de cada apartamento para mapear as NCs pendentes reais
     for (const apto of listaAptos) {
