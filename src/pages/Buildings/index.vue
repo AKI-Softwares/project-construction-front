@@ -297,3 +297,239 @@ const buildingErrors = reactive({ name: '', address: '' })
 function cancelBuilding() {
   showBuildingForm.value = false
   buildingForm.name = ''; buildingForm.address = ''
+  buildingErrors.name = ''; buildingErrors.address = ''
+  buildingSuccess.value = false; buildingError.value = ''
+}
+
+function validateBuilding() {
+  buildingErrors.name = ''; buildingErrors.address = ''
+  let valid = true
+  if (!buildingForm.name || buildingForm.name.length < 2) { buildingErrors.name = 'Nome deve ter pelo menos 2 caracteres.'; valid = false }
+  if (!buildingForm.address) { buildingErrors.address = 'Endereço é obrigatório.'; valid = false }
+  return valid
+}
+
+async function saveBuilding() {
+  if (!validateBuilding()) return
+  savingBuilding.value = true; buildingError.value = ''; buildingSuccess.value = false
+  try {
+    const created = await createBuilding({ name: buildingForm.name, address: buildingForm.address })
+    buildings.value.push(created)
+    buildingSuccess.value = true
+    buildingForm.name = ''; buildingForm.address = ''
+  } catch (e) {
+    buildingError.value = e.response?.data?.message || 'Erro ao cadastrar empreendimento.'
+  } finally {
+    savingBuilding.value = false
+  }
+}
+
+const selectedBuildingId = ref(null)
+
+const apartmentsFiltered = computed(() =>
+  selectedBuildingId.value
+    ? apartments.value.filter(a => a.buildingId === selectedBuildingId.value)
+    : apartments.value
+)
+
+// Computed property que busca os vistoriadores do empreendimento atual
+const buildingInspectors = computed(() => {
+  if (!selectedBuildingId.value) return []
+  const inspectorIds = new Set(
+    apartmentsFiltered.value
+      .filter(a => a.currentInspectorId)
+      .map(a => a.currentInspectorId)
+  )
+  return Array.from(inspectorIds).map(id => {
+    const u = users.value.find(user => user.id === id)
+    return u ? u.name : 'Desconhecido'
+  })
+})
+
+function selectBuilding(building) {
+  selectedBuildingId.value = building.id
+  activeTab.value = 'apartments'
+}
+
+// Função para voltar para a aba de empreendimentos
+function goBackToBuildings() {
+  selectedBuildingId.value = null
+  activeTab.value = 'buildings'
+}
+
+const aptMode = ref(null)
+const savingApt = ref(false)
+const aptSuccess = ref(false)
+const aptError = ref('')
+const singleApt = reactive({ buildingId: '', apartmentTypeId: '', identifier: '', floor: '', block: '' })
+const aptErrors = reactive({ buildingId: '', apartmentTypeId: '', identifier: '' })
+
+function validateSingleApt() {
+  aptErrors.buildingId = ''; aptErrors.apartmentTypeId = ''; aptErrors.identifier = ''
+  let valid = true
+  if (!singleApt.buildingId) { aptErrors.buildingId = 'Selecione um empreendimento.'; valid = false }
+  if (!singleApt.apartmentTypeId) { aptErrors.apartmentTypeId = 'Selecione um tipo.'; valid = false }
+  if (!singleApt.identifier) { aptErrors.identifier = 'Número é obrigatório.'; valid = false }
+  return valid
+}
+
+async function saveSingleApt() {
+  if (!validateSingleApt()) return
+  savingApt.value = true; aptError.value = ''; aptSuccess.value = false
+  try {
+    const created = await createApartment({
+      buildingId: Number(singleApt.buildingId),
+      apartmentTypeId: Number(singleApt.apartmentTypeId),
+      identifier: singleApt.identifier,
+      floor: singleApt.floor ? Number(singleApt.floor) : undefined,
+      block: singleApt.block || undefined,
+    })
+    apartments.value.push(created)
+    aptSuccess.value = true
+    singleApt.identifier = ''; singleApt.floor = ''; singleApt.block = ''
+  } catch (e) {
+    if (e.response?.status === 409) aptError.value = 'Número de apartamento já existe.'
+    else aptError.value = e.response?.data?.message || 'Erro ao cadastrar.'
+  } finally {
+    savingApt.value = false
+  }
+}
+
+const savingBatch = ref(false)
+const batchProgress = ref(0)
+const batchSuccess = ref('')
+const batchError = ref('')
+const batchForm = reactive({ buildingId: '', apartmentTypeId: '', block: '', floors: '', aptsPerFloor: '' })
+const batchErrors = reactive({ buildingId: '', apartmentTypeId: '', block: '', floors: '', aptsPerFloor: '' })
+
+const batchPreview = computed(() => {
+  if (!batchForm.block || !batchForm.floors || !batchForm.aptsPerFloor) return []
+  const block = batchForm.block.replace('Bloco ', '').trim()
+  const floors = Number(batchForm.floors)
+  const aptsPerFloor = Number(batchForm.aptsPerFloor)
+  if (!floors || !aptsPerFloor || floors < 1 || aptsPerFloor < 1) return []
+  const identifiers = []
+  for (let floor = 1; floor <= floors; floor++) {
+    for (let apt = 1; apt <= aptsPerFloor; apt++) {
+      identifiers.push(`${block}${floor}${String(apt).padStart(2, '0')}`)
+    }
+  }
+  return identifiers
+})
+
+function validateBatch() {
+  Object.keys(batchErrors).forEach(k => batchErrors[k] = '')
+  let valid = true
+  if (!batchForm.buildingId) { batchErrors.buildingId = 'Selecione.'; valid = false }
+  if (!batchForm.apartmentTypeId) { batchErrors.apartmentTypeId = 'Selecione.'; valid = false }
+  if (!batchForm.block) { batchErrors.block = 'Obrigatório.'; valid = false }
+  if (!batchForm.floors || batchForm.floors < 1) { batchErrors.floors = 'Mínimo 1.'; valid = false }
+  if (!batchForm.aptsPerFloor || batchForm.aptsPerFloor < 1) { batchErrors.aptsPerFloor = 'Mínimo 1.'; valid = false }
+  return valid
+}
+
+async function saveBatch() {
+  if (!validateBatch()) return
+  savingBatch.value = true; batchProgress.value = 0; batchSuccess.value = ''; batchError.value = ''
+  const block = batchForm.block.replace('Bloco ', '').trim()
+  const floors = Number(batchForm.floors)
+  const aptsPerFloor = Number(batchForm.aptsPerFloor)
+  let created = 0; let errors = 0
+  for (let floor = 1; floor <= floors; floor++) {
+    for (let apt = 1; apt <= aptsPerFloor; apt++) {
+      const identifier = `${block}${floor}${String(apt).padStart(2, '0')}`
+      try {
+        const result = await createApartment({
+          buildingId: Number(batchForm.buildingId),
+          apartmentTypeId: Number(batchForm.apartmentTypeId),
+          identifier, floor, block,
+        })
+        apartments.value.push(result)
+        created++
+      } catch { errors++ }
+      batchProgress.value = created + errors
+    }
+  }
+  savingBatch.value = false
+  batchSuccess.value = errors === 0
+    ? `${created} cadastrados!`
+    : `${created} cadastrados. ${errors} falharam.`
+}
+
+function getBuildingName(buildingId) {
+  const b = buildings.value.find(b => b.id === buildingId)
+  return b ? b.name : '—'
+}
+
+onMounted(async () => {
+  loadingBuildings.value = true; loadingApts.value = true
+  try {
+    const [b, a, t, u] = await Promise.all([getBuildings(), getApartments(), getApartmentTypes(), getUsers()])
+    buildings.value = b; apartments.value = a; apartmentTypes.value = t; users.value = u
+  } catch (e) {
+    console.error('Erro', e)
+  } finally {
+    loadingBuildings.value = false; loadingApts.value = false
+  }
+})
+</script>
+
+<style scoped>
+.tabs { display: flex; gap: 12px; justify-content: flex-end; margin-bottom: 16px; }
+.tab-btn { padding: 12px 28px; border-radius: 30px; border: none; background: #0d0d2b; color: #fff; font-size: 0.95rem; font-weight: 600; cursor: pointer; transition: background 0.2s; }
+.tab-btn.active { background: #00e5cc; color: #0d0d2b; }
+.divider { border: none; border-top: 1px solid #e0e0e0; margin-bottom: 28px; }
+
+/* Botões ajustados para terem o mesmo tamanho e margens iguais */
+.btn-add, .btn-batch { display: inline-flex; align-items: center; gap: 8px; background: #00e5cc; color: #0d0d2b; border: none; border-radius: 30px; padding: 12px 24px; font-size: 0.9rem; font-weight: 700; cursor: pointer; transition: opacity 0.2s; }
+.btn-add.active, .btn-batch.active { opacity: 0.7; }
+.apt-actions { display: flex; gap: 16px; margin-bottom: 20px; }
+
+.form-card { background: #fff; border-radius: 12px; padding: 28px; border: 1px solid #eee; max-width: 860px; display: flex; flex-direction: column; gap: 16px; margin-bottom: 28px; }
+.form-title { font-size: 1rem; font-weight: 700; color: #1a1a2e; margin: 0; }
+input, select { width: 100%; padding: 14px 20px; border: none; border-radius: 30px; background: #e8e8e8; font-size: 0.95rem; outline: none; color: #333; appearance: none; }
+input.invalid, select.invalid { border: 2px solid #c0392b; background: #fff3f0; }
+.form-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.form-col { display: flex; flex-direction: column; gap: 4px; }
+.field-error { font-size: 0.78rem; color: #c0392b; padding-left: 8px; }
+.form-actions { display: flex; gap: 16px; justify-content: flex-end; }
+.btn-save { padding: 12px 36px; background: #00e5cc; border: none; border-radius: 30px; font-size: 0.95rem; font-weight: bold; color: #0d0d2b; cursor: pointer; }
+.btn-save:disabled { opacity: 0.6; cursor: not-allowed; }
+.btn-cancel { padding: 12px 36px; background: #e8e8e8; border: none; border-radius: 30px; font-size: 0.95rem; font-weight: bold; color: #333; cursor: pointer; }
+.alert { display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-radius: 8px; font-size: 0.9rem; font-weight: 500; }
+.alert.success { background: #e0faf6; color: #00897b; border: 1px solid #00e5cc; }
+.alert.error { background: #fff3f0; color: #c0392b; border: 1px solid #f99f56; }
+.info-box { display: flex; gap: 12px; background: #fff8e1; border-radius: 8px; padding: 16px; font-size: 0.85rem; color: #333; }
+.info-icon { color: #f5a623; margin-top: 2px; flex-shrink: 0; }
+.info-box ul { margin: 4px 0 0 16px; padding: 0; }
+.preview { background: #f4f4f4; border-radius: 8px; padding: 16px; font-size: 0.85rem; }
+.preview-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.preview-tag { background: #0d0d2b; color: #fff; padding: 4px 10px; border-radius: 20px; font-size: 0.78rem; }
+.preview-tag.more { background: #00e5cc; color: #0d0d2b; }
+.item-list { display: flex; flex-direction: column; gap: 10px; }
+.item-card { background: #6b6b6b; border-radius: 12px; padding: 18px 24px; color: #fff; font-size: 1rem; cursor: pointer; transition: background 0.2s; display: flex; align-items: center; justify-content: space-between; }
+.item-card:hover { background: #555; }
+.building-card-info { display: flex; flex-direction: column; gap: 4px; }
+.building-card-name { font-size: 1rem; font-weight: 600; }
+.building-card-count { font-size: 0.8rem; color: rgba(255,255,255,0.7); }
+.building-card-arrow { font-size: 1.2rem; color: #00e5cc; }
+
+/* Estilos do novo cabeçalho de empreendimento */
+.building-header { background: #fff; border: 1px solid #ddd; border-radius: 12px; padding: 20px; margin-bottom: 24px; display: flex; flex-direction: column; gap: 16px; }
+.building-header-top { display: flex; align-items: center; gap: 16px; }
+.btn-back { background: #e8e8e8; border: none; border-radius: 20px; padding: 8px 16px; font-size: 0.85rem; font-weight: bold; color: #333; cursor: pointer; transition: background 0.2s; }
+.btn-back:hover { background: #d0d0d0; }
+.building-title { font-size: 1.1rem; font-weight: 700; color: #1a1a2e; display: flex; align-items: center; gap: 8px; }
+.building-header-info { display: flex; gap: 32px; font-size: 0.9rem; color: #444; background: #f4f4f4; padding: 14px 20px; border-radius: 8px; }
+.text-muted { color: #999; font-style: italic; }
+
+.apt-table-header { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 2fr; padding: 8px 24px; font-size: 0.85rem; color: #555; font-weight: 600; margin-bottom: 8px; }
+.apt-row { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 2fr; background: #6b6b6b; border-radius: 10px; padding: 16px 24px; color: #fff; font-size: 0.9rem; margin-bottom: 8px; align-items: center; }
+.apt-row-clickable-wrapper { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; grid-column: span 4; cursor: pointer; width: 100%; height: 100%; align-items: center; }
+.apt-row-clickable-wrapper:hover { opacity: 0.85; }
+.apt-assign-inline select { width: 100%; padding: 8px 16px; border-radius: 30px; border: none; background: #e8e8e8; font-size: 0.85rem; color: #333; cursor: pointer; outline: none; }
+.checklist-overlay-state { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; color: #fff; font-size: 1rem; flex-direction: column; gap: 16px; }
+.checklist-overlay-state.error { color: #fff; }
+.checklist-overlay-state.error .btn-cancel { padding: 10px 28px; }
+.empty { text-align: center; padding: 40px; color: #888; }
+</style>
