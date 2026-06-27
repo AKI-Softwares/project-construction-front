@@ -12,7 +12,6 @@
 
     <hr class="divider" />
 
-    <!-- ===================== TAB: BUILDINGS ===================== -->
     <div v-if="activeTab === 'buildings'">
 
       <button v-if="authStore.hasPermission('buildings:create')" class="btn-add" @click="showBuildingForm = !showBuildingForm">
@@ -21,16 +20,28 @@
 
       <div v-if="showBuildingForm" class="form-card">
         <h3 class="form-title">Novo Empreendimento</h3>
+        
         <div v-if="buildingSuccess" class="alert success">
           <FontAwesomeIcon :icon="['fas', 'circle-check']" /> Empreendimento cadastrado com sucesso!
         </div>
         <div v-if="buildingError" class="alert error">
           <FontAwesomeIcon :icon="['fas', 'circle-exclamation']" /> {{ buildingError }}
         </div>
+        
         <input v-model="buildingForm.name" type="text" placeholder="Nome do Empreendimento" :class="{ invalid: buildingErrors.name }" />
         <span v-if="buildingErrors.name" class="field-error">{{ buildingErrors.name }}</span>
+        
         <input v-model="buildingForm.address" type="text" placeholder="Endereço" :class="{ invalid: buildingErrors.address }" />
         <span v-if="buildingErrors.address" class="field-error">{{ buildingErrors.address }}</span>
+
+        <select v-model="buildingForm.userId" :class="{ invalid: buildingErrors.userId }">
+          <option value="" disabled>Selecionar Inspetor Responsável</option>
+          <option v-for="user in users" :key="user.id" :value="user.id">
+            {{ user.name }} ({{ user.role?.name || 'Sem função' }})
+          </option>
+        </select>
+        <span v-if="buildingErrors.userId" class="field-error">{{ buildingErrors.userId }}</span>
+
         <div class="form-actions">
           <button class="btn-save" :disabled="savingBuilding" @click="saveBuilding">
             {{ savingBuilding ? 'Salvando...' : 'Salvar' }}
@@ -55,7 +66,6 @@
 
     </div>
 
-    <!-- ===================== TAB: APARTMENTS ===================== -->
     <div v-if="activeTab === 'apartments'">
 
       <div class="apt-actions">
@@ -196,6 +206,9 @@ import { groupChecklistByRoom } from '../../utils/checklist.js'
 import { useAuthStore } from '../../store/auth.js'
 import { getApartmentTypes } from '../../services/apartmentTypes.js'
 
+// NOVA IMPORTAÇÃO: Busca o serviço de usuários para alimentar a listagem
+import { getUsers } from '../../services/users.js'
+
 const authStore = useAuthStore()
 
 const selectedChecklist = ref(null)
@@ -206,26 +219,18 @@ async function openChecklist(apt) {
   checklistError.value = ''
   loadingChecklist.value = true
   try {
-    // 1. Busca os dados da API
     let detail = await getChecklistByApartment(apt.id)
     
-    // 2. SE A API VIER VAZIA (Casos dos apartamentos novos):
-    // Se não houver detail ou se a lista de cômodos (rooms) estiver vazia
     if (!detail || !detail.rooms || detail.rooms.length === 0) {
-      
-      // Encontra o tipo desse apartamento para saber quais cômodos ele deveria ter
       const tipoDoApt = apartmentTypes.value.find(t => t.id === apt.apartmentTypeId)
       
       if (tipoDoApt && tipoDoApt.rooms) {
-        // Montamos a estrutura na memória do front-end para o modal aceitar
         detail = {
           identifier: apt.identifier,
           block: apt.block || '—',
-          // Criamos a propriedade .rooms que o modal exige para o v-for
           rooms: tipoDoApt.rooms.map(room => ({
             id: room.id,
             name: room.name,
-            // Criamos a propriedade .items vazia ou simulada para não quebrar as propriedades computadas
             items: [] 
           }))
         }
@@ -235,7 +240,6 @@ async function openChecklist(apt) {
       }
     }
 
-    // 3. Passa os dados estruturados para o utilitário e abre o modal
     selectedChecklist.value = groupChecklistByRoom(detail)
     
   } catch (e) {
@@ -250,6 +254,10 @@ const activeTab = ref('buildings')
 const buildings = ref([])
 const apartments = ref([])
 const apartmentTypes = ref([])
+
+// NOVA REFRENCIA: Armazena a lista de usuários buscada do back
+const users = ref([])
+
 const loadingBuildings = ref(false)
 const loadingApts = ref(false)
 
@@ -257,21 +265,24 @@ const showBuildingForm = ref(false)
 const savingBuilding = ref(false)
 const buildingSuccess = ref(false)
 const buildingError = ref('')
-const buildingForm = reactive({ name: '', address: '' })
-const buildingErrors = reactive({ name: '', address: '' })
+
+// AJUSTE OPERACIONAL: Adicionado o estado inicial 'userId' vindo vazio
+const buildingForm = reactive({ name: '', address: '', userId: '' })
+const buildingErrors = reactive({ name: '', address: '', userId: '' })
 
 function cancelBuilding() {
   showBuildingForm.value = false
-  buildingForm.name = ''; buildingForm.address = ''
-  buildingErrors.name = ''; buildingErrors.address = ''
+  buildingForm.name = ''; buildingForm.address = ''; buildingForm.userId = ''
+  buildingErrors.name = ''; buildingErrors.address = ''; buildingErrors.userId = ''
   buildingSuccess.value = false; buildingError.value = ''
 }
 
 function validateBuilding() {
-  buildingErrors.name = ''; buildingErrors.address = ''
+  buildingErrors.name = ''; buildingErrors.address = ''; buildingErrors.userId = ''
   let valid = true
   if (!buildingForm.name || buildingForm.name.length < 2) { buildingErrors.name = 'Nome deve ter pelo menos 2 caracteres.'; valid = false }
   if (!buildingForm.address) { buildingErrors.address = 'Endereço é obrigatório.'; valid = false }
+  if (!buildingForm.userId) { buildingErrors.userId = 'Definir um inspetor responsável é obrigatório.'; valid = false }
   return valid
 }
 
@@ -279,10 +290,15 @@ async function saveBuilding() {
   if (!validateBuilding()) return
   savingBuilding.value = true; buildingError.value = ''; buildingSuccess.value = false
   try {
-    const created = await createBuilding({ name: buildingForm.name, address: buildingForm.address })
+    // ENVIANDO O ID: Agora a requisição inclui quem vai inspecionar essa obra
+    const created = await createBuilding({ 
+      name: buildingForm.name, 
+      address: buildingForm.address,
+      userId: Number(buildingForm.userId)
+    })
     buildings.value.push(created)
     buildingSuccess.value = true
-    buildingForm.name = ''; buildingForm.address = ''
+    buildingForm.name = ''; buildingForm.address = ''; buildingForm.userId = ''
   } catch (e) {
     buildingError.value = e.response?.data?.message || 'Erro ao cadastrar empreendimento.'
   } finally {
@@ -409,8 +425,9 @@ function getBuildingName(buildingId) {
 onMounted(async () => {
   loadingBuildings.value = true; loadingApts.value = true
   try {
-    const [b, a, t] = await Promise.all([getBuildings(), getApartments(), getApartmentTypes()])
-    buildings.value = b; apartments.value = a; apartmentTypes.value = t
+    // CARGA COMPLEMENTAR: Incluído o 'getUsers()' para rodar em paralelo no Promise.all
+    const [b, a, t, u] = await Promise.all([getBuildings(), getApartments(), getApartmentTypes(), getUsers()])
+    buildings.value = b; apartments.value = a; apartmentTypes.value = t; users.value = u
   } catch (e) {
     console.error('Erro ao carregar dados', e)
   } finally {
