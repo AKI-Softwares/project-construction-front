@@ -194,7 +194,7 @@ import { getApartments, createApartment } from '../../services/apartments.js'
 import { getChecklistByApartment } from '../../services/checklists.js'
 import { groupChecklistByRoom } from '../../utils/checklist.js'
 import { useAuthStore } from '../../store/auth.js'
-import { getApartmentTypes } from '../../services/apartments.js'
+import { getApartmentTypes } from '../../services/apartmentTypes.js'
 
 const authStore = useAuthStore()
 
