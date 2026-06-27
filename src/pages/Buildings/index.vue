@@ -219,19 +219,13 @@ const users = ref([])
 async function assignInline(apt, userId) {
   if (!userId) { return }
   try {
-    // 1. Buscamos o checklist daquele apartamento para checar o status
     const checklist = await getChecklistByApartment(apt.id)
     
-    // 2. Verificação de segurança (Guarda): 
-    // Se o checklist já estiver finalizado ou com vistoria ativa que não permite sobreposição,
-    // evitamos disparar o createVisit cego que causa o erro 400/409.
-    // *Nota: Adapte a propriedade de acordo com o retorno do seu getChecklistByApartment
     if (checklist?.status === 'FINALIZED') {
       alert('Este apartamento já está com o ciclo de vistorias finalizado.')
       return
     }
 
-    // 3. Se passou pela validação, prossegue com a atribuição normal
     await createVisit(checklist.id, userId)
     
     apt.currentInspectorId = Number(userId)
@@ -239,13 +233,10 @@ async function assignInline(apt, userId) {
     
   } catch (e) {
     console.error(e)
-    
-    // Captura a mensagem real da API e exibe de forma amigável
     const errorMsg = e.response?.data?.message || e.message
     alert(`Não foi possível atribuir o vistoriador: ${errorMsg}`)
   }
-}
-}
+} // <--- Esta chave fecha a função assignInline
 
 async function openChecklist(apt) {
   checklistError.value = ''
