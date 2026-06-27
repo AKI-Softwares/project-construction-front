@@ -1,5 +1,39 @@
+// src/services/auth.js
+import api from './api.js'
 import { defineStore } from 'pinia'
 
+// ─── Funções de API ───────────────────────────────────────────
+export async function login(email, password) {
+  const response = await api.post('/auth/login', { email, password })
+  return response.data
+}
+
+export async function me() {
+  const response = await api.get('/auth/me')
+  return response.data
+}
+
+export async function forgotPassword(email) {
+  const response = await api.post('/auth/forgot-password', { email })
+  return response.data
+}
+
+export async function resetPassword(token, newPassword) {
+  const response = await api.post('/auth/reset-password', { token, newPassword })
+  return response.data
+}
+
+export async function changePassword(currentPassword, newPassword) {
+  const response = await api.post('/auth/change-password', { currentPassword, newPassword })
+  return response.data
+}
+
+export async function registerCompany(data) {
+  const response = await api.post('/auth/register-company', data)
+  return response.data
+}
+
+// ─── Pinia Store ──────────────────────────────────────────────
 function decodeToken(token) {
   try {
     if (!token) return null
