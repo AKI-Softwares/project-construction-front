@@ -186,8 +186,13 @@
             </div>
             
             <div class="apt-assign-inline">
-              <select v-model="apt.currentInspectorId" @change="assignInline(apt, apt.currentInspectorId)" @click.stop>
-                <option value="">Não atribuído</option>
+              <select 
+                v-model="apt.currentInspectorId" 
+                :class="{ 'is-assigned': apt.currentInspectorId }"
+                @change="assignInline(apt, apt.currentInspectorId)" 
+                @click.stop
+              >
+                <option value="">+ Atribuir</option>
                 <option v-for="u in users" :key="u.id" :value="u.id">{{ u.name }}</option>
               </select>
             </div>
@@ -332,7 +337,6 @@ const apartmentsFiltered = computed(() =>
     : apartments.value
 )
 
-// Computed property que busca os vistoriadores do empreendimento atual
 const buildingInspectors = computed(() => {
   if (!selectedBuildingId.value) return []
   const inspectorIds = new Set(
@@ -351,7 +355,6 @@ function selectBuilding(building) {
   activeTab.value = 'apartments'
 }
 
-// Função para voltar para a aba de empreendimentos
 function goBackToBuildings() {
   selectedBuildingId.value = null
   activeTab.value = 'buildings'
@@ -480,7 +483,6 @@ onMounted(async () => {
 .tab-btn.active { background: #00e5cc; color: #0d0d2b; }
 .divider { border: none; border-top: 1px solid #e0e0e0; margin-bottom: 28px; }
 
-/* Botões ajustados para terem o mesmo tamanho e margens iguais */
 .btn-add, .btn-batch { display: inline-flex; align-items: center; gap: 8px; background: #00e5cc; color: #0d0d2b; border: none; border-radius: 30px; padding: 12px 24px; font-size: 0.9rem; font-weight: 700; cursor: pointer; transition: opacity 0.2s; }
 .btn-add.active, .btn-batch.active { opacity: 0.7; }
 .apt-actions { display: flex; gap: 16px; margin-bottom: 20px; }
@@ -514,7 +516,6 @@ input.invalid, select.invalid { border: 2px solid #c0392b; background: #fff3f0; 
 .building-card-count { font-size: 0.8rem; color: rgba(255,255,255,0.7); }
 .building-card-arrow { font-size: 1.2rem; color: #00e5cc; }
 
-/* Estilos do novo cabeçalho de empreendimento */
 .building-header { background: #fff; border: 1px solid #ddd; border-radius: 12px; padding: 20px; margin-bottom: 24px; display: flex; flex-direction: column; gap: 16px; }
 .building-header-top { display: flex; align-items: center; gap: 16px; }
 .btn-back { background: #e8e8e8; border: none; border-radius: 20px; padding: 8px 16px; font-size: 0.85rem; font-weight: bold; color: #333; cursor: pointer; transition: background 0.2s; }
@@ -527,7 +528,40 @@ input.invalid, select.invalid { border: 2px solid #c0392b; background: #fff3f0; 
 .apt-row { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 2fr; background: #6b6b6b; border-radius: 10px; padding: 16px 24px; color: #fff; font-size: 0.9rem; margin-bottom: 8px; align-items: center; }
 .apt-row-clickable-wrapper { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; grid-column: span 4; cursor: pointer; width: 100%; height: 100%; align-items: center; }
 .apt-row-clickable-wrapper:hover { opacity: 0.85; }
-.apt-assign-inline select { width: 100%; padding: 8px 16px; border-radius: 30px; border: none; background: #e8e8e8; font-size: 0.85rem; color: #333; cursor: pointer; outline: none; }
+
+/* ESTILOS NOVOS DA CAIXA DE VISTORIADOR */
+.apt-assign-inline { display: flex; justify-content: flex-start; }
+.apt-assign-inline select { 
+  width: 100%; 
+  max-width: 160px; /* Evita que estique muito */
+  padding: 8px 16px; 
+  border-radius: 20px; /* Bem arredondado como um badge */
+  border: 1px dashed rgba(255, 255, 255, 0.5); /* Bordinha tracejada quando vazio */
+  background: transparent; 
+  font-size: 0.85rem; 
+  color: #fff; 
+  cursor: pointer; 
+  outline: none; 
+  text-align: center;
+  transition: all 0.2s ease;
+  appearance: none; /* Tira aquela setinha feia padrão do navegador */
+}
+
+/* Efeito ao passar o mouse quando está vazio */
+.apt-assign-inline select:hover {
+  border-color: #00e5cc;
+  color: #00e5cc;
+  background: rgba(0, 229, 204, 0.1);
+}
+
+/* Efeito ativado (quando alguém for selecionado) */
+.apt-assign-inline select.is-assigned {
+  background: #00e5cc;
+  border: 1px solid #00e5cc;
+  color: #0d0d2b;
+  font-weight: bold;
+}
+
 .checklist-overlay-state { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; color: #fff; font-size: 1rem; flex-direction: column; gap: 16px; }
 .checklist-overlay-state.error { color: #fff; }
 .checklist-overlay-state.error .btn-cancel { padding: 10px 28px; }
