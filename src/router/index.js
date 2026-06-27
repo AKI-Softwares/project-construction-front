@@ -18,7 +18,7 @@ const routes = [
   { path: '/analytics', component: () => import('../pages/Dashboard/index.vue'), meta: { requiresAuth: true } },
   
   { path: '/buildings', component: () => import('../pages/Buildings/index.vue'), meta: { requiresAuth: true } },
-  { path: '/buildings/:id', component: () => import('../pages/Buildings/index.vue'), meta: { requiresAuth: true } },
+  { path: '/buildings/:id', component: () => import('../pages/Buildings/Detail.vue'), meta: { requiresAuth: true } },
   { path: '/apartment-types', component: () => import('../pages/ApartmentTypes/index.vue'), meta: { requiresAuth: true } },
   { path: '/services', component: () => import('../pages/Services/index.vue'), meta: { requiresAuth: true } },
   { path: '/reinspections', component: () => import('../pages/Reinspections/index.vue'), meta: { requiresAuth: true } },
