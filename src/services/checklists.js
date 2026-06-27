@@ -18,6 +18,11 @@ export async function getChecklist(id) {
   return response.data
 }
 
+export async function updateChecklistItem(checklistId, itemId, data) {
+  const response = await api.patch(`/checklists/${checklistId}/items/${itemId}`, data)
+  return response.data
+}
+
 export async function updateChecklist(id, data) {
   const response = await api.patch(`/checklists/${id}`, data)
   return response.data
