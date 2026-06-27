@@ -74,28 +74,81 @@
             <div
               v-for="item in room.items"
               :key="item.id"
-              :class="['item-row', `item-${item.status.toLowerCase()}`]"
+              class="item-block"
             >
-              <div class="item-info">
-                <span class="item-name">{{ item.apartmentRoomService?.service?.name || 'Serviço' }}</span>
-                <span class="item-category">{{ item.apartmentRoomService?.service?.category || 'Geral' }}</span>
-              </div>
-              
-              <div class="item-actions-wrapper">
-                <!-- Ação direta para Resolver NC (W-10) se o item for NOK -->
-                <button 
-                  v-if="item.status === 'NOK'" 
-                  class="btn-resolve-nc"
-                  @click.stop="openResolveModal(item)"
-                >
-                  <FontAwesomeIcon :icon="['fas', 'check-double']" />
-                  Resolver NC
-                </button>
+              <!-- Cabeçalho clicável do item -->
+              <div
+                :class="['item-row', `item-${item.status.toLowerCase()}`]"
+                @click="toggleItem(item.id)"
+              >
+                <div class="item-info">
+                  <span class="item-name">{{ item.apartmentRoomService?.service?.name || 'Serviço' }}</span>
+                  <span class="item-category">{{ item.apartmentRoomService?.service?.category || 'Geral' }}</span>
+                </div>
 
-                <span :class="['item-badge', `badge-item-${item.status.toLowerCase()}`]">
-                  {{ translateItemStatus(item.status) }}
-                </span>
+                <div class="item-actions-wrapper">
+                  <button
+                    v-if="item.status === 'NOK'"
+                    class="btn-resolve-nc"
+                    @click.stop="openResolveModal(item)"
+                  >
+                    <FontAwesomeIcon :icon="['fas', 'check-double']" />
+                    Resolver NC
+                  </button>
+                  <span :class="['item-badge', `badge-item-${item.status.toLowerCase()}`]">
+                    {{ translateItemStatus(item.status) }}
+                  </span>
+                  <FontAwesomeIcon
+                    v-if="item.visitItems?.length"
+                    :icon="['fas', openItem === item.id ? 'chevron-up' : 'chevron-down']"
+                    class="item-chevron"
+                  />
+                </div>
               </div>
+
+              <!-- Painel expansível: registros do inspetor -->
+              <div v-if="openItem === item.id && item.visitItems?.length" class="item-detail-panel">
+                <div
+                  v-for="vi in item.visitItems"
+                  :key="vi.id"
+                  class="visit-entry"
+                >
+                  <!-- Cabeçalho do registro -->
+                  <div class="visit-entry-header">
+                    <span class="visit-entry-inspector">
+                      <FontAwesomeIcon :icon="['fas', 'user']" />
+                      {{ vi.visit?.user?.name || vi.inspector?.name || 'Inspetor' }}
+                    </span>
+                    <span class="visit-entry-date">{{ formatDate(vi.createdAt || vi.visit?.createdAt) }}</span>
+                  </div>
+
+                  <!-- Descrição do inspetor (observations / notes) -->
+                  <p v-if="vi.observations || vi.notes || vi.nonConformity?.description" class="visit-entry-desc">
+                    {{ vi.observations || vi.notes || vi.nonConformity?.description }}
+                  </p>
+
+                  <!-- Fotos -->
+                  <div v-if="vi.nonConformity?.photos?.length" class="visit-entry-photos">
+                    <a
+                      v-for="photo in vi.nonConformity.photos"
+                      :key="photo.id || photo.url"
+                      :href="photo.url"
+                      target="_blank"
+                      rel="noopener"
+                      class="photo-thumb-link"
+                    >
+                      <img :src="photo.url" :alt="photo.name || 'Foto'" class="photo-thumb" />
+                    </a>
+                  </div>
+
+                  <!-- NC sem fotos mas com status -->
+                  <div v-else-if="vi.nonConformity" class="visit-entry-no-photo">
+                    <FontAwesomeIcon :icon="['fas', 'camera-slash']" />
+                    Sem fotos registradas
+                  </div>
+                </div>
+              </div>
+
             </div>
           </div>
 
@@ -141,6 +194,11 @@ const loading = ref(true)
 const error = ref('')
 const visit = ref(null)
 const openRoom = ref(null)
+const openItem = ref(null)
+
+function toggleItem(itemId) {
+  openItem.value = openItem.value === itemId ? null : itemId
+}
 
 // Controle de fluxo de botões e modais
 const actionLoading = ref(false)
@@ -190,6 +248,7 @@ const groupedRooms = computed(() => {
 
 function toggleRoom(name) {
   openRoom.value = openRoom.value === name ? null : name
+  openItem.value = null
 }
 
 function translateStatus(status) {
@@ -414,13 +473,19 @@ onMounted(async () => {
   flex-direction: column;
 }
 
+.item-block { border-top: 1px solid #f5f5f5; }
+
 .item-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 14px 20px;
-  border-top: 1px solid #f5f5f5;
+  cursor: pointer;
+  transition: background 0.15s;
 }
+.item-row:hover { background: #fafafa; }
+
+.item-chevron { font-size: 0.75rem; color: #aaa; margin-left: 4px; }
 
 .item-info {
   display: flex;
@@ -462,6 +527,56 @@ onMounted(async () => {
 .badge-item-pending { background: #f0f0f0; color: #888; }
 .badge-item-ok { background: #e0faf6; color: #00897b; }
 .badge-item-nok { background: #fdecea; color: #c0392b; }
+
+/* Painel de detalhes do item (visitItems) */
+.item-detail-panel {
+  background: #f9f9f9;
+  border-top: 1px solid #eee;
+  padding: 12px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.visit-entry {
+  background: #fff;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.visit-entry-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.8rem;
+}
+.visit-entry-inspector { font-weight: 600; color: #1a1a2e; display: flex; align-items: center; gap: 6px; }
+.visit-entry-date { color: #aaa; }
+
+.visit-entry-desc {
+  font-size: 0.85rem;
+  color: #444;
+  line-height: 1.5;
+  margin: 0;
+  background: #f5f5f5;
+  padding: 10px 12px;
+  border-radius: 6px;
+}
+
+.visit-entry-photos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.photo-thumb-link { display: block; border-radius: 6px; overflow: hidden; border: 2px solid #eee; transition: border-color 0.15s; }
+.photo-thumb-link:hover { border-color: #00e5cc; }
+.photo-thumb { width: 100px; height: 80px; object-fit: cover; display: block; }
+
+.visit-entry-no-photo { font-size: 0.78rem; color: #bbb; display: flex; align-items: center; gap: 6px; }
 
 /* Modal Styles */
 .modal-overlay {
