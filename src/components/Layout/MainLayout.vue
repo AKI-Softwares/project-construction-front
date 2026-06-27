@@ -46,7 +46,8 @@ onUnmounted(() => window.removeEventListener('app:toast', showToast))
 <style scoped>
 .main-layout {
   display: flex;
-  min-height: 100vh;
+  height: 100vh; /* Mantém a estrutura travada na altura da janela */
+  overflow: hidden; /* Evita que o layout principal crie barras duplicadas */
 }
 .conteudo-wrapper {
   margin-left: 60px;
@@ -55,10 +56,13 @@ onUnmounted(() => window.removeEventListener('app:toast', showToast))
   flex-direction: column;
   background-color: #f4f4f4;
   transition: margin-left 0.25s ease;
+  height: 100vh;
+  overflow-y: auto; /* CORREÇÃO: Permite que apenas a área de conteúdo role para baixo */
 }
 .conteudo {
   margin-top: 60px;
   padding: 32px;
+  flex: 1;
 }
 
 /* Toast */
