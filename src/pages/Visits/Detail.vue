@@ -132,6 +132,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import MainLayout from '../../components/Layout/MainLayout.vue'
 import * as visitsService from '../../services/visits.js'
+import { updateChecklistItem } from '../../services/checklists.js'
 
 const route = useRoute()
 const router = useRouter()
@@ -218,19 +219,15 @@ async function confirmResolveNC() {
   if (!selectedItem.value) return
   modalLoading.value = true
   try {
-    const patchItemFn = visitsService.updateItemStatus || visitsService.patchItem || visitsService.default?.updateItemStatus
-    
-    if (typeof patchItemFn === 'function') {
-      await patchItemFn(selectedItem.value.id, { status: 'OK', notes: resolutionNotes.value })
-    }
-    
-    // Atualização reativa local imediata
+    // visit.value.id é o checklistId; selectedItem.value.id é o itemId
+    await updateChecklistItem(visit.value.id, selectedItem.value.id, {
+      status: 'OK',
+      notes: resolutionNotes.value,
+    })
     selectedItem.value.status = 'OK'
     showModal.value = false
   } catch (e) {
-    console.error('Erro na requisição. Aplicando mutação local preventiva:', e)
-    selectedItem.value.status = 'OK'
-    showModal.value = false
+    console.error('Erro ao resolver NC:', e)
   } finally {
     modalLoading.value = false
   }
@@ -243,7 +240,7 @@ async function handleCreateReinspection() {
     const createReinspectFn = visitsService.createReinspection || visitsService.default?.createReinspection
     
     if (typeof createReinspectFn === 'function') {
-      await createReinspectFn({ visitId: visit.value.id })
+      await createReinspectFn(visit.value.id)
     }
     router.push('/reinspections')
   } catch (e) {
