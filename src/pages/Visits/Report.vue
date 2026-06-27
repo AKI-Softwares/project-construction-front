@@ -213,6 +213,7 @@ const carregando = ref(false)
 // Dados Agregados Reais
 const apartmentsReportData = ref([])
 const dynamicRoomsMap = ref({})
+const totalItemsSum = ref(0)
 
 const currentLongDate = computed(() => {
   return new Date().toLocaleDateString('pt-BR', {
@@ -248,7 +249,7 @@ const roomCatalog = computed(() => {
 
 // Fórmula PEO 19 baseada nos dados minerados reais
 const qualityObjectiveResult = computed(() => {
-  const totalInspecionados = totalApartmentsWithChecklist.value * 118 
+  const totalInspecionados = totalItemsSum.value
   if (totalInspecionados === 0) return '0.00'
   const calc = (totalNonConformitiesSum.value / totalInspecionados) * 100
   return calc.toFixed(2)
@@ -280,6 +281,7 @@ async function gerarRelatorioReal() {
   carregando.value = true
   apartmentsReportData.value = []
   dynamicRoomsMap.value = {}
+  totalItemsSum.value = 0
 
   try {
     // 1. Busca todos os apartamentos vinculados ao prédio selecionado
@@ -300,6 +302,7 @@ async function gerarRelatorioReal() {
         
         if (checklistDetail && checklistDetail.items) {
           temChecklist = true
+          totalItemsSum.value += checklistDetail.items.length
           
           for (const item of checklistDetail.items) {
             const roomName = item.apartmentRoomService?.apartmentRoom?.name || 'Geral'
