@@ -88,7 +88,7 @@
           v-for="visit in filteredVisits"
           :key="visit.id"
           class="table-row"
-          @click="goToDetail(visit.id)"
+          @click="openVisit(visit.id)"
         >
           <span class="row-building">{{ visit.apartment?.building?.name || '—' }}</span>
           <span class="row-apt">{{ visit.apartment?.identifier || '—' }}</span>
@@ -111,16 +111,22 @@
       </div>
 
     </div>
+    <div v-if="loadingVisit" class="modal-loading-overlay">
+      <div class="modal-loading-box">Carregando vistoria...</div>
+    </div>
+    <VisitModal v-if="selectedVisit" :visit="selectedVisit" @fechar="selectedVisit = null" />
+
   </MainLayout>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
 import MainLayout from '../../components/Layout/MainLayout.vue'
-import * as visitsService from '../../services/visits.js'
+import VisitModal from '../../components/Layout/VisitModal.vue'
+import { getVisits, getVisit } from '../../services/visits.js'
 
-const router = useRouter()
+const selectedVisit = ref(null)
+const loadingVisit = ref(false)
 const loading = ref(true)
 const error = ref('')
 const visits = ref([])
@@ -214,19 +220,20 @@ function formatDate(date) {
   return new Date(date).toLocaleDateString('pt-BR')
 }
 
-function goToDetail(id) {
-  router.push(`/visits/${id}`)
+async function openVisit(id) {
+  loadingVisit.value = true
+  try {
+    selectedVisit.value = await getVisit(id)
+  } catch (e) {
+    console.error('Erro ao carregar vistoria:', e)
+  } finally {
+    loadingVisit.value = false
+  }
 }
 
-onMounted(async () => {
+
   try {
-    const fetchVisitsFn = visitsService.getVisits || visitsService.default?.getVisits
-    if (typeof fetchVisitsFn === 'function') {
-      visits.value = await fetchVisitsFn()
-    } else {
-      console.warn('Método getVisits não encontrado explicitamente. Usando fallback de mock local para testes.')
-      visits.value = []
-    }
+    visits.value = await getVisits()
   } catch (e) {
     error.value = e.response?.data?.message || 'Erro ao carregar vistorias.'
   } finally {
@@ -380,4 +387,7 @@ onMounted(async () => {
   color: #aaa;
   font-size: 0.9rem;
 }
+
+.modal-loading-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; z-index: 999; }
+.modal-loading-box { background: #fff; padding: 20px 32px; border-radius: 10px; font-size: 0.9rem; color: #333; }
 </style>
