@@ -1,4 +1,3 @@
-
 import api from './api.js'
 
 export async function getVisits() {
@@ -30,5 +29,10 @@ export async function getAvailableReinspections() {
 
 export async function createReinspection(visitId, data = {}) {
   const response = await api.post(`/visits/${visitId}/reinspection`, data)
+  return response.data
+}
+
+export async function assignInspectorToVisit(visitId, inspectorId) {
+  const response = await api.patch(`/visits/${visitId}/inspector`, { inspectorId })
   return response.data
 }
