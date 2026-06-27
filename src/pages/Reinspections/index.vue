@@ -59,7 +59,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import MainLayout from '../../components/Layout/MainLayout.vue'
-import { getAvailableReinspections, createReinspection } from '../../services/visits.js'
+import { getAvailableReinspections, assignInspectorToVisit } from '../../services/visits.js'
 import { getUsers } from '../../services/users.js'
 
 const reinspections = ref([])
@@ -90,16 +90,10 @@ function isOverdue(date) {
 async function assignReinspection(visit, userId) {
   if (!userId) return
   try {
-    // Dispara para a rota correta mapeada na API passando o inspectorId esperado
-    await createReinspection(visit.id, {
-      inspectorId: Number(userId)
-    })
-    
-    alert('Inspetor atribuído à re-inspeção com sucesso!')
-    // Filtra localmente para remover da lista, já que agora ela tem um dono e sairá de "disponíveis"
+    await assignInspectorToVisit(visit.id, Number(userId))
     reinspections.value = reinspections.value.filter(r => r.id !== visit.id)
   } catch (e) {
-    console.error(e)
+    console.error('Erro ao atribuir inspetor:', e)
     alert('Erro ao atribuir inspetor: ' + (e.response?.data?.message || e.message))
   }
 }
