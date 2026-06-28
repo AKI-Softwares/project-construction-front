@@ -54,7 +54,7 @@
       <div v-if="latestVisit" class="info-card">
         <FontAwesomeIcon :icon="['fas', 'user']" class="info-icon" />
         <div>
-          <strong>Inspetor:</strong> {{ latestVisit.inspector?.name || '—' }}
+          <strong>Inspetor:</strong> {{ latestVisit.user?.name || latestVisit.inspector?.name || '—' }}
           <span class="info-date">• Iniciada em {{ formatDate(latestVisit.createdAt) }}</span>
         </div>
       </div>
@@ -208,10 +208,16 @@ const modalLoading = ref(false)
 const showModal = ref(false)
 const selectedItem = ref(null)
 const resolutionNotes = ref('')
+const ncResolveError = ref('')
+const checklistId = ref(null)
 
+// Com /visits/:id o inspetor vem em visit.user diretamente
 const latestVisit = computed(() => {
-  if (!visit.value?.visits?.length) return null
-  return visit.value.visits[visit.value.visits.length - 1]
+  if (!visit.value) return null
+  // Suporta ambos os shapes: visit.user (novo) ou visit.visits[last] (legado)
+  if (visit.value.user) return visit.value
+  if (visit.value.visits?.length) return visit.value.visits[visit.value.visits.length - 1]
+  return null
 })
 
 const summary = computed(() => {
@@ -307,9 +313,6 @@ async function handleCreateReinspection() {
     actionLoading.value = false
   }
 }
-
-// ID do checklist separado — necessário para updateChecklistItem
-const checklistId = ref(null)
 
 onMounted(async () => {
   try {
