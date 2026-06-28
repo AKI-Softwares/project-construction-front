@@ -20,3 +20,8 @@ export async function createApartment(data) {
   const response = await api.post('/apartments', data)
   return response.data
 }
+
+export async function deleteApartment(id) {
+  const response = await api.delete(`/apartments/${id}`)
+  return response.data
+}
