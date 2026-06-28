@@ -3,17 +3,17 @@
 
     <nav class="menu">
       <router-link to="/dashboard" class="menu-item" :title="aberta ? '' : 'Home'">
-        <FontAwesomeIcon icon="fa-solid fa-house" class="icone" />
+        <FontAwesomeIcon :icon="['fas', 'house']" class="icone" />
         <span v-if="aberta" class="label">Home</span>
       </router-link>
 
       <router-link to="/analytics" class="menu-item" :title="aberta ? '' : 'Dashboard'">
-        <FontAwesomeIcon icon="fa-solid fa-chart-pie" class="icone" />
+        <FontAwesomeIcon :icon="['fas', 'chart-pie']" class="icone" />
         <span v-if="aberta" class="label">Dashboard</span>
       </router-link>
 
       <router-link to="/buildings" class="menu-item" :title="aberta ? '' : 'Empreendimentos'">
-        <FontAwesomeIcon icon="fa-solid fa-building" class="icone" />
+        <FontAwesomeIcon :icon="['fas', 'building']" class="icone" />
         <span v-if="aberta" class="label">Empreendimentos</span>
       </router-link>
 
