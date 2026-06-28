@@ -166,7 +166,13 @@ function traduzirStatus(status) {
 async function openVisit(id) {
   loadingVisit.value = true
   try {
-    selectedVisit.value = await getVisit(id)
+    const raw = await getVisit(id)
+    if (raw.checklist) {
+      raw.items = raw.checklist.items || []
+    } else {
+      raw.items = raw.items || []
+    }
+    selectedVisit.value = raw
   } catch (e) {
     console.error('Erro ao carregar vistoria:', e)
   } finally {
