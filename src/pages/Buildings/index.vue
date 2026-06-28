@@ -48,7 +48,16 @@
               {{ apartments.filter(a => a.buildingId === building.id).length }} apartamento(s)
             </span>
           </div>
-          <span class="building-card-arrow">→</span>
+          <div class="building-card-right">
+            <button
+              class="btn-card-delete"
+              title="Excluir empreendimento"
+              @click.stop="confirmDeleteBuilding(building)"
+            >
+              <FontAwesomeIcon :icon="['fas', 'trash']" />
+            </button>
+            <span class="building-card-arrow">→</span>
+          </div>
         </div>
         <div v-if="buildings.length === 0 && !loadingBuildings" class="empty">Nenhum empreendimento cadastrado.</div>
         <div v-if="loadingBuildings" class="empty">Carregando...</div>
@@ -154,9 +163,6 @@
 
       <div v-if="!aptMode">
         
-        <div v-if="assignSuccess" class="alert success" style="margin-bottom:12px;">{{ assignSuccess }}</div>
-        <div v-if="assignError" class="alert error" style="margin-bottom:12px;">{{ assignError }}</div>
-
         <div v-if="selectedBuildingId" class="back-action-container">
           <button class="btn-back" @click="goBackToBuildings">← Voltar para Empreendimentos</button>
         </div>
@@ -203,12 +209,50 @@
                 <option v-for="u in users" :key="u.id" :value="u.id">{{ u.name }}</option>
               </select>
             </div>
+
+            <button
+              class="btn-apt-delete"
+              title="Excluir apartamento"
+              @click.stop="confirmDeleteApt(apt)"
+            >
+              <FontAwesomeIcon :icon="['fas', 'trash']" />
+            </button>
           </div>
           <div v-if="apartmentsFiltered.length === 0 && !loadingApts" class="empty">Nenhum apartamento cadastrado.</div>
           <div v-if="loadingApts" class="empty">Carregando...</div>
         </div>
       </div>
 
+    </div>
+
+    <!-- Modal: excluir empreendimento -->
+    <div v-if="buildingToDelete" class="modal-overlay" @click.self="buildingToDelete = null">
+      <div class="modal-confirm">
+        <div class="modal-icon"><FontAwesomeIcon :icon="['fas', 'triangle-exclamation']" /></div>
+        <h3>Excluir empreendimento</h3>
+        <p>Excluir <strong>{{ buildingToDelete.name }}</strong>? Todos os apartamentos vinculados também serão removidos. Esta ação não pode ser desfeita.</p>
+        <div class="modal-actions">
+          <button class="btn-confirm-delete" :disabled="deletingBuilding" @click="doDeleteBuilding">
+            {{ deletingBuilding ? 'Excluindo...' : 'Sim, excluir' }}
+          </button>
+          <button class="btn-cancel" @click="buildingToDelete = null">Cancelar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal: excluir apartamento -->
+    <div v-if="aptToDelete" class="modal-overlay" @click.self="aptToDelete = null">
+      <div class="modal-confirm">
+        <div class="modal-icon"><FontAwesomeIcon :icon="['fas', 'triangle-exclamation']" /></div>
+        <h3>Excluir apartamento</h3>
+        <p>Excluir o apartamento <strong>{{ aptToDelete.identifier }}</strong>? Esta ação não pode ser desfeita.</p>
+        <div class="modal-actions">
+          <button class="btn-confirm-delete" :disabled="deletingApt" @click="doDeleteApt">
+            {{ deletingApt ? 'Excluindo...' : 'Sim, excluir' }}
+          </button>
+          <button class="btn-cancel" @click="aptToDelete = null">Cancelar</button>
+        </div>
+      </div>
     </div>
 
     <div v-if="loadingChecklist" class="checklist-overlay-state">Carregando checklist...</div>
@@ -224,11 +268,10 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
 import MainLayout from '../../components/Layout/MainLayout.vue'
 import ChecklistModal from '../../components/Layout/ChecklistModal.vue'
-import { getBuildings, createBuilding } from '../../services/buildings.js'
-import { getApartments, createApartment } from '../../services/apartments.js'
+import { getBuildings, createBuilding, deleteBuilding } from '../../services/buildings.js'
+import { getApartments, createApartment, deleteApartment } from '../../services/apartments.js'
 import { getChecklistByApartment } from '../../services/checklists.js'
 import { createVisit } from '../../services/visits.js'
 import { getUsers } from '../../services/users.js'
@@ -237,32 +280,29 @@ import { useAuthStore } from '../../store/auth.js'
 import { getApartmentTypes } from '../../services/apartmentTypes.js'
 
 const authStore = useAuthStore()
-const router = useRouter()
 const selectedChecklist = ref(null)
 const loadingChecklist = ref(false)
 const checklistError = ref('')
 const users = ref([])
 
-const assignSuccess = ref('')
-const assignError = ref('')
-
 async function assignInline(apt, userId) {
   if (!userId) return
-  assignSuccess.value = ''
-  assignError.value = ''
+
   try {
     const checklist = await getChecklistByApartment(apt.id)
+    
     if (checklist?.status === 'FINALIZED') {
-      assignError.value = 'Este apartamento já está com o ciclo de vistorias finalizado.'
+      alert('Este apartamento já está com o ciclo de vistorias finalizado.')
       return
     }
+
     await createVisit(checklist.id, userId)
-    apt.currentInspectorId = Number(userId)
-    assignSuccess.value = 'Vistoriador atribuído com sucesso!'
-    setTimeout(() => { assignSuccess.value = '' }, 3000)
+    
+    apt.currentInspectorId = Number(userId) 
+    alert('Vistoriador atribuído com sucesso!')
   } catch (e) {
     console.error(e)
-    assignError.value = 'Erro ao atribuir vistoriador.'
+    alert('Erro ao atribuir vistoriador.')
   }
 }
 
@@ -340,6 +380,53 @@ async function saveBuilding() {
   }
 }
 
+// ─── Excluir empreendimento ───────────────────────────────────
+const buildingToDelete = ref(null)
+const deletingBuilding = ref(false)
+
+function confirmDeleteBuilding(building) {
+  buildingToDelete.value = building
+}
+
+async function doDeleteBuilding() {
+  if (!buildingToDelete.value) return
+  deletingBuilding.value = true
+  try {
+    await deleteBuilding(buildingToDelete.value.id)
+    buildings.value = buildings.value.filter(b => b.id !== buildingToDelete.value.id)
+    apartments.value = apartments.value.filter(a => a.buildingId !== buildingToDelete.value.id)
+    if (selectedBuildingId.value === buildingToDelete.value.id) selectedBuildingId.value = null
+    buildingToDelete.value = null
+  } catch (e) {
+    buildingError.value = e.response?.data?.message || 'Erro ao excluir empreendimento.'
+    buildingToDelete.value = null
+  } finally {
+    deletingBuilding.value = false
+  }
+}
+
+// ─── Excluir apartamento ──────────────────────────────────────
+const aptToDelete = ref(null)
+const deletingApt = ref(false)
+
+function confirmDeleteApt(apt) {
+  aptToDelete.value = apt
+}
+
+async function doDeleteApt() {
+  if (!aptToDelete.value) return
+  deletingApt.value = true
+  try {
+    await deleteApartment(aptToDelete.value.id)
+    apartments.value = apartments.value.filter(a => a.id !== aptToDelete.value.id)
+    aptToDelete.value = null
+  } catch (e) {
+    aptToDelete.value = null
+  } finally {
+    deletingApt.value = false
+  }
+}
+
 const selectedBuildingId = ref(null)
 
 const apartmentsFiltered = computed(() =>
@@ -360,6 +447,16 @@ const buildingInspectors = computed(() => {
     return u ? u.name : 'Desconhecido'
   })
 })
+
+function selectBuilding(building) {
+  selectedBuildingId.value = building.id
+  activeTab.value = 'apartments'
+}
+
+function goBackToBuildings() {
+  selectedBuildingId.value = null
+  activeTab.value = 'buildings'
+}
 
 const aptMode = ref(null)
 const savingApt = ref(false)
@@ -510,7 +607,19 @@ input.invalid, select.invalid { border: 2px solid #c0392b; background: #fff3f0; 
 .preview-tag { background: #0d0d2b; color: #fff; padding: 4px 10px; border-radius: 20px; font-size: 0.78rem; }
 .preview-tag.more { background: #00e5cc; color: #0d0d2b; }
 .item-list { display: flex; flex-direction: column; gap: 10px; }
-.item-card { background: #6b6b6b; border-radius: 12px; padding: 18px 24px; color: #fff; font-size: 1rem; cursor: pointer; transition: background 0.2s; display: flex; align-items: center; justify-content: space-between; }
+.building-card-right { display: flex; align-items: center; gap: 12px; }
+.btn-card-delete { background: none; border: none; color: rgba(255,255,255,0.4); cursor: pointer; font-size: 0.9rem; padding: 6px; border-radius: 6px; transition: color 0.2s; flex-shrink: 0; }
+.btn-card-delete:hover { color: #f87171; }
+.btn-apt-delete { background: none; border: none; color: #ccc; cursor: pointer; font-size: 0.85rem; padding: 6px 10px; border-radius: 6px; transition: color 0.2s; }
+.btn-apt-delete:hover { color: #c0392b; }
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+.modal-confirm { background: #fff; border-radius: 16px; padding: 40px; width: 420px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 16px; }
+.modal-icon { font-size: 2.5rem; color: #f99f56; }
+.modal-confirm h3 { font-size: 1.1rem; color: #1a1a2e; margin: 0; }
+.modal-confirm p { font-size: 0.88rem; color: #555; line-height: 1.5; margin: 0; }
+.modal-actions { display: flex; gap: 12px; }
+.btn-confirm-delete { padding: 10px 24px; background: #c0392b; border: none; border-radius: 30px; color: #fff; font-size: 0.9rem; font-weight: bold; cursor: pointer; }
+.btn-confirm-delete:disabled { opacity: 0.6; cursor: not-allowed; }
 .item-card:hover { background: #555; }
 .building-card-info { display: flex; flex-direction: column; gap: 4px; }
 .building-card-name { font-size: 1rem; font-weight: 600; }
