@@ -86,7 +86,7 @@
         </div>
         
         <div v-else class="visit-list">
-          <div v-for="visit in recentVisits" :key="visit.id" class="visit-item" @click="navigate(`/visits/${visit.id}`)">
+          <div v-for="visit in recentVisits" :key="visit.id" class="visit-item" @click="openVisit(visit.id)">
             <div class="visit-info">
               <span class="visit-title">{{ visit.title || 'Vistoria sem título' }}</span>
               <span class="visit-sub">{{ visit.buildingName || 'Empreendimento cadastrado' }}</span>
@@ -116,6 +116,11 @@
 
     </div>
 
+    <div v-if="loadingVisit" class="modal-loading-overlay">
+      <div class="modal-loading-box">Carregando vistoria...</div>
+    </div>
+    <VisitModal v-if="selectedVisit" :visit="selectedVisit" @fechar="selectedVisit = null" />
+
   </MainLayout>
 </template>
 
@@ -123,11 +128,12 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import MainLayout from '../../components/Layout/MainLayout.vue'
+import VisitModal from '../../components/Layout/VisitModal.vue'
 import { useAuthStore } from '../../store/auth'
 import { getBuildings } from '../../services/buildings.js'
 import { getApartments } from '../../services/apartments.js'
 import { getOverview } from '../../services/analytics.js'
-import { getVisits } from '../../services/visits.js'
+import { getVisits, getVisit } from '../../services/visits.js'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -139,6 +145,8 @@ const apartments = ref([])
 const recentVisits = ref([])
 const totalCalculatedVisits = ref(0)
 const finalizedCount = ref(0)
+const selectedVisit = ref(null)
+const loadingVisit = ref(false)
 
 const overview = ref({
   visitsFinalized: 0,
@@ -163,7 +171,18 @@ function traduzirStatus(status) {
   return status
 }
 
-onMounted(async () => {
+async function openVisit(id) {
+  loadingVisit.value = true
+  try {
+    selectedVisit.value = await getVisit(id)
+  } catch (e) {
+    console.error('Erro ao carregar vistoria:', e)
+  } finally {
+    loadingVisit.value = false
+  }
+}
+
+
   try {
     const [b, a, v] = await Promise.allSettled([
       getBuildings(),
@@ -184,8 +203,8 @@ onMounted(async () => {
 
     try {
       const ov = await getOverview()
-      if (ov && ov.data) {
-        overview.value = ov.data
+      if (ov) {
+        overview.value = ov
         isRich.value = true
       }
     } catch {
@@ -303,6 +322,8 @@ onMounted(async () => {
 .progress-bar-fill { height: 100%; background: #00e5cc; border-radius: 6px; transition: width 0.4s ease; }
 
 .panel-loading, .panel-empty { text-align: center; color: #a0aec0; padding: 40px 0; font-size: 0.88rem; }
+.modal-loading-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; z-index: 999; }
+.modal-loading-box { background: #fff; padding: 20px 32px; border-radius: 10px; font-size: 0.9rem; color: #333; }
 
 @media (max-width: 1024px) {
   .metrics-grid { grid-template-columns: repeat(2, 1fr); }
