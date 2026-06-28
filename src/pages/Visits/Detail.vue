@@ -169,6 +169,8 @@
           <textarea v-model="resolutionNotes" placeholder="Insira detalhes sobre a tratativa ou correção executada..."></textarea>
         </div>
 
+        <div v-if="ncResolveError" class="modal-error">{{ ncResolveError }}</div>
+
         <div class="modal-buttons">
           <button class="btn-cancel" @click="showModal = false" :disabled="modalLoading">Cancelar</button>
           <button class="btn-confirm" @click="confirmResolveNC" :disabled="modalLoading">
@@ -208,6 +210,7 @@ const modalLoading = ref(false)
 const showModal = ref(false)
 const selectedItem = ref(null)
 const resolutionNotes = ref('')
+const ncResolveError = ref('')
 
 const latestVisit = computed(() => {
   if (!visit.value?.visits?.length) return null
@@ -272,6 +275,7 @@ function formatDate(date) {
 function openResolveModal(item) {
   selectedItem.value = item
   resolutionNotes.value = ''
+  ncResolveError.value = ''
   showModal.value = true
 }
 
@@ -288,7 +292,7 @@ async function confirmResolveNC() {
     selectedItem.value.status = 'OK'
     showModal.value = false
   } catch (e) {
-    console.error('Erro ao resolver NC:', e)
+    ncResolveError.value = e.response?.data?.message || 'Erro ao resolver NC. Tente novamente.'
   } finally {
     modalLoading.value = false
   }
@@ -659,5 +663,15 @@ onMounted(async () => {
   font-weight: bold;
   cursor: pointer;
   color: #0d0d2b;
+}
+
+.modal-error {
+  background: #fff3f0;
+  color: #c0392b;
+  border: 1px solid #f99f56;
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 0.83rem;
+  margin-bottom: 4px;
 }
 </style>
