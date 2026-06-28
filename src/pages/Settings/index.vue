@@ -192,7 +192,7 @@ async function saveChanges() {
   salvando.value = true
   try {
     // Tenta encontrar a função de update dinamicamente no serviço de usuários
-    const updateFn = usersService.updateUser || usersService.patch || usersService.update
+   const updateFn = null
     
     if (typeof updateFn === 'function') {
       await updateFn(userProfile.value.id, {
