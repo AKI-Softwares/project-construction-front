@@ -1,7 +1,7 @@
 import api from './api.js'
 
 export async function getVisits() {
-  const response = await api.get('/checklists')
+  const response = await api.get('/visits')
   return response.data
 }
 
