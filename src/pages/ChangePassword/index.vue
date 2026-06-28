@@ -129,7 +129,7 @@ async function submit() {
   error.value = ''
   try {
     // Busca a função dinamicamente no serviço de autenticação
-    const changePassFn = authService.changePassword || authService.post || authService.default?.changePassword
+  const changePassFn = authService.changePassword
 
     if (typeof changePassFn === 'function') {
       await changePassFn({
