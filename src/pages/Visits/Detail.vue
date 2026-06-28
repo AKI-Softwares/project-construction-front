@@ -279,16 +279,16 @@ function openResolveModal(item) {
 async function confirmResolveNC() {
   if (!selectedItem.value) return
   modalLoading.value = true
+  ncResolveError.value = ''
   try {
-    // visit.value.id é o checklistId; selectedItem.value.id é o itemId
-    await updateChecklistItem(visit.value.id, selectedItem.value.id, {
+    await updateChecklistItem(checklistId.value, selectedItem.value.id, {
       status: 'OK',
       notes: resolutionNotes.value,
     })
     selectedItem.value.status = 'OK'
     showModal.value = false
   } catch (e) {
-    console.error('Erro ao resolver NC:', e)
+    ncResolveError.value = e.response?.data?.message || 'Erro ao resolver NC. Tente novamente.'
   } finally {
     modalLoading.value = false
   }
@@ -308,10 +308,27 @@ async function handleCreateReinspection() {
   }
 }
 
+// ID do checklist separado — necessário para updateChecklistItem
+const checklistId = ref(null)
+
 onMounted(async () => {
   try {
-    visit.value = await getVisit(route.params.id)
-    if (visit.value?.items?.length) {
+    const raw = await getVisit(route.params.id)
+
+    // A API /visits/:id retorna { id, status, apartment, user, checklist: { id, items[] } }
+    // Normalizamos para que o template continue usando visit.value.items e visit.value.status
+    if (raw.checklist) {
+      raw.items = raw.checklist.items || []
+      checklistId.value = raw.checklist.id
+    } else {
+      // Fallback: se vier direto com items (compatibilidade)
+      raw.items = raw.items || []
+      checklistId.value = raw.id
+    }
+
+    visit.value = raw
+
+    if (visit.value.items?.length) {
       openRoom.value = visit.value.items[0].apartmentRoomService?.apartmentRoom?.name || null
     }
   } catch (e) {
