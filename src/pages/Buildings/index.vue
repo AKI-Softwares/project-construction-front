@@ -41,7 +41,7 @@
       </div>
 
       <div class="item-list">
-        <div v-for="building in buildings" :key="building.id" class="item-card" @click="selectBuilding(building)">
+        <div v-for="building in buildings" :key="building.id" class="item-card" @click="router.push(`/buildings/${building.id}`)">
           <div class="building-card-info">
             <span class="building-card-name">{{ building.name }}</span>
             <span class="building-card-count">
@@ -154,6 +154,9 @@
 
       <div v-if="!aptMode">
         
+        <div v-if="assignSuccess" class="alert success" style="margin-bottom:12px;">{{ assignSuccess }}</div>
+        <div v-if="assignError" class="alert error" style="margin-bottom:12px;">{{ assignError }}</div>
+
         <div v-if="selectedBuildingId" class="back-action-container">
           <button class="btn-back" @click="goBackToBuildings">← Voltar para Empreendimentos</button>
         </div>
@@ -221,6 +224,7 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import MainLayout from '../../components/Layout/MainLayout.vue'
 import ChecklistModal from '../../components/Layout/ChecklistModal.vue'
 import { getBuildings, createBuilding } from '../../services/buildings.js'
@@ -233,29 +237,32 @@ import { useAuthStore } from '../../store/auth.js'
 import { getApartmentTypes } from '../../services/apartmentTypes.js'
 
 const authStore = useAuthStore()
+const router = useRouter()
 const selectedChecklist = ref(null)
 const loadingChecklist = ref(false)
 const checklistError = ref('')
 const users = ref([])
 
+const assignSuccess = ref('')
+const assignError = ref('')
+
 async function assignInline(apt, userId) {
   if (!userId) return
-
+  assignSuccess.value = ''
+  assignError.value = ''
   try {
     const checklist = await getChecklistByApartment(apt.id)
-    
     if (checklist?.status === 'FINALIZED') {
-      alert('Este apartamento já está com o ciclo de vistorias finalizado.')
+      assignError.value = 'Este apartamento já está com o ciclo de vistorias finalizado.'
       return
     }
-
     await createVisit(checklist.id, userId)
-    
-    apt.currentInspectorId = Number(userId) 
-    alert('Vistoriador atribuído com sucesso!')
+    apt.currentInspectorId = Number(userId)
+    assignSuccess.value = 'Vistoriador atribuído com sucesso!'
+    setTimeout(() => { assignSuccess.value = '' }, 3000)
   } catch (e) {
     console.error(e)
-    alert('Erro ao atribuir vistoriador.')
+    assignError.value = 'Erro ao atribuir vistoriador.'
   }
 }
 
@@ -353,16 +360,6 @@ const buildingInspectors = computed(() => {
     return u ? u.name : 'Desconhecido'
   })
 })
-
-function selectBuilding(building) {
-  selectedBuildingId.value = building.id
-  activeTab.value = 'apartments'
-}
-
-function goBackToBuildings() {
-  selectedBuildingId.value = null
-  activeTab.value = 'buildings'
-}
 
 const aptMode = ref(null)
 const savingApt = ref(false)
