@@ -144,8 +144,10 @@ function toggleItem(id) {
 }
 
 const latestVisit = computed(() => {
-  if (!props.visit?.visits?.length) return null
-  return props.visit.visits[props.visit.visits.length - 1]
+  if (!props.visit) return null
+  if (props.visit.user) return props.visit
+  if (props.visit.visits?.length) return props.visit.visits[props.visit.visits.length - 1]
+  return null
 })
 
 const summary = computed(() => {
