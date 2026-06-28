@@ -99,24 +99,68 @@
               <div v-if="loadingRoomServices[room.id]" class="services-loading">
                 Carregando serviços...
               </div>
-              <div v-else class="services-list">
-                <label
-                  v-for="svc in catalogServices"
-                  :key="svc.id"
-                  :class="['service-checkbox-label', { 'is-active': isServiceLinked(room, svc.id), 'is-toggling': togglingService[room.id + '-' + svc.id] }]"
-                >
-                  <input
-                    type="checkbox"
-                    :checked="isServiceLinked(room, svc.id)"
-                    :disabled="togglingService[room.id + '-' + svc.id]"
-                    @change="toggleRoomService(room, svc)"
-                  />
-                  <span class="service-checkbox-name">{{ svc.name }}</span>
-                  <span class="category-badge">{{ svc.category }}</span>
-                </label>
-                <span v-if="catalogServices.length === 0" class="no-services">
-                  Nenhum serviço no catálogo. Cadastre serviços primeiro.
-                </span>
+              <div v-else>
+                <div class="services-list">
+                  <label
+                    v-for="svc in catalogServices"
+                    :key="svc.id"
+                    :class="['service-checkbox-label', { 'is-active': isServiceLinked(room, svc.id), 'is-toggling': togglingService[room.id + '-' + svc.id] }]"
+                  >
+                    <input
+                      type="checkbox"
+                      :checked="isServiceLinked(room, svc.id)"
+                      :disabled="togglingService[room.id + '-' + svc.id]"
+                      @change="toggleRoomService(room, svc)"
+                    />
+                    <span class="service-checkbox-name">{{ svc.name }}</span>
+                    <span class="category-badge">{{ svc.category }}</span>
+                  </label>
+                  <span v-if="catalogServices.length === 0" class="no-services">
+                    Nenhum serviço no catálogo.
+                  </span>
+                </div>
+
+                <!-- Criar novo serviço direto no cômodo -->
+                <div class="new-service-area">
+                  <button
+                    v-if="!showNewServiceForm[room.id]"
+                    class="btn-new-service"
+                    @click="openNewServiceForm(room)"
+                  >
+                    <FontAwesomeIcon :icon="['fas', 'plus']" /> Novo serviço
+                  </button>
+
+                  <div v-else class="new-service-form">
+                    <input
+                      v-model="newServiceForm[room.id].name"
+                      type="text"
+                      placeholder="Nome do serviço"
+                      class="new-service-input"
+                    />
+                    <input
+                      v-model="newServiceForm[room.id].category"
+                      type="text"
+                      placeholder="Categoria (ex: Hidráulica, Elétrica...)"
+                      class="new-service-input"
+                    />
+                    <div v-if="newServiceError[room.id]" class="new-service-error">
+                      {{ newServiceError[room.id] }}
+                    </div>
+                    <div class="new-service-actions">
+                      <button
+                        class="btn-save-service"
+                        :disabled="savingNewService[room.id]"
+                        @click="saveNewService(room)"
+                      >
+                        {{ savingNewService[room.id] ? 'Salvando...' : 'Salvar e vincular' }}
+                      </button>
+                      <button class="btn-cancel-service" @click="closeNewServiceForm(room)">
+                        Cancelar
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
               </div>
             </div>
           </div>
@@ -153,7 +197,7 @@ import {
   addRoom as apiAddRoom, deleteRoom as apiDeleteRoom,
   getRoomServices, addRoomService, deleteRoomService,
 } from '../../services/apartmentTypes.js'
-import { getServices } from '../../services/services.js'
+import { getServices, createService } from '../../services/services.js'
 
 const types = ref([])
 const catalogServices = ref([])
@@ -306,6 +350,54 @@ const newRoomName = ref('')
 const addingRoom = ref(false)
 const roomError = ref('')
 
+// ─── Novo serviço inline por cômodo ──────────────────────────
+const showNewServiceForm = ref({})
+const newServiceForm = ref({})
+const newServiceError = ref({})
+const savingNewService = ref({})
+
+function openNewServiceForm(room) {
+  showNewServiceForm.value = { ...showNewServiceForm.value, [room.id]: true }
+  newServiceForm.value = { ...newServiceForm.value, [room.id]: { name: '', category: '' } }
+  newServiceError.value = { ...newServiceError.value, [room.id]: '' }
+}
+
+function closeNewServiceForm(room) {
+  showNewServiceForm.value = { ...showNewServiceForm.value, [room.id]: false }
+}
+
+async function saveNewService(room) {
+  const form = newServiceForm.value[room.id]
+  if (!form?.name?.trim()) {
+    newServiceError.value = { ...newServiceError.value, [room.id]: 'Nome do serviço é obrigatório.' }
+    return
+  }
+  savingNewService.value = { ...savingNewService.value, [room.id]: true }
+  newServiceError.value = { ...newServiceError.value, [room.id]: '' }
+  try {
+    // 1. Cria o serviço no catálogo global
+    const created = await createService({
+      name: form.name.trim(),
+      ...(form.category?.trim() ? { category: form.category.trim() } : {}),
+    })
+    // 2. Adiciona ao catálogo local
+    catalogServices.value.push(created)
+    // 3. Vincula direto ao cômodo
+    await addRoomService(selectedType.value.id, room.id, created.id)
+    const linked = roomLinkedServices.value[room.id] ?? new Set()
+    linked.add(created.id)
+    roomLinkedServices.value = { ...roomLinkedServices.value, [room.id]: new Set(linked) }
+    closeNewServiceForm(room)
+  } catch (e) {
+    newServiceError.value = {
+      ...newServiceError.value,
+      [room.id]: e.response?.data?.message || 'Erro ao criar serviço.',
+    }
+  } finally {
+    savingNewService.value = { ...savingNewService.value, [room.id]: false }
+  }
+}
+
 async function addRoom() {
   if (!newRoomName.value.trim()) return
   roomError.value = ''
@@ -414,6 +506,19 @@ textarea { width: 100%; padding: 12px 18px; border: none; border-radius: 12px; b
 .category-badge { background: rgba(0,0,0,0.12); color: #555; padding: 1px 6px; border-radius: 10px; font-size: 0.68rem; text-transform: uppercase; font-weight: 700; }
 .service-checkbox-label.is-active .category-badge { background: rgba(255,255,255,0.2); color: #00e5cc; }
 .no-services { font-size: 0.8rem; color: #a0aec0; font-style: italic; padding: 4px 0; }
+
+/* Novo serviço inline */
+.new-service-area { margin-top: 10px; padding-top: 10px; border-top: 1px dashed #e2e8f0; }
+.btn-new-service { display: inline-flex; align-items: center; gap: 6px; background: none; border: 1px dashed #00e5cc; color: #00897b; border-radius: 20px; padding: 5px 14px; font-size: 0.78rem; font-weight: 600; cursor: pointer; transition: background 0.15s; }
+.btn-new-service:hover { background: #e0faf6; }
+.new-service-form { display: flex; flex-direction: column; gap: 8px; }
+.new-service-input { width: 100%; padding: 8px 14px; border: 1px solid #ddd; border-radius: 8px; font-size: 0.85rem; outline: none; color: #333; box-sizing: border-box; background: #fff; }
+.new-service-input:focus { border-color: #00e5cc; }
+.new-service-error { font-size: 0.78rem; color: #c0392b; }
+.new-service-actions { display: flex; gap: 8px; }
+.btn-save-service { padding: 7px 18px; background: #00e5cc; border: none; border-radius: 20px; font-size: 0.82rem; font-weight: bold; color: #0d0d2b; cursor: pointer; }
+.btn-save-service:disabled { opacity: 0.6; cursor: not-allowed; }
+.btn-cancel-service { padding: 7px 18px; background: #e8e8e8; border: none; border-radius: 20px; font-size: 0.82rem; color: #333; cursor: pointer; }
 .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; }
 .modal { background: #fff; border-radius: 16px; padding: 40px; width: 400px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 16px; }
 .modal-icon { font-size: 2.5rem; color: #f99f56; }
