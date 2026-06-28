@@ -6,7 +6,7 @@ export async function getVisits() {
 }
 
 export async function getVisit(id) {
-  const response = await api.get(`/checklists/${id}`)
+  const response = await api.get(`/visits/${id}`)
   return response.data
 }
 
