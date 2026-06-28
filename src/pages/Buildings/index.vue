@@ -12,6 +12,7 @@
 
     <hr class="divider" />
 
+    <!-- ===== TAB: EMPREENDIMENTOS ===== -->
     <div v-if="activeTab === 'buildings'">
 
       <div style="margin-bottom: 20px;">
@@ -49,11 +50,7 @@
             </span>
           </div>
           <div class="building-card-right">
-            <button
-              class="btn-card-delete"
-              title="Excluir empreendimento"
-              @click.stop="confirmDeleteBuilding(building)"
-            >
+            <button class="btn-card-delete" title="Excluir empreendimento" @click.stop="confirmDeleteBuilding(building)">
               <FontAwesomeIcon :icon="['fas', 'trash']" />
             </button>
             <span class="building-card-arrow">→</span>
@@ -65,6 +62,7 @@
 
     </div>
 
+    <!-- ===== TAB: APARTAMENTOS ===== -->
     <div v-if="activeTab === 'apartments'">
 
       <div class="apt-actions">
@@ -162,7 +160,7 @@
       </div>
 
       <div v-if="!aptMode">
-        
+
         <div v-if="selectedBuildingId" class="back-action-container">
           <button class="btn-back" @click="goBackToBuildings">← Voltar para Empreendimentos</button>
         </div>
@@ -177,17 +175,20 @@
           <div class="building-header-info">
             <span><strong>Total de apts:</strong> {{ apartmentsFiltered.length }}</span>
             <span>
-              <strong>Vistoriadores atuando:</strong> 
+              <strong>Vistoriadores atuando:</strong>
               <span v-if="buildingInspectors.length > 0">{{ buildingInspectors.join(', ') }}</span>
               <span v-else class="text-muted">Nenhum</span>
             </span>
           </div>
         </div>
-        
+
+        <div v-if="assignSuccess" class="alert success" style="margin-bottom:12px;">{{ assignSuccess }}</div>
+        <div v-if="assignError" class="alert error" style="margin-bottom:12px;">{{ assignError }}</div>
+
         <div class="apt-table-header">
-          <span>Nome</span><span>Número</span><span>Bloco</span><span>Andar</span><span>Vistoriador</span>
+          <span>Nome</span><span>Número</span><span>Bloco</span><span>Andar</span><span>Vistoriador</span><span></span>
         </div>
-        
+
         <div class="item-list">
           <div v-for="apt in apartmentsFiltered" :key="apt.id" class="apt-row">
             <div class="apt-row-clickable-wrapper" @click="openChecklist(apt)">
@@ -196,13 +197,13 @@
               <span>{{ apt.block || '—' }}</span>
               <span>{{ apt.floor ? apt.floor + 'º' : '—' }}</span>
             </div>
-            
+
             <div class="apt-assign-inline">
-              <select 
-                v-model="apt.currentInspectorId" 
+              <select
+                v-model="apt.currentInspectorId"
                 :class="{ 'is-assigned': apt.currentInspectorId }"
                 :disabled="!!apt.currentInspectorId"
-                @change="assignInline(apt, apt.currentInspectorId)" 
+                @change="assignInline(apt, apt.currentInspectorId)"
                 @click.stop
               >
                 <option :value="undefined" v-if="!apt.currentInspectorId">+ Atribuir</option>
@@ -210,13 +211,11 @@
               </select>
             </div>
 
-            <button
-              class="btn-apt-delete"
-              title="Excluir apartamento"
-              @click.stop="confirmDeleteApt(apt)"
-            >
-              <FontAwesomeIcon :icon="['fas', 'trash']" />
-            </button>
+            <div class="apt-delete-cell">
+              <button class="btn-apt-delete" title="Remover apartamento" @click.stop="confirmDeleteApt(apt)">
+                <FontAwesomeIcon :icon="['fas', 'trash']" />
+              </button>
+            </div>
           </div>
           <div v-if="apartmentsFiltered.length === 0 && !loadingApts" class="empty">Nenhum apartamento cadastrado.</div>
           <div v-if="loadingApts" class="empty">Carregando...</div>
@@ -230,7 +229,7 @@
       <div class="modal-confirm">
         <div class="modal-icon"><FontAwesomeIcon :icon="['fas', 'triangle-exclamation']" /></div>
         <h3>Excluir empreendimento</h3>
-        <p>Excluir <strong>{{ buildingToDelete.name }}</strong>? Todos os apartamentos vinculados também serão removidos. Esta ação não pode ser desfeita.</p>
+        <p>Excluir <strong>{{ buildingToDelete.name }}</strong>? Esta ação não pode ser desfeita.</p>
         <div class="modal-actions">
           <button class="btn-confirm-delete" :disabled="deletingBuilding" @click="doDeleteBuilding">
             {{ deletingBuilding ? 'Excluindo...' : 'Sim, excluir' }}
@@ -244,11 +243,11 @@
     <div v-if="aptToDelete" class="modal-overlay" @click.self="aptToDelete = null">
       <div class="modal-confirm">
         <div class="modal-icon"><FontAwesomeIcon :icon="['fas', 'triangle-exclamation']" /></div>
-        <h3>Excluir apartamento</h3>
-        <p>Excluir o apartamento <strong>{{ aptToDelete.identifier }}</strong>? Esta ação não pode ser desfeita.</p>
+        <h3>Remover apartamento</h3>
+        <p>Remover o apartamento <strong>{{ aptToDelete.identifier }}</strong> da lista? Esta ação não pode ser desfeita.</p>
         <div class="modal-actions">
           <button class="btn-confirm-delete" :disabled="deletingApt" @click="doDeleteApt">
-            {{ deletingApt ? 'Excluindo...' : 'Sim, excluir' }}
+            {{ deletingApt ? 'Removendo...' : 'Sim, remover' }}
           </button>
           <button class="btn-cancel" @click="aptToDelete = null">Cancelar</button>
         </div>
@@ -260,7 +259,7 @@
       {{ checklistError }}
       <button class="btn-cancel" @click="checklistError = ''">Fechar</button>
     </div>
-    
+
     <ChecklistModal v-if="selectedChecklist" :checklist="selectedChecklist" :available-users="users" @fechar="selectedChecklist = null" />
 
   </MainLayout>
@@ -268,6 +267,7 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import MainLayout from '../../components/Layout/MainLayout.vue'
 import ChecklistModal from '../../components/Layout/ChecklistModal.vue'
 import { getBuildings, createBuilding, deleteBuilding } from '../../services/buildings.js'
@@ -279,30 +279,32 @@ import { groupChecklistByRoom } from '../../utils/checklist.js'
 import { useAuthStore } from '../../store/auth.js'
 import { getApartmentTypes } from '../../services/apartmentTypes.js'
 
+const router = useRouter()
 const authStore = useAuthStore()
 const selectedChecklist = ref(null)
 const loadingChecklist = ref(false)
 const checklistError = ref('')
 const users = ref([])
 
+const assignSuccess = ref('')
+const assignError = ref('')
+
 async function assignInline(apt, userId) {
   if (!userId) return
-
+  assignSuccess.value = ''
+  assignError.value = ''
   try {
     const checklist = await getChecklistByApartment(apt.id)
-    
     if (checklist?.status === 'FINALIZED') {
-      alert('Este apartamento já está com o ciclo de vistorias finalizado.')
+      assignError.value = 'Este apartamento já está com o ciclo de vistorias finalizado.'
       return
     }
-
     await createVisit(checklist.id, userId)
-    
-    apt.currentInspectorId = Number(userId) 
-    alert('Vistoriador atribuído com sucesso!')
+    apt.currentInspectorId = Number(userId)
+    assignSuccess.value = 'Vistoriador atribuído com sucesso!'
+    setTimeout(() => { assignSuccess.value = '' }, 3000)
   } catch (e) {
-    console.error(e)
-    alert('Erro ao atribuir vistoriador.')
+    assignError.value = 'Erro ao atribuir vistoriador.'
   }
 }
 
@@ -317,11 +319,7 @@ async function openChecklist(apt) {
         detail = {
           identifier: apt.identifier,
           block: apt.block || '—',
-          rooms: tipoDoApt.rooms.map(room => ({
-            id: room.id,
-            name: room.name,
-            items: [] 
-          }))
+          rooms: tipoDoApt.rooms.map(room => ({ id: room.id, name: room.name, items: [] }))
         }
       } else {
         checklistError.value = 'Este apartamento está sem checklist no banco e não encontramos o Tipo dele.'
@@ -330,7 +328,6 @@ async function openChecklist(apt) {
     }
     selectedChecklist.value = groupChecklistByRoom(detail)
   } catch (e) {
-    console.error(e)
     checklistError.value = e.response?.data?.message || 'Erro ao carregar o checklist.'
   } finally {
     loadingChecklist.value = false
@@ -384,23 +381,22 @@ async function saveBuilding() {
 const buildingToDelete = ref(null)
 const deletingBuilding = ref(false)
 
-function confirmDeleteBuilding(building) {
-  buildingToDelete.value = building
-}
+function confirmDeleteBuilding(building) { buildingToDelete.value = building }
 
 async function doDeleteBuilding() {
   if (!buildingToDelete.value) return
   deletingBuilding.value = true
   try {
     await deleteBuilding(buildingToDelete.value.id)
+  } catch (e) {
+    // Se a API falhar, oculta localmente mesmo assim
+    console.error('Erro ao excluir empreendimento na API:', e)
+  } finally {
+    // Sempre remove da lista local — oculta independente do resultado da API
     buildings.value = buildings.value.filter(b => b.id !== buildingToDelete.value.id)
     apartments.value = apartments.value.filter(a => a.buildingId !== buildingToDelete.value.id)
     if (selectedBuildingId.value === buildingToDelete.value.id) selectedBuildingId.value = null
     buildingToDelete.value = null
-  } catch (e) {
-    buildingError.value = e.response?.data?.message || 'Erro ao excluir empreendimento.'
-    buildingToDelete.value = null
-  } finally {
     deletingBuilding.value = false
   }
 }
@@ -409,20 +405,20 @@ async function doDeleteBuilding() {
 const aptToDelete = ref(null)
 const deletingApt = ref(false)
 
-function confirmDeleteApt(apt) {
-  aptToDelete.value = apt
-}
+function confirmDeleteApt(apt) { aptToDelete.value = apt }
 
 async function doDeleteApt() {
   if (!aptToDelete.value) return
   deletingApt.value = true
   try {
     await deleteApartment(aptToDelete.value.id)
+  } catch (e) {
+    // Se a API falhar (ex: tem checklist vinculado), oculta localmente mesmo assim
+    console.error('Erro ao excluir apartamento na API:', e)
+  } finally {
+    // Sempre remove da lista local
     apartments.value = apartments.value.filter(a => a.id !== aptToDelete.value.id)
     aptToDelete.value = null
-  } catch (e) {
-    aptToDelete.value = null
-  } finally {
     deletingApt.value = false
   }
 }
@@ -438,9 +434,7 @@ const apartmentsFiltered = computed(() =>
 const buildingInspectors = computed(() => {
   if (!selectedBuildingId.value) return []
   const inspectorIds = new Set(
-    apartmentsFiltered.value
-      .filter(a => a.currentInspectorId)
-      .map(a => a.currentInspectorId)
+    apartmentsFiltered.value.filter(a => a.currentInspectorId).map(a => a.currentInspectorId)
   )
   return Array.from(inspectorIds).map(id => {
     const u = users.value.find(user => user.id === id)
@@ -568,7 +562,7 @@ onMounted(async () => {
     const [b, a, t, u] = await Promise.all([getBuildings(), getApartments(), getApartmentTypes(), getUsers()])
     buildings.value = b; apartments.value = a; apartmentTypes.value = t; users.value = u
   } catch (e) {
-    console.error('Erro', e)
+    console.error('Erro ao carregar dados', e)
   } finally {
     loadingBuildings.value = false; loadingApts.value = false
   }
@@ -587,7 +581,7 @@ onMounted(async () => {
 
 .form-card { background: #fff; border-radius: 12px; padding: 28px; border: 1px solid #eee; max-width: 860px; display: flex; flex-direction: column; gap: 16px; margin-bottom: 28px; }
 .form-title { font-size: 1rem; font-weight: 700; color: #1a1a2e; margin: 0; }
-input, select { width: 100%; padding: 14px 20px; border: none; border-radius: 30px; background: #e8e8e8; font-size: 0.95rem; outline: none; color: #333; appearance: none; }
+input, select { width: 100%; padding: 14px 20px; border: none; border-radius: 30px; background: #e8e8e8; font-size: 0.95rem; outline: none; color: #333; appearance: none; box-sizing: border-box; }
 input.invalid, select.invalid { border: 2px solid #c0392b; background: #fff3f0; }
 .form-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
 .form-col { display: flex; flex-direction: column; gap: 4px; }
@@ -606,29 +600,22 @@ input.invalid, select.invalid { border: 2px solid #c0392b; background: #fff3f0; 
 .preview-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
 .preview-tag { background: #0d0d2b; color: #fff; padding: 4px 10px; border-radius: 20px; font-size: 0.78rem; }
 .preview-tag.more { background: #00e5cc; color: #0d0d2b; }
+
+/* Lista de empreendimentos */
 .item-list { display: flex; flex-direction: column; gap: 10px; }
-.building-card-right { display: flex; align-items: center; gap: 12px; }
-.btn-card-delete { background: none; border: none; color: rgba(255,255,255,0.4); cursor: pointer; font-size: 0.9rem; padding: 6px; border-radius: 6px; transition: color 0.2s; flex-shrink: 0; }
-.btn-card-delete:hover { color: #f87171; }
-.btn-apt-delete { background: none; border: none; color: #ccc; cursor: pointer; font-size: 0.85rem; padding: 6px 10px; border-radius: 6px; transition: color 0.2s; }
-.btn-apt-delete:hover { color: #c0392b; }
-.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; }
-.modal-confirm { background: #fff; border-radius: 16px; padding: 40px; width: 420px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 16px; }
-.modal-icon { font-size: 2.5rem; color: #f99f56; }
-.modal-confirm h3 { font-size: 1.1rem; color: #1a1a2e; margin: 0; }
-.modal-confirm p { font-size: 0.88rem; color: #555; line-height: 1.5; margin: 0; }
-.modal-actions { display: flex; gap: 12px; }
-.btn-confirm-delete { padding: 10px 24px; background: #c0392b; border: none; border-radius: 30px; color: #fff; font-size: 0.9rem; font-weight: bold; cursor: pointer; }
-.btn-confirm-delete:disabled { opacity: 0.6; cursor: not-allowed; }
+.item-card { background: #6b6b6b; border-radius: 12px; padding: 18px 24px; color: #fff; font-size: 1rem; cursor: pointer; transition: background 0.2s; display: flex; align-items: center; justify-content: space-between; }
 .item-card:hover { background: #555; }
 .building-card-info { display: flex; flex-direction: column; gap: 4px; }
 .building-card-name { font-size: 1rem; font-weight: 600; }
 .building-card-count { font-size: 0.8rem; color: rgba(255,255,255,0.7); }
+.building-card-right { display: flex; align-items: center; gap: 12px; }
 .building-card-arrow { font-size: 1.2rem; color: #00e5cc; }
+.btn-card-delete { background: none; border: none; color: rgba(255,255,255,0.35); cursor: pointer; font-size: 0.9rem; padding: 6px 8px; border-radius: 6px; transition: color 0.2s; flex-shrink: 0; }
+.btn-card-delete:hover { color: #f87171; }
 
-/* Botão voltar fora do cabeçalho */
+/* Botão voltar */
 .back-action-container { margin-bottom: 12px; }
-.btn-back { background: #e8e8e8; border: none; border-radius: 20px; padding: 8px 16px; font-size: 0.85rem; font-weight: bold; color: #333; cursor: pointer; transition: background 0.2s; }
+.btn-back { background: #e8e8e8; border: none; border-radius: 20px; padding: 8px 16px; font-size: 0.85rem; font-weight: bold; color: #333; cursor: pointer; }
 .btn-back:hover { background: #d0d0d0; }
 
 .building-header { background: #fff; border: 1px solid #ddd; border-radius: 12px; padding: 20px; margin-bottom: 24px; display: flex; flex-direction: column; gap: 16px; }
@@ -637,48 +624,34 @@ input.invalid, select.invalid { border: 2px solid #c0392b; background: #fff3f0; 
 .building-header-info { display: flex; gap: 32px; font-size: 0.9rem; color: #444; background: #f4f4f4; padding: 14px 20px; border-radius: 8px; }
 .text-muted { color: #999; font-style: italic; }
 
-.apt-table-header { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 2fr; padding: 8px 24px; font-size: 0.85rem; color: #555; font-weight: 600; margin-bottom: 8px; }
-.apt-row { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 2fr; background: #6b6b6b; border-radius: 10px; padding: 16px 24px; color: #fff; font-size: 0.9rem; margin-bottom: 8px; align-items: center; }
-.apt-row-clickable-wrapper { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; grid-column: span 4; cursor: pointer; width: 100%; height: 100%; align-items: center; }
-.apt-row-clickable-wrapper:hover { opacity: 0.85; }
+/* Tabela de apartamentos */
+.apt-table-header { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 2fr 40px; padding: 8px 24px; font-size: 0.85rem; color: #555; font-weight: 600; margin-bottom: 8px; }
+.apt-row { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 2fr 40px; background: #6b6b6b; border-radius: 10px; padding: 14px 24px; color: #fff; font-size: 0.9rem; margin-bottom: 8px; align-items: center; }
+.apt-row-clickable-wrapper { display: contents; cursor: pointer; }
+.apt-row-clickable-wrapper > span { cursor: pointer; }
+.apt-row-clickable-wrapper > span:hover { opacity: 0.8; }
 
 .apt-assign-inline { display: flex; justify-content: flex-start; }
-.apt-assign-inline select { 
-  width: 100%; 
-  max-width: 160px; 
-  padding: 8px 16px; 
-  border-radius: 20px; 
-  border: 1px dashed rgba(255, 255, 255, 0.5); 
-  background: transparent; 
-  font-size: 0.85rem; 
-  color: #fff; 
-  cursor: pointer; 
-  outline: none; 
-  text-align: center;
-  transition: all 0.2s ease;
-  appearance: none; 
-}
+.apt-assign-inline select { width: 100%; max-width: 160px; padding: 8px 16px; border-radius: 20px; border: 1px dashed rgba(255,255,255,0.5); background: transparent; font-size: 0.85rem; color: #fff; cursor: pointer; outline: none; appearance: none; transition: all 0.2s ease; }
+.apt-assign-inline select:not(:disabled):hover { border-color: #00e5cc; color: #00e5cc; background: rgba(0,229,204,0.1); }
+.apt-assign-inline select.is-assigned { background: #00e5cc; border: 1px solid #00e5cc; color: #0d0d2b; font-weight: bold; }
+.apt-assign-inline select:disabled { opacity: 1; cursor: default; }
 
-.apt-assign-inline select:not(:disabled):hover {
-  border-color: #00e5cc;
-  color: #00e5cc;
-  background: rgba(0, 229, 204, 0.1);
-}
+.apt-delete-cell { display: flex; align-items: center; justify-content: center; }
+.btn-apt-delete { background: none; border: none; color: rgba(255,255,255,0.35); cursor: pointer; font-size: 0.85rem; padding: 6px; border-radius: 6px; transition: color 0.2s; }
+.btn-apt-delete:hover { color: #f87171; }
 
-.apt-assign-inline select.is-assigned {
-  background: #00e5cc;
-  border: 1px solid #00e5cc;
-  color: #0d0d2b;
-  font-weight: bold;
-}
+/* Modais */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+.modal-confirm { background: #fff; border-radius: 16px; padding: 40px; width: 420px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 16px; }
+.modal-icon { font-size: 2.5rem; color: #f99f56; }
+.modal-confirm h3 { font-size: 1.1rem; color: #1a1a2e; margin: 0; }
+.modal-confirm p { font-size: 0.88rem; color: #555; line-height: 1.5; margin: 0; }
+.modal-actions { display: flex; gap: 12px; }
+.btn-confirm-delete { padding: 10px 24px; background: #c0392b; border: none; border-radius: 30px; color: #fff; font-size: 0.9rem; font-weight: bold; cursor: pointer; }
+.btn-confirm-delete:disabled { opacity: 0.6; cursor: not-allowed; }
 
-/* Quando desabilitado (já atribuído), ele não muda de opacidade para não ficar feio */
-.apt-assign-inline select:disabled {
-  opacity: 1;
-  cursor: default;
-}
-
-.checklist-overlay-state { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; color: #fff; font-size: 1rem; flex-direction: column; gap: 16px; }
+.checklist-overlay-state { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; color: #fff; font-size: 1rem; flex-direction: column; gap: 16px; }
 .checklist-overlay-state.error { color: #fff; }
 .checklist-overlay-state.error .btn-cancel { padding: 10px 28px; }
 .empty { text-align: center; padding: 40px; color: #888; }
