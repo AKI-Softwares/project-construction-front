@@ -142,7 +142,11 @@
                       type="text"
                       placeholder="Categoria (ex: Hidráulica, Elétrica...)"
                       class="new-service-input"
+                      list="apt-categories-list"
                     />
+                    <datalist id="apt-categories-list">
+                      <option v-for="cat in defaultCategories" :key="cat" :value="cat" />
+                    </datalist>
                     <div v-if="newServiceError[room.id]" class="new-service-error">
                       {{ newServiceError[room.id] }}
                     </div>
@@ -349,6 +353,14 @@ async function toggleRoomService(room, svc) {
 const newRoomName = ref('')
 const addingRoom = ref(false)
 const roomError = ref('')
+
+// ─── Categorias padrão para sugestão ─────────────────────────
+const defaultCategories = [
+  'Alvenaria', 'Cobertura', 'Elétrica', 'Esquadrias', 'Estrutura',
+  'Fachada', 'Fundação', 'Geral', 'Hidráulica', 'Impermeabilização',
+  'Instalações de Gás', 'Marcenaria', 'Pintura', 'Revestimento',
+  'Serralheria', 'Sistema de Ar-Condicionado', 'Vidros',
+]
 
 // ─── Novo serviço inline por cômodo ──────────────────────────
 const showNewServiceForm = ref({})
