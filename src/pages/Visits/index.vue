@@ -141,7 +141,7 @@ const dateTo = ref('')
 
 // Extrai dinamicamente a lista de edifícios únicos da resposta para popular o select
 const uniqueBuildings = computed(() => {
-  const names = visits.value.map(v => v.apartment?.building?.name || v.apartment?.building?.title).filter(Boolean)
+  const names = visits.value.map(v => v.apartment?.building?.name).filter(Boolean)
   return [...new Set(names)]
 })
 
@@ -173,7 +173,7 @@ const filteredVisits = computed(() => {
   if (selectedBuilding.value !== 'ALL') {
     const targetBuilding = selectedBuilding.value.toLowerCase().trim()
     result = result.filter(v => {
-      const buildingName = v.apartment?.building?.name || v.apartment?.building?.title || ''
+      const buildingName = v.apartment?.building?.name || ''
       return buildingName.toLowerCase().trim() === targetBuilding
     })
   }
