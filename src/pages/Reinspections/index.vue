@@ -14,6 +14,16 @@
       </div>
     </div>
 
+    <div class="filters-row no-print">
+      <div class="control-group">
+        <label>Empreendimento</label>
+        <select v-model="selectedBuilding">
+          <option value="ALL">Todos</option>
+          <option v-for="b in uniqueBuildings" :key="b" :value="b">{{ b }}</option>
+        </select>
+      </div>
+    </div>
+
     <div v-if="loading" class="state">Carregando...</div>
     <div v-if="loadError" class="state error">{{ loadError }}</div>
 
@@ -29,7 +39,7 @@
         <span>Atribuir Inspetor</span>
       </div>
 
-      <div v-for="visit in reinspections" :key="visit.id" class="table-row">
+      <div v-for="visit in filteredReinspections" :key="visit.id" class="table-row">
         <span class="building-name">{{ visit.apartment?.building?.name || '—' }}</span>
         <span>{{ visit.apartment?.identifier || '—' }}</span>
         <span>{{ formatBlockFloor(visit.apartment) }}</span>
@@ -50,8 +60,8 @@
         </div>
       </div>
 
-      <div v-if="reinspections.length === 0" class="state">
-        Nenhuma re-inspeção aguardando inspetor no momento.
+      <div v-if="filteredReinspections.length === 0" class="state">
+        Nenhuma re-inspeção aguardando inspetor{{ selectedBuilding !== 'ALL' ? ' neste empreendimento' : '' }}.
       </div>
     </div>
 
@@ -59,7 +69,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import MainLayout from '../../components/Layout/MainLayout.vue'
 import { getAvailableReinspections, assignInspectorToVisit } from '../../services/visits.js'
 import { getUsers } from '../../services/users.js'
@@ -68,6 +78,17 @@ const reinspections = ref([])
 const users = ref([])
 const loading = ref(true)
 const loadError = ref('')
+const selectedBuilding = ref('ALL')
+
+const uniqueBuildings = computed(() => {
+  const names = reinspections.value.map(v => v.apartment?.building?.name).filter(Boolean)
+  return [...new Set(names)]
+})
+
+const filteredReinspections = computed(() => {
+  if (selectedBuilding.value === 'ALL') return reinspections.value
+  return reinspections.value.filter(v => v.apartment?.building?.name === selectedBuilding.value)
+})
 
 function formatBlockFloor(apt) {
   if (!apt) return '—'
@@ -120,7 +141,10 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.info-banner {
+.filters-row { display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+.control-group { display: flex; flex-direction: column; gap: 6px; }
+.control-group label { font-size: 0.78rem; font-weight: 600; color: #666; text-transform: uppercase; }
+.control-group select { padding: 10px 14px; border-radius: 8px; border: 1px solid #ddd; background: #f9f9f9; font-size: 0.88rem; color: #333; outline: none; min-width: 200px; }
   display: flex;
   gap: 14px;
   background: #fff8e1;
