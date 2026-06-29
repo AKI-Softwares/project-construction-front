@@ -37,7 +37,7 @@
         <FontAwesomeIcon :icon="['fas', 'user']" />
         <span>
           <strong>Inspetor:</strong>
-          {{ latestVisit.inspector?.name || latestVisit.user?.name || '—' }}
+          {{ latestVisit.user?.name || latestVisit.inspector?.name || '—' }}
         </span>
         <span class="inspector-date">• {{ formatDate(latestVisit.createdAt) }}</span>
       </div>
