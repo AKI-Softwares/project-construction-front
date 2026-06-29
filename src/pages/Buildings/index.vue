@@ -312,20 +312,24 @@ async function openChecklist(apt) {
   checklistError.value = ''
   loadingChecklist.value = true
   try {
-    let detail = await getChecklistByApartment(apt.id)
-    if (!detail || !detail.rooms || detail.rooms.length === 0) {
+    const detail = await getChecklistByApartment(apt.id)
+
+    if (!detail || !detail.items?.length) {
+      // Sem checklist ou checklist vazio — monta estrutura de fallback a partir do tipo
       const tipoDoApt = apartmentTypes.value.find(t => t.id === apt.apartmentTypeId)
-      if (tipoDoApt && tipoDoApt.rooms) {
-        detail = {
+      if (tipoDoApt?.rooms?.length) {
+        selectedChecklist.value = {
           identifier: apt.identifier,
           block: apt.block || '—',
-          rooms: tipoDoApt.rooms.map(room => ({ id: room.id, name: room.name, items: [] }))
+          rooms: tipoDoApt.rooms.map(room => ({ id: room.id, name: room.name, items: [] })),
         }
       } else {
-        checklistError.value = 'Este apartamento está sem checklist no banco e não encontramos o Tipo dele.'
-        return
+        checklistError.value = 'Este apartamento ainda não tem checklist gerado.'
       }
+      return
     }
+
+    // Checklist com itens — agrupa por cômodo
     selectedChecklist.value = groupChecklistByRoom(detail)
   } catch (e) {
     checklistError.value = e.response?.data?.message || 'Erro ao carregar o checklist.'
