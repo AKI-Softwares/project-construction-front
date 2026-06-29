@@ -1,4 +1,3 @@
-
 <template>
   <MainLayout titulo="Catálogo de Serviços">
 
@@ -121,9 +120,16 @@ const loading = ref(true)
 const loadError = ref('')
 const activeCategory = ref(null)
 
+const DEFAULT_CATEGORIES = [
+  'Alvenaria', 'Cobertura', 'Elétrica', 'Esquadrias', 'Estrutura',
+  'Fachada', 'Fundação', 'Geral', 'Hidráulica', 'Impermeabilização',
+  'Instalações de Gás', 'Marcenaria', 'Pintura', 'Revestimento',
+  'Serralheria', 'Sistema de Ar-Condicionado', 'Vidros',
+]
+
 const categories = computed(() => {
-  const set = new Set(services.value.map(s => s.category).filter(Boolean))
-  return [...set].sort()
+  const fromServices = services.value.map(s => s.category).filter(Boolean)
+  return [...new Set([...DEFAULT_CATEGORIES, ...fromServices])].sort()
 })
 
 const filteredServices = computed(() =>
