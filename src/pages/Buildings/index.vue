@@ -442,11 +442,6 @@ const buildingInspectors = computed(() => {
   })
 })
 
-function selectBuilding(building) {
-  selectedBuildingId.value = building.id
-  activeTab.value = 'apartments'
-}
-
 function goBackToBuildings() {
   selectedBuildingId.value = null
   activeTab.value = 'buildings'
