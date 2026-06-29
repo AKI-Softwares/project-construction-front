@@ -17,6 +17,8 @@
     <div v-if="loading" class="state">Carregando...</div>
     <div v-if="loadError" class="state error">{{ loadError }}</div>
 
+    <div v-if="assignError" class="state error">{{ assignError }}</div>
+
     <div v-if="!loading && !loadError">
       <div class="table-header">
         <span>Empreendimento</span>
@@ -87,14 +89,17 @@ function isOverdue(date) {
   return new Date(date) < new Date()
 }
 
+const assignError = ref('')
+
 async function assignReinspection(visit, userId) {
   if (!userId) return
+  assignError.value = ''
   try {
     await assignInspectorToVisit(visit.id, Number(userId))
     reinspections.value = reinspections.value.filter(r => r.id !== visit.id)
   } catch (e) {
     console.error('Erro ao atribuir inspetor:', e)
-    alert('Erro ao atribuir inspetor: ' + (e.response?.data?.message || e.message))
+    assignError.value = e.response?.data?.message || 'Erro ao atribuir inspetor.'
   }
 }
 
