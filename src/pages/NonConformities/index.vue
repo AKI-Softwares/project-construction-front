@@ -12,7 +12,7 @@
             class="form-control"
           >
             <option value="">-- Escolha um empreendimento --</option>
-            <option v-for="b in empretendimentos" :key="b.id" :value="b.id">
+            <option v-for="b in empreendimentos" :key="b.id" :value="b.id">
               {{ b.name }}
             </option>
           </select>
@@ -65,7 +65,7 @@ import { getBuildings } from '../../services/buildings'
 import { getApartments } from '../../services/apartments'
 import { getChecklistByApartment } from '../../services/checklists'
 
-const empretendimentos = ref([])
+const empreendimentos = ref([])
 const selectedBuildingId = ref('')
 const naoConformidades = ref([])
 const carregando = ref(false)
@@ -74,7 +74,7 @@ const carregando = ref(false)
 onMounted(async () => {
   try {
     const res = await getBuildings()
-    empretendimentos.value = res || []
+    empreendimentos.value = res || []
   } catch (error) {
     console.error('Erro ao buscar empreendimentos:', error)
   }
