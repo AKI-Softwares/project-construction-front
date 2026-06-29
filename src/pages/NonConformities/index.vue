@@ -41,7 +41,9 @@
               <td>{{ nc.itemName }}</td>
               <td class="text-danger">{{ nc.description }}</td>
               <td style="text-align: center;">
-                <span class="badge-pending">Pendente</span>
+                <span :class="nc.resolvedAt ? 'badge-resolved' : 'badge-pending'">
+                  {{ nc.resolvedAt ? 'Resolvida' : 'Pendente' }}
+                </span>
               </td>
             </tr>
           </tbody>
@@ -114,7 +116,8 @@ async function carregarNaoConformidades() {
                   apartment: checklistDetail.apartment?.identifier || apto.identifier || 'N/A',
                   roomName: item.apartmentRoomService?.apartmentRoom?.name || 'Geral',
                   itemName: item.apartmentRoomService?.service?.name || 'Item de Inspeção',
-                  description: nc.description || 'Sem descrição informada'
+                  description: nc.description || 'Sem descrição informada',
+                  resolvedAt: nc.resolvedAt,
                 })
               }
             }
@@ -230,6 +233,17 @@ async function carregarNaoConformidades() {
   font-size: 0.8rem;
   font-weight: 600;
   display: inline-block;
+}
+
+.badge-resolved {
+  background: #e0faf6;
+  color: #00897b;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  display: inline-block;
+  border: 1px solid #00e5cc;
 }
 
 .empty-card {
