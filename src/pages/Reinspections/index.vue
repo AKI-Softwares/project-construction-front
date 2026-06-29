@@ -145,6 +145,8 @@ onMounted(async () => {
 .control-group { display: flex; flex-direction: column; gap: 6px; }
 .control-group label { font-size: 0.78rem; font-weight: 600; color: #666; text-transform: uppercase; }
 .control-group select { padding: 10px 14px; border-radius: 8px; border: 1px solid #ddd; background: #f9f9f9; font-size: 0.88rem; color: #333; outline: none; min-width: 200px; }
+
+.info-banner {
   display: flex;
   gap: 14px;
   background: #fff8e1;
@@ -155,6 +157,7 @@ onMounted(async () => {
   font-size: 0.85rem;
   color: #333;
 }
+
 .info-icon { color: #f5a623; font-size: 1.2rem; margin-top: 2px; flex-shrink: 0; }
 .info-banner strong { display: block; margin-bottom: 4px; color: #1a1a2e; }
 .info-banner p { margin: 0; line-height: 1.5; color: #555; }
