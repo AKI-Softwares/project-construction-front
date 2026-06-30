@@ -35,19 +35,24 @@
 
     <div v-if="tab === 'roles'">
       <div class="header-row">
-        <button class="btn-primary" @click="showRoleForm = !showRoleForm">
+        <button class="btn-primary" @click="openCreateForm">
           <FontAwesomeIcon :icon="['fas', 'plus']" /> Nova função
         </button>
       </div>
 
       <div v-if="showRoleForm" class="form-card">
-        <h3 class="form-title">Criar nova função</h3>
+        <h3 class="form-title">{{ editingRole ? 'Editar função' : 'Criar nova função' }}</h3>
         
         <div v-if="roleFormSuccess" class="alert success">
-          <FontAwesomeIcon :icon="['fas', 'circle-check']" /> Função criada com sucesso!
+          <FontAwesomeIcon :icon="['fas', 'circle-check']" /> {{ editingRole ? 'Função atualizada com sucesso!' : 'Função criada com sucesso!' }}
         </div>
         <div v-if="roleFormError" class="alert error">
           <FontAwesomeIcon :icon="['fas', 'circle-exclamation']" /> {{ roleFormError }}
+        </div>
+
+        <div v-if="editingRole?.isSystem" class="alert info">
+          <FontAwesomeIcon :icon="['fas', 'circle-info']" />
+          Esta é uma função de sistema. O nome e a descrição podem ser alterados, mas é necessário manter ao menos uma permissão marcada.
         </div>
 
         <div class="form-group">
@@ -89,7 +94,7 @@
 
         <div class="form-actions">
           <button class="btn-save" :disabled="savingRole" @click="submitRole">
-            {{ savingRole ? 'Salvando...' : 'Salvar função' }}
+            {{ savingRole ? 'Salvando...' : editingRole ? 'Salvar alterações' : 'Salvar função' }}
           </button>
           <button class="btn-cancel" @click="cancelRoleForm">Cancelar</button>
         </div>
@@ -114,6 +119,9 @@
 
           <div class="role-meta">
             <span class="role-count">{{ role._count.users }} usuário{{ role._count.users !== 1 ? 's' : '' }}</span>
+            <button class="btn-icon-edit" @click="openEditForm(role)" title="Editar função">
+              <FontAwesomeIcon :icon="['fas', 'pen']" />
+            </button>
             <button v-if="!role.isSystem && role._count.users === 0" class="btn-delete" @click="confirmDeleteRole(role)" title="Excluir função">
               <FontAwesomeIcon :icon="['fas', 'trash']" />
             </button>
@@ -155,7 +163,7 @@ import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import MainLayout from '../../components/Layout/MainLayout.vue'
 import { getUsers, deleteUser } from '../../services/users.js'
-import { getRoles, createRole, deleteRole } from '../../services/roles.js'
+import { getRoles, createRole, updateRole, deleteRole } from '../../services/roles.js'
 import { getPermissions } from '../../services/permissions.js'
 
 const router = useRouter()
@@ -189,6 +197,7 @@ const roles = ref([])
 const loadingRoles = ref(true)
 const rolesError = ref('')
 const showRoleForm = ref(false)
+const editingRole = ref(null) // null = criar, objeto = editar
 const savingRole = ref(false)
 const roleFormSuccess = ref(false)
 const roleFormError = ref('')
@@ -234,7 +243,6 @@ function operationLabel(op) { return OPERATION_LABELS[op] || op }
 // Função mágica para ler strings em inglês do banco (ex: "create:buildings") e traduzir no Front
 function traduzirAcaoBanco(actionString, resource) {
   if (!actionString) return '—'
-  // Se a ação vier combinada (ex: "read:users") fazemos o split, senão pegamos o operador puro
   const op = actionString.includes(':') ? actionString.split(':')[0] : actionString
   const traduzaoOp = OPERATION_LABELS[op] || op
   const traducaoModulo = GROUP_LABELS[resource] || resource
@@ -243,17 +251,18 @@ function traduzirAcaoBanco(actionString, resource) {
 }
 
 function isGroupChecked(group) {
-  return group.permissions.every(p => roleForm.permissionIds.includes(p.id))
+  return group.permissions.every(p => roleForm.permissionIds.includes(Number(p.id)))
 }
 function isGroupIndeterminate(group) {
-  const checked = group.permissions.filter(p => roleForm.permissionIds.includes(p.id))
+  const checked = group.permissions.filter(p => roleForm.permissionIds.includes(Number(p.id)))
   return checked.length > 0 && checked.length < group.permissions.length
 }
 function toggleGroup(group) {
   if (isGroupChecked(group)) {
-    roleForm.permissionIds = roleForm.permissionIds.filter(id => !group.permissions.map(p => p.id).includes(id))
+    const groupIds = group.permissions.map(p => Number(p.id))
+    roleForm.permissionIds = roleForm.permissionIds.filter(id => !groupIds.includes(Number(id)))
   } else {
-    const toAdd = group.permissions.map(p => p.id).filter(id => !roleForm.permissionIds.includes(id))
+    const toAdd = group.permissions.map(p => Number(p.id)).filter(id => !roleForm.permissionIds.includes(id))
     roleForm.permissionIds.push(...toAdd)
   }
 }
@@ -267,25 +276,58 @@ function validateRoleForm() {
   return valid
 }
 
+function openCreateForm() {
+  editingRole.value = null
+  roleForm.name = ''
+  roleForm.description = ''
+  roleForm.permissionIds = []
+  roleFormErrors.name = ''
+  roleFormErrors.permissionIds = ''
+  roleFormError.value = ''
+  roleFormSuccess.value = false
+  showRoleForm.value = true
+}
+
+function openEditForm(role) {
+  editingRole.value = role
+  roleForm.name = role.name
+  roleForm.description = role.description || ''
+  roleForm.permissionIds = role.permissions.map(p => Number(p.id))
+  roleFormErrors.name = ''
+  roleFormErrors.permissionIds = ''
+  roleFormError.value = ''
+  roleFormSuccess.value = false
+  showRoleForm.value = true
+}
+
 async function submitRole() {
   roleFormError.value = ''
   roleFormSuccess.value = false
   if (!validateRoleForm()) return
   savingRole.value = true
   try {
-    const created = await createRole({
+    const payload = {
       name: roleForm.name,
       description: roleForm.description || undefined,
       permissionIds: roleForm.permissionIds.map(id => Number(id)).filter(id => !isNaN(id) && id > 0),
-    })
-    roles.value.push(created)
-    roleFormSuccess.value = true
-    roleForm.name = ''
-    roleForm.description = ''
-    roleForm.permissionIds = []
+    }
+    if (editingRole.value) {
+      const updated = await updateRole(editingRole.value.id, payload)
+      const idx = roles.value.findIndex(r => r.id === editingRole.value.id)
+      if (idx !== -1) roles.value[idx] = updated
+      roleFormSuccess.value = true
+    } else {
+      const created = await createRole(payload)
+      roles.value.push(created)
+      roleFormSuccess.value = true
+      roleForm.name = ''
+      roleForm.description = ''
+      roleForm.permissionIds = []
+    }
   } catch (e) {
     if (e.response?.status === 409) roleFormErrors.name = 'Já existe uma função com esse nome.'
-    else roleFormError.value = e.response?.data?.message || 'Erro ao criar função.'
+    else if (e.response?.status === 403) roleFormError.value = 'Funções de sistema precisam manter ao menos uma permissão.'
+    else roleFormError.value = e.response?.data?.message || 'Erro ao salvar função.'
   } finally {
     savingRole.value = false
   }
@@ -293,6 +335,7 @@ async function submitRole() {
 
 function cancelRoleForm() {
   showRoleForm.value = false
+  editingRole.value = null
   roleForm.name = ''
   roleForm.description = ''
   roleForm.permissionIds = []
@@ -368,8 +411,6 @@ input[type="text"] { padding: 14px 20px; border: none; border-radius: 30px; back
 input[type="text"]:focus { background: #e2e8f0; }
 input[type="text"].invalid { border: 2px solid #c0392b; background: #fff3f0; }
 .field-error { font-size: 0.78rem; color: #c0392b; padding-left: 4px; font-weight: 500; }
-
-/* Grid melhorado em formato de Cards por Módulo */
 .permissions-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; padding: 4px 0; }
 .perm-group-card { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
 .perm-group-header { display: flex; align-items: center; gap: 10px; border-bottom: 1px solid #edf2f7; padding-bottom: 8px; }
@@ -378,16 +419,18 @@ input[type="text"].invalid { border: 2px solid #c0392b; background: #fff3f0; }
 .perm-item { display: flex; align-items: flex-start; gap: 10px; font-size: 0.82rem; color: #4a5568; cursor: pointer; line-height: 1.4; }
 .perm-op-text { padding-top: 1px; }
 .perm-item input, .perm-group-header input { cursor: pointer; accent-color: #00e5cc; width: 15px; height: 15px; }
-
 .form-actions { display: flex; gap: 16px; justify-content: flex-end; margin-top: 12px; }
 .btn-save { padding: 14px 36px; background: #00e5cc; border: none; border-radius: 30px; font-size: 0.95rem; font-weight: bold; color: #0d0d2b; cursor: pointer; }
 .btn-save:disabled { opacity: 0.6; cursor: not-allowed; }
 .btn-cancel { padding: 14px 36px; background: #e8e8e8; border: none; border-radius: 30px; font-size: 0.95rem; font-weight: bold; color: #333; cursor: pointer; }
 .btn-delete { background: none; border: none; color: #cbd5e0; cursor: pointer; font-size: 1rem; padding: 6px 8px; border-radius: 6px; transition: color 0.2s; }
 .btn-delete:hover { color: #c0392b; }
+.btn-icon-edit { background: none; border: none; color: #cbd5e0; cursor: pointer; font-size: 0.9rem; padding: 6px 8px; border-radius: 6px; transition: color 0.2s; }
+.btn-icon-edit:hover { color: #00897b; }
 .alert { display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-radius: 8px; font-size: 0.9rem; font-weight: 500; }
 .alert.success { background: #e0faf6; color: #00897b; border: 1px solid #00e5cc; }
 .alert.error { background: #fff3f0; color: #c0392b; border: 1px solid #f99f56; }
+.alert.info { background: #f0f7ff; color: #2563eb; border: 1px solid #93c5fd; }
 .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; }
 .modal { background: #fff; border-radius: 16px; padding: 40px; width: 420px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 16px; }
 .modal-icon { font-size: 2.5rem; color: #f99f56; }
