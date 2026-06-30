@@ -10,6 +10,11 @@ export async function createRole(data) {
   return response.data
 }
 
+export async function updateRole(id, data) {
+  const response = await api.patch(`/roles/${id}`, data)
+  return response.data
+}
+
 export async function deleteRole(id) {
   const response = await api.delete(`/roles/${id}`)
   return response.data
