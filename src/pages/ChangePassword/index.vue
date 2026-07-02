@@ -82,7 +82,7 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import * as authService from '../../services/auth.js'
+import { changePassword } from '../../services/auth.js'
 
 const router = useRouter()
 const currentPassword = ref('')
@@ -128,17 +128,10 @@ async function submit() {
   loading.value = true
   error.value = ''
   try {
-    // Busca a função dinamicamente no serviço de autenticação
-  const changePassFn = authService.changePassword
-
-    if (typeof changePassFn === 'function') {
-      await changePassFn({
-        currentPassword: currentPassword.value,
-        newPassword: newPassword.value
-      })
-    } else {
-      throw new Error('Método changePassword não encontrado no serviço.')
-    }
+    await changePassword({
+      currentPassword: currentPassword.value,
+      newPassword: newPassword.value
+    })
     
     // Após alterar com sucesso, limpamos o token antigo (com a flag ativa) para forçar o login novo e limpo
     localStorage.removeItem('token')
