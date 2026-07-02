@@ -102,8 +102,8 @@ import MainLayout from '../../components/Layout/MainLayout.vue'
 import { useAuthStore } from '../../store/auth'
 
 // Importa os arquivos inteiros como objetos para garantir compatibilidade com as funções exportadas
-import * as authService from '../../services/auth'
-import * as usersService from '../../services/users'
+import { me } from '../../services/auth'
+import { updateUser } from '../../services/users'
 
 const authStore = useAuthStore()
 const editing = ref(false)
@@ -143,8 +143,8 @@ onMounted(async () => {
 
 async function carregarDadosUsuario() {
   try {
-    if (authService && typeof authService.me === 'function') {
-      const userData = await authService.me()
+    if (typeof me === 'function') {
+      const userData = await me()
       
       if (userData) {
         userProfile.value.id = userData.id
@@ -191,17 +191,10 @@ async function saveChanges() {
 
   salvando.value = true
   try {
-    // Tenta encontrar a função de update dinamicamente no serviço de usuários
-   const updateFn = null
-    
-    if (typeof updateFn === 'function') {
-      await updateFn(userProfile.value.id, {
-        name: userProfile.value.name,
-        email: userProfile.value.email
-      })
-    } else {
-      console.warn('Método de atualização não encontrado em src/services/users.js')
-    }
+    await updateUser(userProfile.value.id, {
+      name: userProfile.value.name,
+      email: userProfile.value.email
+    })
 
     originalUser.value = JSON.parse(JSON.stringify(userProfile.value))
     editing.value = false
