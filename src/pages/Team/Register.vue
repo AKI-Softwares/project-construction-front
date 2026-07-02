@@ -1,321 +1,332 @@
 <template>
-  <MainLayout titulo="Cadastrar Usuário">
+  <div class="register-page">
+    <div class="register-card">
 
-    <button class="btn-back" @click="cancel">← Voltar para Equipe</button>
-
-    <div v-if="loadingRoles" class="state">Carregando funções...</div>
-
-    <div v-else>
+      <div class="logo">
+        <span class="logo-check">✓</span>
+        <span class="logo-text">CheckObra</span>
+      </div>
+      <h1 class="title">Criar conta</h1>
+      <p class="subtitle">Cadastre sua empresa e comece a usar o sistema.</p>
 
       <div v-if="success" class="alert success">
         <FontAwesomeIcon :icon="['fas', 'circle-check']" />
-        Usuário cadastrado com sucesso!
+        Empresa cadastrada! Redirecionando para o login...
       </div>
-
       <div v-if="error" class="alert error">
         <FontAwesomeIcon :icon="['fas', 'circle-exclamation']" />
         {{ error }}
       </div>
 
-      <div class="form-card">
+      <div class="section-label">Dados da empresa</div>
 
-        <div class="form-group">
-          <label>Nome <span class="required">*</span></label>
-          <input
-            v-model="form.name"
-            type="text"
-            :class="{ invalid: errors.name }"
-          />
-          <span v-if="errors.name" class="field-error">{{ errors.name }}</span>
-        </div>
+      <div class="field">
+        <input
+          v-model="form.companyName"
+          type="text"
+          placeholder="Nome da empresa"
+          :class="{ invalid: errors.companyName }"
+          @input="generateSlug"
+        />
+        <span v-if="errors.companyName" class="field-error">{{ errors.companyName }}</span>
+      </div>
 
-        <div class="form-group">
-          <label>E-mail <span class="required">*</span></label>
-          <input
-            v-model="form.email"
-            type="email"
-            :class="{ invalid: errors.email }"
-          />
-          <span v-if="errors.email" class="field-error">{{ errors.email }}</span>
-        </div>
+      <div class="field">
+        <input
+          v-model="form.slug"
+          type="text"
+          placeholder="Identificador (ex: minha-empresa)"
+          :class="{ invalid: errors.slug }"
+        />
+        <span class="field-hint">Apenas letras minúsculas, números e hífens.</span>
+        <span v-if="errors.slug" class="field-error">{{ errors.slug }}</span>
+      </div>
 
-        <div class="form-group">
-          <label>Senha <span class="required">*</span></label>
+      <div class="section-label">Dados do administrador</div>
+
+      <div class="field">
+        <input
+          v-model="form.adminName"
+          type="text"
+          placeholder="Seu nome"
+          :class="{ invalid: errors.adminName }"
+        />
+        <span v-if="errors.adminName" class="field-error">{{ errors.adminName }}</span>
+      </div>
+
+      <div class="field">
+        <input
+          v-model="form.email"
+          type="email"
+          placeholder="E-mail"
+          :class="{ invalid: errors.email }"
+        />
+        <span v-if="errors.email" class="field-error">{{ errors.email }}</span>
+      </div>
+
+      <div class="field">
+        <div class="input-wrapper">
           <input
             v-model="form.password"
-            type="password"
+            :type="showPassword ? 'text' : 'password'"
+            placeholder="Senha (mínimo 8 caracteres)"
             :class="{ invalid: errors.password }"
           />
-          <span v-if="errors.password" class="field-error">{{ errors.password }}</span>
+          <button class="toggle-password" type="button" @click="showPassword = !showPassword">
+            <FontAwesomeIcon :icon="['fas', showPassword ? 'eye-slash' : 'eye']" />
+          </button>
         </div>
-
-        <div class="form-group">
-          <label>Função <span class="required">*</span></label>
-          <div class="select-wrapper">
-            <select
-              v-model="form.roleId"
-              :class="{ invalid: errors.roleId }"
-            >
-              <option value="" disabled>Selecionar função</option>
-              <option
-                v-for="role in roles"
-                :key="role.id"
-                :value="role.id"
-              >
-                {{ role.name }}
-              </option>
-            </select>
-            <FontAwesomeIcon :icon="['fas', 'chevron-down']" class="select-icon" />
-          </div>
-          <span v-if="errors.roleId" class="field-error">{{ errors.roleId }}</span>
-        </div>
-
+        <span v-if="errors.password" class="field-error">{{ errors.password }}</span>
       </div>
 
-      <div class="form-actions">
-        <button class="btn-save" :disabled="submitting" @click="submit">
-          {{ submitting ? 'Salvando...' : 'Salvar' }}
-        </button>
-        <button class="btn-cancel" @click="cancel">Cancelar</button>
-      </div>
+      <button class="btn-submit" :disabled="submitting" @click="submit">
+        {{ submitting ? 'Cadastrando...' : 'Criar conta' }}
+      </button>
+
+      <p class="login-link">
+        Já tem conta? <a @click="router.push('/login')">Entrar</a>
+      </p>
 
     </div>
-
-  </MainLayout>
+  </div>
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
-import MainLayout from '../../components/Layout/MainLayout.vue'
-import { createUser } from '../../services/users.js'
-import { getRoles } from '../../services/roles.js'
+import { registerCompany } from '../../services/auth.js'
 
 const router = useRouter()
-
-const roles = ref([])
-const loadingRoles = ref(true)
 const submitting = ref(false)
+const showPassword = ref(false)
 const success = ref(false)
 const error = ref('')
 
 const form = reactive({
-  name: '',
+  companyName: '',
+  slug: '',
+  adminName: '',
   email: '',
   password: '',
-  roleId: '',
 })
 
 const errors = reactive({
-  name: '',
+  companyName: '',
+  slug: '',
+  adminName: '',
   email: '',
   password: '',
-  roleId: '',
 })
 
-function validate() {
-  let valid = true
-  errors.name = ''
-  errors.email = ''
-  errors.password = ''
-  errors.roleId = ''
+function generateSlug() {
+  form.slug = form.companyName
+    .toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9\s-]/g, '')
+    .trim()
+    .replace(/\s+/g, '-')
+}
 
-  if (!form.name || form.name.length < 2) {
-    errors.name = 'Nome deve ter pelo menos 2 caracteres.'
+function validate() {
+  Object.keys(errors).forEach(k => errors[k] = '')
+  let valid = true
+  if (!form.companyName || form.companyName.length < 2) {
+    errors.companyName = 'Nome deve ter pelo menos 2 caracteres.'
+    valid = false
+  }
+  if (!form.slug || !/^[a-z0-9-]+$/.test(form.slug)) {
+    errors.slug = 'Apenas letras minúsculas, números e hífens.'
+    valid = false
+  }
+  if (!form.adminName || form.adminName.length < 2) {
+    errors.adminName = 'Nome deve ter pelo menos 2 caracteres.'
     valid = false
   }
   if (!form.email || !form.email.includes('@')) {
     errors.email = 'E-mail inválido.'
     valid = false
   }
-  if (!form.password || form.password.length < 6) {
-    errors.password = 'Senha deve ter pelo menos 6 caracteres.'
+  if (!form.password || form.password.length < 8) {
+    errors.password = 'Senha deve ter pelo menos 8 caracteres.'
     valid = false
   }
-  if (!form.roleId) {
-    errors.roleId = 'Selecione uma função.'
-    valid = false
-  }
-
   return valid
-}
-
-function resetForm() {
-  form.name = ''
-  form.email = ''
-  form.password = ''
-  form.roleId = ''
-  errors.name = ''
-  errors.email = ''
-  errors.password = ''
-  errors.roleId = ''
 }
 
 async function submit() {
   error.value = ''
-  success.value = false
   if (!validate()) return
-
   submitting.value = true
   try {
-    await createUser({
-      name: form.name,
-      email: form.email,
-      password: form.password,
-      roleId: Number(form.roleId),
+    await registerCompany({
+      company: { name: form.companyName, slug: form.slug },
+      admin: { name: form.adminName, email: form.email, password: form.password },
     })
     success.value = true
-    resetForm()
-    window.scrollTo({ top: 0, behavior: 'smooth' })
+    setTimeout(() => router.push('/login'), 2000)
   } catch (e) {
     if (e.response?.status === 409) {
-      errors.email = 'E-mail já cadastrado.'
+      const msg = e.response.data?.message || ''
+      if (msg.toLowerCase().includes('slug')) errors.slug = 'Este identificador já está em uso.'
+      else if (msg.toLowerCase().includes('email')) errors.email = 'Este e-mail já está cadastrado.'
+      else error.value = msg
     } else {
-      error.value = e.response?.data?.message || 'Erro ao cadastrar usuário.'
+      error.value = e.response?.data?.message || 'Erro ao criar conta. Tente novamente.'
     }
   } finally {
     submitting.value = false
   }
 }
-
-function cancel() {
-  router.push('/team')
-}
-
-onMounted(async () => {
-  try {
-    const allRoles = await getRoles()
-    // Remove duplicatas por nome — workaround enquanto o back retorna
-    // roles de todas as empresas (sem filtro por companyId)
-    const seen = new Set()
-    roles.value = allRoles.filter(r => {
-      if (seen.has(r.name)) return false
-      seen.add(r.name)
-      return true
-    })
-  } catch (e) {
-    error.value = 'Erro ao carregar funções.'
-  } finally {
-    loadingRoles.value = false
-  }
-})
 </script>
 
 <style scoped>
-.state { text-align: center; padding: 40px; color: #555; }
+.register-page {
+  min-height: 100vh;
+  background: #0d0d2b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 16px;
+}
 
-.btn-back {
-  background: none;
-  border: 1px solid #ccc;
+.register-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 48px 40px;
+  width: 100%;
+  max-width: 460px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+
+.logo-check {
+  background: #00e5cc;
+  color: #0d0d2b;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 1rem;
+}
+
+.logo-text {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: #0d0d2b;
+}
+
+.title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #0d0d2b;
+  margin: 0;
+}
+
+.subtitle {
+  font-size: 0.9rem;
+  color: #666;
+  margin: 0;
+}
+
+.section-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #999;
+  margin-top: 8px;
+}
+
+.input-wrapper { position: relative; }
+.toggle-password { position: absolute; right: 16px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #999; cursor: pointer; font-size: 1rem; padding: 0; }
+.toggle-password:hover { color: #333; }
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+input {
+  padding: 14px 20px;
+  border: none;
   border-radius: 30px;
-  padding: 8px 18px;
-  font-size: 0.85rem;
-  color: #555;
+  background: #e8e8e8;
+  font-size: 0.95rem;
+  outline: none;
+  color: #333;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+input.invalid {
+  border: 2px solid #c0392b;
+  background: #fff3f0;
+}
+
+.field-hint {
+  font-size: 0.75rem;
+  color: #aaa;
+  padding-left: 8px;
+}
+
+.field-error {
+  font-size: 0.78rem;
+  color: #c0392b;
+  padding-left: 8px;
+}
+
+.btn-submit {
+  margin-top: 8px;
+  padding: 14px;
+  background: #00e5cc;
+  border: none;
+  border-radius: 30px;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #0d0d2b;
   cursor: pointer;
-  margin-bottom: 24px;
+  width: 100%;
+}
+
+.btn-submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .alert {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 14px 20px;
+  padding: 12px 16px;
   border-radius: 8px;
-  margin-bottom: 24px;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   font-weight: 500;
 }
 .alert.success { background: #e0faf6; color: #00897b; border: 1px solid #00e5cc; }
-.alert.error { background: #fff3f0; color: #c0392b; border: 1px solid #f99f56; }
+.alert.error   { background: #fff3f0; color: #c0392b; border: 1px solid #f99f56; }
 
-.form-card {
-  background: #fff;
-  border-radius: 12px;
-  padding: 32px;
-  border: 1px solid #eee;
-  max-width: 680px;
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
+.login-link {
+  text-align: center;
+  font-size: 0.88rem;
+  color: #666;
+  margin: 0;
 }
 
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-label {
-  font-size: 0.95rem;
-  font-weight: 500;
-  color: #333;
-}
-
-.required { color: #c0392b; }
-
-input, select {
-  width: 100%;
-  padding: 14px 20px;
-  border: none;
-  border-radius: 30px;
-  background-color: #e8e8e8;
-  font-size: 1rem;
-  outline: none;
-  color: #333;
-  appearance: none;
-  box-sizing: border-box;
-}
-
-input.invalid, select.invalid {
-  border: 2px solid #c0392b;
-  background-color: #fff3f0;
-}
-
-.select-wrapper { position: relative; }
-
-.select-icon {
-  position: absolute;
-  right: 20px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: #555;
-  pointer-events: none;
-}
-
-.field-error {
-  font-size: 0.8rem;
-  color: #c0392b;
-  padding-left: 8px;
-}
-
-.form-actions {
-  display: flex;
-  gap: 16px;
-  margin-top: 24px;
-  max-width: 680px;
-  justify-content: flex-end;
-}
-
-.btn-save {
-  padding: 14px 40px;
-  background: #00e5cc;
-  border: none;
-  border-radius: 30px;
-  font-size: 1rem;
-  font-weight: bold;
-  color: #0d0d2b;
-  cursor: pointer;
-}
-.btn-save:disabled { opacity: 0.6; cursor: not-allowed; }
-
-.btn-cancel {
-  padding: 14px 40px;
-  background: #e8e8e8;
-  border: none;
-  border-radius: 30px;
-  font-size: 1rem;
-  font-weight: bold;
-  color: #333;
+.login-link a {
+  color: #00897b;
+  font-weight: 600;
   cursor: pointer;
 }
 </style>
