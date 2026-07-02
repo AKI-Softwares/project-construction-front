@@ -288,10 +288,6 @@ const topQualityIssues = computed(() => {
 onMounted(async () => {
   try {
     const [b, a, u] = await Promise.allSettled([getBuildings(), getApartments(), getUsers()])
-    
-    // 🔍 LOGS PARA DEBUG: Abra o console do navegador (F12) e veja o que aparece aqui
-    console.log('Retorno de Buildings:', b)
-    console.log('Retorno de Apartments:', a)
 
     if (b.status === 'fulfilled' && b.value) {
       // Tenta mapear o array independente do nível de envelopamento do Axios
