@@ -117,9 +117,9 @@ onMounted(async () => {
       getPlatformUsage(),
       getPlatformGrowth(),
     ])
-    overview.value = ov.data
-    usage.value = us.data
-    growth.value = gr.data
+    overview.value = ov
+    usage.value = us
+    growth.value = gr
   } catch (e) {
     error.value = e.response?.data?.message || 'Erro ao carregar dashboard.'
   } finally {
