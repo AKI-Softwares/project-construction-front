@@ -32,12 +32,17 @@
 
           <div class="input-group">
             <label>Senha</label>
-            <input 
-              type="password" 
-              v-model="senha" 
-              placeholder="Digite sua senha"
-              @keyup.enter="entrar" 
-            />
+            <div class="input-wrapper">
+              <input
+                :type="showSenha ? 'text' : 'password'"
+                v-model="senha"
+                placeholder="Digite sua senha"
+                @keyup.enter="entrar"
+              />
+              <button class="toggle-password" type="button" @click="showSenha = !showSenha">
+                <FontAwesomeIcon :icon="['fas', showSenha ? 'eye-slash' : 'eye']" />
+              </button>
+            </div>
           </div>
 
           <!-- Mensagem de erro original tratada no layout novo -->
@@ -72,6 +77,7 @@ import { login } from '../../services/auth.js'
 const router = useRouter()
 const email = ref('')
 const senha = ref('')
+const showSenha = ref(false)
 const erro = ref('')
 const carregando = ref(false)
 
@@ -202,11 +208,15 @@ async function entrar() {
   text-align: left;
 }
 
+.input-wrapper { position: relative; }
+.toggle-password { position: absolute; right: 16px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #666; cursor: pointer; font-size: 1rem; padding: 0; }
+.toggle-password:hover { color: #333; }
+
 .input-group input {
   background-color: #1e293b;
   border: none;
   border-radius: 12px;
-  padding: 1rem;
+  padding: 1rem 48px 1rem 1rem;
   color: #ffffff;
   font-size: 1rem;
   outline: none;
