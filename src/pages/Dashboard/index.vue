@@ -315,11 +315,12 @@ onMounted(async () => {
 
     try {
       const [ov, q] = await Promise.all([getOverview(), getQuality()])
-      console.log('Retorno do Overview:', ov)
-      
-      if (ov && ov.data) overview.value = ov.data
-      if (q && q.data) qualityRows.value = q.data
-      isRich.value = true
+      if (ov) {
+        overview.value = ov
+        isRich.value = true
+      }
+      if (q && Array.isArray(q)) qualityRows.value = q
+      else if (q?.data) qualityRows.value = q.data
     } catch (analyticsError) {
       console.warn('Serviço de análise avançada offline. Rodando no modo reativo local.')
       isRich.value = false
