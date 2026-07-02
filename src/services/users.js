@@ -15,6 +15,10 @@ export async function deleteUser(id) {
   const response = await api.delete(`/users/${id}`)
   return response.data
 }
+export async function updateUser(id, data) {
+  const response = await api.patch(`/users/${id}`, data)
+  return response.data
+}
 export async function resetUserPassword(id) {
   const response = await api.post(`/users/${id}/reset-password`)
   return response.data
