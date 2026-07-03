@@ -133,7 +133,7 @@ function sair() {
 .sidebar {
   width: 60px;
   height: calc(100vh - 60px);
-  background-color: #0b1120;
+  background-color: #46C7D5;
   display: flex;
   flex-direction: column;
   padding: 8px 8px 16px 8px;
@@ -186,7 +186,7 @@ function sair() {
 }
 
 .menu-item:hover { background-color: rgba(255,255,255,0.06); color: #ffffff; }
-.menu-item.router-link-active { background-color: #00d5cc !important; color: #0b1120 !important; font-weight: bold; }
+.menu-item.router-link-active { background-color: #00d5cc !important; color: #46C7D5 !important; font-weight: bold; }
 
 .icone { font-size: 1.05rem; flex-shrink: 0; width: 24px; text-align: center; color: inherit; }
 .label { font-size: 0.92rem; }
