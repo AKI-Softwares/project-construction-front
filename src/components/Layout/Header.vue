@@ -57,14 +57,14 @@ onMounted(async () => {
 <style scoped>
 .header {
   height: 60px;
-  background-color: #46C7D5;
+  background-color: #0b1120;
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 32px 0 0;
   position: fixed;
   top: 0;
-  left: 60px;
+  left: 0;
   right: 0;
   z-index: 100;
   box-sizing: border-box;
@@ -73,12 +73,13 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   gap: 8px;
+  padding-left: 60px;
 }
 .header-logo {
   height: 42px;
   width: auto;
   object-fit: contain;
-  padding-left: 12px;
+  padding-left: 0;
 }
 .titulo { color: #00e5cc; font-size: 1.4rem; font-weight: 600; }
 .perfil { display: flex; align-items: center; gap: 12px; cursor: pointer; }
@@ -90,7 +91,7 @@ onMounted(async () => {
   height: 38px;
   border-radius: 50%;
   background-color: #00e5cc;
-  color: #46C7D5;
+  color: #0b1120;
   display: flex;
   align-items: center;
   justify-content: center;
