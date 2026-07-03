@@ -367,7 +367,7 @@ onMounted(async () => {
 
 .btn-action-reinspection {
   background: #00e5cc;
-  color: #0d0d2b;
+  color: #46C7D5;
   border: none;
   padding: 10px 20px;
   border-radius: 30px;
@@ -386,7 +386,7 @@ onMounted(async () => {
 .error { color: red; }
 
 .header-card {
-  background: #0d0d2b;
+  background: #46C7D5;
   border-radius: 12px;
   padding: 24px;
   margin-bottom: 20px;
@@ -680,7 +680,7 @@ onMounted(async () => {
   font-size: 0.85rem;
   font-weight: bold;
   cursor: pointer;
-  color: #0d0d2b;
+  color: #46C7D5;
 }
 
 .modal-error {
