@@ -356,23 +356,25 @@ onMounted(async () => {
 .border-teal { border-left: 6px solid #00e5cc; }
 
 /* Bloco Estrutural de Gráficos */
-.dashboard-charts-row { display: grid; grid-template-columns: 2fr 1fr; gap: 24px; margin-bottom: 24px; }
+.dashboard-charts-row { display: grid; grid-template-columns: 2fr 1fr; gap: 24px; margin-bottom: 24px; min-height: 420px; }
 .chart-container-main { background: #e0f7f4; border: 1px solid #b2f5ea; border-radius: 16px; padding: 28px; display: flex; flex-direction: column; }
 .chart-container-side { background: #e0f7f4; border: 1px solid #b2f5ea; border-radius: 16px; padding: 28px; display: flex; flex-direction: column; align-items: center; justify-content: space-between; }
 .chart-title { font-size: 0.95rem; font-weight: 700; color: #1a1a2e; margin: 0 0 24px 0; align-self: flex-start; text-transform: uppercase; letter-spacing: 0.5px; }
 
 /* Visão de Barras Verticais */
-.bar-chart-viewport { display: flex; justify-content: space-between; align-items: flex-end; height: 260px; gap: 12px; padding: 10px 0 0 0; width: 100%; }
+.bar-chart-viewport { display: flex; justify-content: space-between; align-items: flex-end; height: 340px; gap: 12px; padding: 10px 0 0 0; width: 100%; }
+
 .bar-chart-column { display: flex; flex-direction: column; align-items: center; flex: 1; height: 100%; justify-content: flex-end; min-width: 0; }
 .bar-value-label { font-size: 0.8rem; font-weight: 700; color: #1a1a2e; margin-bottom: 6px; }
-.bar-track { background: rgba(255, 255, 255, 0.5); width: 24px; height: 180px; border-radius: 4px; display: flex; align-items: flex-end; overflow: hidden; }
+.bar-track { background: rgba(255, 255, 255, 0.5); width: 24px; height: 260px; border-radius: 4px; display: flex; align-items: flex-end; overflow: hidden; }
 .bar-fill-vertical { width: 100%; transition: height 0.4s ease-out; border-radius: 2px; }
+
 .bar-axis-label { font-size: 0.72rem; font-weight: 600; color: #4a5568; text-align: center; margin-top: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; padding: 0 4px; }
 
 /* Visão Donut */
 .donut-chart-box { display: flex; align-items: center; justify-content: center; margin: 12px 0 24px 0; }
-.donut-render { width: 150px; height: 150px; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: background 0.3s ease; }
-.donut-center { width: 100px; height: 100px; background: #e0f7f4; border-radius: 50%; }
+.donut-render { width: 200px; height: 200px; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: background 0.3s ease; }
+.donut-center { width: 130px; height: 130px; background: #e0f7f4; border-radius: 50%; }
 
 /* Legendas do Donut */
 .donut-legend-list { display: flex; flex-direction: column; gap: 12px; width: 100%; }
