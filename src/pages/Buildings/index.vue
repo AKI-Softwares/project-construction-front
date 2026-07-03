@@ -570,11 +570,11 @@ onMounted(async () => {
 
 <style scoped>
 .tabs { display: flex; gap: 12px; justify-content: flex-end; margin-bottom: 16px; }
-.tab-btn { padding: 12px 28px; border-radius: 30px; border: none; background: #0d0d2b; color: #fff; font-size: 0.95rem; font-weight: 600; cursor: pointer; transition: background 0.2s; }
-.tab-btn.active { background: #00e5cc; color: #0d0d2b; }
+.tab-btn { padding: 12px 28px; border-radius: 30px; border: none; background: #46C7D5; color: #fff; font-size: 0.95rem; font-weight: 600; cursor: pointer; transition: background 0.2s; }
+.tab-btn.active { background: #00e5cc; color: #46C7D5; }
 .divider { border: none; border-top: 1px solid #e0e0e0; margin-bottom: 28px; }
 
-.btn-add, .btn-batch { display: inline-flex; align-items: center; gap: 8px; background: #00e5cc; color: #0d0d2b; border: none; border-radius: 30px; padding: 12px 24px; font-size: 0.9rem; font-weight: 700; cursor: pointer; transition: opacity 0.2s; }
+.btn-add, .btn-batch { display: inline-flex; align-items: center; gap: 8px; background: #00e5cc; color: #46C7D5; border: none; border-radius: 30px; padding: 12px 24px; font-size: 0.9rem; font-weight: 700; cursor: pointer; transition: opacity 0.2s; }
 .btn-add.active, .btn-batch.active { opacity: 0.7; }
 .apt-actions { display: flex; gap: 16px; margin-bottom: 20px; }
 
@@ -586,7 +586,7 @@ input.invalid, select.invalid { border: 2px solid #c0392b; background: #fff3f0; 
 .form-col { display: flex; flex-direction: column; gap: 4px; }
 .field-error { font-size: 0.78rem; color: #c0392b; padding-left: 8px; }
 .form-actions { display: flex; gap: 16px; justify-content: flex-end; }
-.btn-save { padding: 12px 36px; background: #00e5cc; border: none; border-radius: 30px; font-size: 0.95rem; font-weight: bold; color: #0d0d2b; cursor: pointer; }
+.btn-save { padding: 12px 36px; background: #00e5cc; border: none; border-radius: 30px; font-size: 0.95rem; font-weight: bold; color: #46C7D5; cursor: pointer; }
 .btn-save:disabled { opacity: 0.6; cursor: not-allowed; }
 .btn-cancel { padding: 12px 36px; background: #e8e8e8; border: none; border-radius: 30px; font-size: 0.95rem; font-weight: bold; color: #333; cursor: pointer; }
 .alert { display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-radius: 8px; font-size: 0.9rem; font-weight: 500; }
@@ -597,8 +597,8 @@ input.invalid, select.invalid { border: 2px solid #c0392b; background: #fff3f0; 
 .info-box ul { margin: 4px 0 0 16px; padding: 0; }
 .preview { background: #f4f4f4; border-radius: 8px; padding: 16px; font-size: 0.85rem; }
 .preview-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
-.preview-tag { background: #0d0d2b; color: #fff; padding: 4px 10px; border-radius: 20px; font-size: 0.78rem; }
-.preview-tag.more { background: #00e5cc; color: #0d0d2b; }
+.preview-tag { background: #46C7D5; color: #fff; padding: 4px 10px; border-radius: 20px; font-size: 0.78rem; }
+.preview-tag.more { background: #00e5cc; color: #46C7D5; }
 
 /* Lista de empreendimentos */
 .item-list { display: flex; flex-direction: column; gap: 10px; }
@@ -633,7 +633,7 @@ input.invalid, select.invalid { border: 2px solid #c0392b; background: #fff3f0; 
 .apt-assign-inline { display: flex; justify-content: flex-start; }
 .apt-assign-inline select { width: 100%; max-width: 160px; padding: 8px 16px; border-radius: 20px; border: 1px dashed rgba(255,255,255,0.5); background: transparent; font-size: 0.85rem; color: #fff; cursor: pointer; outline: none; appearance: none; transition: all 0.2s ease; }
 .apt-assign-inline select:not(:disabled):hover { border-color: #00e5cc; color: #00e5cc; background: rgba(0,229,204,0.1); }
-.apt-assign-inline select.is-assigned { background: #00e5cc; border: 1px solid #00e5cc; color: #0d0d2b; font-weight: bold; }
+.apt-assign-inline select.is-assigned { background: #00e5cc; border: 1px solid #00e5cc; color: #46C7D5; font-weight: bold; }
 .apt-assign-inline select:disabled { opacity: 1; cursor: default; }
 
 .apt-delete-cell { display: flex; align-items: center; justify-content: center; }
