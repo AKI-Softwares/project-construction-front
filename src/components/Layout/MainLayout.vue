@@ -46,8 +46,8 @@ onUnmounted(() => window.removeEventListener('app:toast', showToast))
 <style scoped>
 .main-layout {
   display: flex;
-  height: 100vh; /* Mantém a estrutura travada na altura da janela */
-  overflow: hidden; /* Evita que o layout principal crie barras duplicadas */
+  height: 100vh;
+  overflow: hidden;
 }
 .conteudo-wrapper {
   margin-left: 60px;
@@ -63,6 +63,11 @@ onUnmounted(() => window.removeEventListener('app:toast', showToast))
 .conteudo {
   padding: 32px;
   flex: 1;
+}
+
+/* Quando sidebar expande via hover, empurra o conteúdo */
+.main-layout:has(.sidebar.expandida) .conteudo-wrapper {
+  margin-left: 260px;
 }
 
 /* Toast */
