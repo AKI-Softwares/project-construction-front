@@ -120,7 +120,7 @@ async function entrar() {
   width: 100% !important;
   height: 100% !important;
   overflow: hidden !important;
-  background-color: #46C7D5;
+  background-color: #0b1120;
 }
 
 /* Container travado no tamanho exato da tela, sem scroll e sem bordas */
@@ -173,7 +173,7 @@ async function entrar() {
 /* Lado Direito: Escuro */
 .form-side {
   flex: 1;
-  background-color: #46C7D5;
+  background-color: #0b1120;
   display: flex;
   align-items: center;
   justify-content: center;
