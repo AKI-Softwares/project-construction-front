@@ -1,8 +1,8 @@
 <template>
   <div class="main-layout">
+    <Header :titulo="titulo" />
     <Sidebar />
     <div class="conteudo-wrapper">
-      <Header :titulo="titulo" />
       <main class="conteudo">
         <slot />
       </main>
@@ -51,16 +51,16 @@ onUnmounted(() => window.removeEventListener('app:toast', showToast))
 }
 .conteudo-wrapper {
   margin-left: 60px;
+  margin-top: 60px;
   flex: 1;
   display: flex;
   flex-direction: column;
   background-color: #f4f4f4;
   transition: margin-left 0.25s ease;
-  height: 100vh;
-  overflow-y: auto; /* CORREÇÃO: Permite que apenas a área de conteúdo role para baixo */
+  height: calc(100vh - 60px);
+  overflow-y: auto;
 }
 .conteudo {
-  margin-top: 60px;
   padding: 32px;
   flex: 1;
 }
@@ -84,7 +84,7 @@ onUnmounted(() => window.removeEventListener('app:toast', showToast))
 }
 .toast--error   { background-color: #c0392b; }
 .toast--warning { background-color: #f5a623; }
-.toast--success { background-color: #00e5cc; color: #0d0d2b; }
+.toast--success { background-color: #00e5cc; color: #46C7D5; }
 
 .toast button {
   background: none;
