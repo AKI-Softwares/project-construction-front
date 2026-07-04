@@ -1,183 +1,157 @@
 <template>
-  <MainLayout titulo="Relatório Consolidado de Inspeção">
-    
-    <!-- Filtro de Seleção do Empreendimento Cadastrado -->
+  <MainLayout titulo="Relatório de Inspeção">
+
+    <!-- Filtros -->
     <div class="filters-card no-print">
       <div class="form-group">
-        <label for="building-select">Selecione o Empreendimento para o Relatório:</label>
-        <select 
-          id="building-select" 
-          v-model="selectedBuildingId" 
-          @change="gerarRelatorioReal"
-          class="form-control"
-        >
+        <label>Selecione o empreendimento</label>
+        <select v-model="selectedBuildingId" @change="gerarRelatorioReal" class="form-control">
           <option value="">-- Escolha um empreendimento --</option>
-          <option v-for="b in empreendimentos" :key="b.id" :value="b.id">
-            {{ b.name }}
-          </option>
+          <option v-for="b in empreendimentos" :key="b.id" :value="b.id">{{ b.name }}</option>
         </select>
       </div>
     </div>
 
-    <!-- Área de Ações (Imprimir) -->
-    <div v-if="selectedBuildingId && !carregando && apartmentsReportData.length > 0" class="report-actions no-print" style="margin-top: 20px;">
+    <!-- Ações -->
+    <div v-if="selectedBuildingId && !carregando && apartmentsReportData.length > 0" class="report-actions no-print">
       <button class="btn-back" @click="router.back()">
         <FontAwesomeIcon :icon="['fas', 'arrow-left']" /> Voltar
       </button>
-      <button class="btn-print" @click="printReport">
-        <FontAwesomeIcon :icon="['fas', 'print']" /> Imprimir ou Salvar PDF
-      </button>
+      <div class="btn-group">
+        <button class="btn-print" @click="printReport">
+          <FontAwesomeIcon :icon="['fas', 'print']" /> Imprimir
+        </button>
+        <button class="btn-pdf" :disabled="gerandoPdf" @click="downloadPdf">
+          <FontAwesomeIcon :icon="['fas', 'file-circle-plus']" />
+          {{ gerandoPdf ? 'Gerando PDF...' : 'Baixar PDF' }}
+        </button>
+      </div>
     </div>
 
-    <!-- Estado de Carregamento -->
-    <div v-if="carregando" class="loading-box" style="margin-top: 20px;">
+    <!-- Loading -->
+    <div v-if="carregando" class="loading-box">
       <FontAwesomeIcon :icon="['fas', 'spinner']" spin class="loading-icon" />
-      <p style="margin: 0;">Minerando árvore de checklists e consolidando indicadores reais...</p>
+      <p>Carregando dados das vistorias...</p>
     </div>
 
-    <!-- Tela Inicial / Esperando Escolha do Usuário -->
-    <div v-else-if="!selectedBuildingId" class="empty-card" style="margin-top: 20px;">
+    <!-- Estado vazio -->
+    <div v-else-if="!selectedBuildingId" class="empty-card">
       <FontAwesomeIcon :icon="['fas', 'circle-info']" class="empty-icon" />
-      <p>Aguardando seleção. Escolha um empreendimento cadastrado acima para processar e gerar o relatório PEO 19 real.</p>
+      <p>Selecione um empreendimento para gerar o relatório.</p>
     </div>
 
-    <!-- Folha de Relatório Impressa (Só renderiza se houver dados processados) -->
-    <div v-else class="report-paper">
-      
-      <!-- Cabeçalho Institucional -->
+    <!-- Laudo -->
+    <div v-else id="report-paper" class="report-paper">
+
+      <!-- Cabeçalho -->
       <header class="report-header">
-        <div class="header-main">
-          <h1>RELATÓRIO CONSOLIDADO</h1>
-          <h2>PEO 19 — CHECK LIST DE INSPEÇÃO FINAL</h2>
+        <div class="header-brand">
+          <div class="brand-badge">CheckObra</div>
+          <div class="header-titles">
+            <h1>LAUDO DE INSPEÇÃO FINAL</h1>
+            <h2>Relatório Consolidado de Vistorias</h2>
+          </div>
         </div>
         <div class="header-meta">
           <p><strong>Empreendimento:</strong> {{ nomePredioSelecionado }}</p>
-          <p><strong>Data de Emissão:</strong> {{ currentLongDate }}</p>
+          <p><strong>Data de emissão:</strong> {{ currentLongDate }}</p>
+          <p><strong>Gerado por:</strong> CheckObra Backoffice</p>
         </div>
       </header>
 
       <hr class="divider" />
 
-      <!-- Seção 1: Indicadores e Objetivos da Qualidade -->
+      <!-- Seção 1: Resumo executivo -->
       <section class="report-section">
-        <h3>1. Indicadores de Desempenho e Objetivo da Qualidade</h3>
-        
-        <div class="quality-grid">
-          <div class="quality-card highlight">
-            <span class="card-label">Resultado Objetivo da Qualidade</span>
-            <span class="card-value">{{ qualityObjectiveResult }}%</span>
-            <span class="card-sub">Indicador global de inconformidades detectadas</span>
+        <h3>1. Resumo Executivo</h3>
+        <div class="summary-cards">
+          <div class="summary-card">
+            <span class="summary-label">Unidades cadastradas</span>
+            <span class="summary-value">{{ totalApartmentsCount }}</span>
           </div>
-          
-          <div class="formula-box">
-            <strong>Fórmula de Cálculo do Objetivo:</strong>
-            <div class="formula-display">
-              $$\text{Resultado} = \frac{\text{N° de Itens de NC Total}}{\text{Nº Itens do Formulário} \times \text{Nº Apartamentos}} \times 100$$
-            </div>
-            <p class="formula-note">Métrica real do PEO 19 extraída agregando dinamicamente os registros de vistorias.</p>
+          <div class="summary-card">
+            <span class="summary-label">Unidades inspecionadas</span>
+            <span class="summary-value color-success">{{ totalApartmentsWithChecklist }}</span>
+          </div>
+          <div class="summary-card">
+            <span class="summary-label">Não conformidades ativas</span>
+            <span class="summary-value color-danger">{{ totalNonConformitiesSum }}</span>
+          </div>
+          <div class="summary-card">
+            <span class="summary-label">Reparos realizados</span>
+            <span class="summary-value color-info">{{ totalRepairsSum }}</span>
+          </div>
+          <div class="summary-card highlight">
+            <span class="summary-label">Índice de não conformidade</span>
+            <span class="summary-value color-danger">{{ qualityObjectiveResult }}%</span>
           </div>
         </div>
       </section>
 
-      <!-- Seção 2: Resumo do Escopo de Verificação -->
-      <section class="report-section">
-        <h3>2. Escopo Geral e Itens Verificados</h3>
-        
-        <div class="tables-split">
-          <!-- Tabela A: Matriz de Cômodos Capturados Dinamicamente das Vistorias -->
-          <div class="table-wrapper">
-            <h4>Matriz de Cômodos Identificados nas Vistorias</h4>
-            <table class="report-table">
-              <thead>
-                <tr>
-                  <th>Cômodo / Área Avaliada</th>
-                  <th class="text-center">Vistorias Encontradas</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="room in roomCatalog" :key="room.name">
-                  <td>{{ room.name }}</td>
-                  <td class="text-center font-bold">{{ room.count }}</td>
-                </tr>
-                <tr v-if="roomCatalog.length === 0">
-                  <td colspan="2" class="text-center text-muted">Nenhum cômodo mapeado nos checklists.</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          <!-- Tabela B: Consolidado Volumétrico -->
-          <div class="table-wrapper">
-            <h4>Resumo Volumétrico da Obra</h4>
-            <table class="report-table summary-table">
-              <thead>
-                <tr>
-                  <th>Categoria / Métrica</th>
-                  <th class="text-center">Totalizador Real</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td><strong>Total de Apartamentos Cadastrados</strong></td>
-                  <td class="text-center font-bold">{{ totalApartmentsCount }}</td>
-                </tr>
-                <tr>
-                  <td><strong>Unidades Inspecionadas (Com Checklist)</strong></td>
-                  <td class="text-center color-success font-bold">{{ totalApartmentsWithChecklist }}</td>
-                </tr>
-                <tr>
-                  <td><strong>Total de Não-Conformidades Históricas</strong></td>
-                  <td class="text-center color-danger font-bold">{{ totalNonConformitiesSum }}</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
+      <!-- Seção 2: Cômodos inspecionados -->
+      <section class="report-section" v-if="roomCatalog.length > 0">
+        <h3>2. Cômodos Inspecionados</h3>
+        <table class="report-table">
+          <thead>
+            <tr>
+              <th>Cômodo / Área</th>
+              <th class="text-center">Ocorrências nas vistorias</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="room in roomCatalog" :key="room.name">
+              <td>{{ room.name }}</td>
+              <td class="text-center font-bold">{{ room.count }}</td>
+            </tr>
+          </tbody>
+        </table>
       </section>
 
       <div class="page-break"></div>
 
-      <!-- Seção 3: Relação Analítica por Unidade Autônoma -->
+      <!-- Seção 3: Detalhamento por unidade -->
       <section class="report-section">
-        <h3>3. Mapeamento Analítico de Não-Conformidades e Reparos por Unidade</h3>
-        <p class="section-description">Volume acumulado de pendências abertas (reparos pendentes) e finalizados extraídos em tempo real do banco de dados.</p>
-        
+        <h3>3. Detalhamento por Unidade</h3>
+        <p class="section-description">
+          Levantamento de não conformidades pendentes e reparos realizados por apartamento.
+        </p>
+
         <table class="report-table apartments-table">
           <thead>
             <tr>
-              <th>Identificação da Unidade</th>
-              <th class="text-center">Não-Conformidades Ativas (Pendentes)</th>
-              <th class="text-center">Reparos Realizados (Resolvidos)</th>
-              <th>Status Atualizado</th>
+              <th>Unidade</th>
+              <th class="text-center">NCs Ativas</th>
+              <th class="text-center">Reparos Realizados</th>
+              <th class="text-center">Status</th>
             </tr>
           </thead>
           <tbody>
             <tr v-for="apto in apartmentsReportData" :key="apto.id">
-              <td class="font-bold">{{ apto.block }} - {{ apto.identifier }}</td>
+              <td class="font-bold">{{ apto.block !== 'N/A' ? apto.block + ' - ' : '' }}{{ apto.identifier }}</td>
               <td class="text-center color-danger font-bold">{{ apto.pendentes }}</td>
               <td class="text-center color-success font-bold">{{ apto.resolvidos }}</td>
-              <td>
+              <td class="text-center">
                 <span :class="['report-badge', apto.pendentes > 0 ? 'badge-alert' : 'badge-safe']">
-                  {{ apto.pendentes > 0 ? 'Com Pendências' : 'Finalizado / Liberado' }}
+                  {{ apto.pendentes > 0 ? 'Com Pendências' : 'Liberado' }}
                 </span>
               </td>
             </tr>
             <tr v-if="apartmentsReportData.length === 0">
-              <td colspan="4" class="text-center text-muted">Nenhum apartamento localizado ou inspecionado para este empreendimento.</td>
+              <td colspan="4" class="text-center text-muted">Nenhum apartamento inspecionado.</td>
             </tr>
           </tbody>
           <tfoot>
             <tr>
-              <td><strong>Total Acumulado</strong></td>
+              <td><strong>Total</strong></td>
               <td class="text-center font-bold color-danger">{{ totalNonConformitiesSum }}</td>
               <td class="text-center font-bold color-success">{{ totalRepairsSum }}</td>
-              <td><strong>—</strong></td>
+              <td></td>
             </tr>
           </tfoot>
         </table>
       </section>
 
-      <!-- Rodapé de Assinaturas -->
+      <!-- Rodapé de assinaturas -->
       <footer class="print-footer">
         <div class="signature-box">
           <div class="line"></div>
@@ -197,81 +171,99 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import MainLayout from '../../components/Layout/MainLayout.vue'
-
-// Importações dos serviços do seu CheckObra
 import { getBuildings } from '../../services/buildings.js'
 import { getApartments } from '../../services/apartments.js'
 import { getChecklistByApartment } from '../../services/checklists.js'
 
 const router = useRouter()
 
-// Estados Reativos do Sistema
 const empreendimentos = ref([])
 const selectedBuildingId = ref('')
 const carregando = ref(false)
+const gerandoPdf = ref(false)
 
-// Dados Agregados Reais
 const apartmentsReportData = ref([])
 const dynamicRoomsMap = ref({})
 const totalItemsSum = ref(0)
 
-const currentLongDate = computed(() => {
-  return new Date().toLocaleDateString('pt-BR', {
-    day: '2-digit',
-    month: 'long',
-    year: 'numeric'
-  })
-})
+const currentLongDate = computed(() =>
+  new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })
+)
 
 const nomePredioSelecionado = computed(() => {
   const b = empreendimentos.value.find(x => x.id === selectedBuildingId.value)
   return b ? b.name : ''
 })
 
-// --- CÁLCULO VOLUMÉTRICO E INDICADORES REAIS ---
 const totalApartmentsCount = computed(() => apartmentsReportData.value.length)
 const totalApartmentsWithChecklist = computed(() => apartmentsReportData.value.filter(a => a.hasChecklist).length)
+const totalNonConformitiesSum = computed(() => apartmentsReportData.value.reduce((acc, a) => acc + a.pendentes, 0))
+const totalRepairsSum = computed(() => apartmentsReportData.value.reduce((acc, a) => acc + a.resolvidos, 0))
+const roomCatalog = computed(() =>
+  Object.keys(dynamicRoomsMap.value).map(key => ({ name: key, count: dynamicRoomsMap.value[key] }))
+)
 
-const totalNonConformitiesSum = computed(() => {
-  return apartmentsReportData.value.reduce((acc, a) => acc + a.pendentes, 0)
-})
-
-const totalRepairsSum = computed(() => {
-  return apartmentsReportData.value.reduce((acc, a) => acc + a.resolvidos, 0)
-})
-
-const roomCatalog = computed(() => {
-  return Object.keys(dynamicRoomsMap.value).map(key => ({
-    name: key,
-    count: dynamicRoomsMap.value[key]
-  }))
-})
-
-// Fórmula PEO 19 baseada nos dados minerados reais
 const qualityObjectiveResult = computed(() => {
-  const totalInspecionados = totalItemsSum.value
-  if (totalInspecionados === 0) return '0.00'
-  const calc = (totalNonConformitiesSum.value / totalInspecionados) * 100
-  return calc.toFixed(2)
+  if (totalItemsSum.value === 0) return '0.00'
+  return ((totalNonConformitiesSum.value / totalItemsSum.value) * 100).toFixed(2)
 })
 
 function printReport() {
   window.print()
 }
 
-// Inicialização: Apenas preenche o select superior. Não dispara o relatório de imediato!
+async function downloadPdf() {
+  gerandoPdf.value = true
+  try {
+    const { default: jsPDF } = await import('jspdf')
+    const { default: html2canvas } = await import('html2canvas')
+
+    const element = document.getElementById('report-paper')
+    const canvas = await html2canvas(element, {
+      scale: 2,
+      useCORS: true,
+      backgroundColor: '#ffffff',
+    })
+
+    const imgData = canvas.toDataURL('image/png')
+    const pdf = new jsPDF('p', 'mm', 'a4')
+    const pdfWidth = pdf.internal.pageSize.getWidth()
+    const pdfHeight = (canvas.height * pdfWidth) / canvas.width
+
+    // Se o conteúdo for maior que uma página, divide em páginas
+    const pageHeight = pdf.internal.pageSize.getHeight()
+    let position = 0
+    let heightLeft = pdfHeight
+
+    pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, pdfHeight)
+    heightLeft -= pageHeight
+
+    while (heightLeft > 0) {
+      position = heightLeft - pdfHeight
+      pdf.addPage()
+      pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, pdfHeight)
+      heightLeft -= pageHeight
+    }
+
+    const fileName = `laudo-${nomePredioSelecionado.value.replace(/\s+/g, '-').toLowerCase()}-${new Date().toISOString().slice(0,10)}.pdf`
+    pdf.save(fileName)
+  } catch (e) {
+    console.error('Erro ao gerar PDF:', e)
+  } finally {
+    gerandoPdf.value = false
+  }
+}
+
 onMounted(async () => {
   try {
     const res = await getBuildings()
     empreendimentos.value = res || []
-  } catch (error) {
-    console.error('Erro ao buscar empreendimentos para a listagem inicial:', error)
+  } catch (e) {
+    console.error('Erro ao buscar empreendimentos:', e)
   }
 })
 
-// MINERAÇÃO E AGREGAÇÃO DISÂMICA SOB DEMANDA
 async function gerarRelatorioReal() {
-  // Trava de segurança: se o usuário limpou a seleção ou escolheu a opção vazia, aborta aqui.
   if (!selectedBuildingId.value) {
     apartmentsReportData.value = []
     dynamicRoomsMap.value = {}
@@ -284,26 +276,24 @@ async function gerarRelatorioReal() {
   totalItemsSum.value = 0
 
   try {
-    // 1. Busca todos os apartamentos vinculados ao prédio selecionado
     const maisAptos = await getApartments(selectedBuildingId.value)
     const listaAptos = Array.isArray(maisAptos) ? maisAptos : (maisAptos?.data || [])
 
     const tempReportData = []
     const tempRoomsMap = {}
 
-    // 2. Itera nos apartamentos cruzando os dados analíticos dos checklists
     for (const apto of listaAptos) {
-      let contagemPendentes = 0
-      let contagemResolvidos = 0
+      let pendentes = 0
+      let resolvidos = 0
       let temChecklist = false
 
       try {
         const checklistDetail = await getChecklistByApartment(apto.id)
-        
-        if (checklistDetail && checklistDetail.items) {
+
+        if (checklistDetail?.items) {
           temChecklist = true
           totalItemsSum.value += checklistDetail.items.length
-          
+
           for (const item of checklistDetail.items) {
             const roomName = item.apartmentRoomService?.apartmentRoom?.name || 'Geral'
             tempRoomsMap[roomName] = (tempRoomsMap[roomName] || 0) + 1
@@ -312,36 +302,30 @@ async function gerarRelatorioReal() {
               for (const vi of item.visitItems) {
                 const nc = vi?.nonConformity
                 if (nc) {
-                  // Regra de ouro: se resolvedAt for null está ativo (Pendente), senão está Resolvido
-                  if (nc.resolvedAt === null) {
-                    contagemPendentes++
-                  } else {
-                    contagemResolvidos++
-                  }
+                  nc.resolvedAt === null ? pendentes++ : resolvidos++
                 }
               }
             }
           }
         }
-      } catch (errCheck) {
-        console.warn(`Checklist ausente ou inacessível para o apartamento ID ${apto.id}`)
+      } catch {
+        // Apartamento sem checklist — continua
       }
 
       tempReportData.push({
         id: apto.id,
         block: apto.block || 'N/A',
         identifier: apto.identifier || 'N/A',
-        pendentes: contagemPendentes,
-        resolvidos: contagemResolvidos,
-        hasChecklist: temChecklist
+        pendentes,
+        resolvidos,
+        hasChecklist: temChecklist,
       })
     }
 
     apartmentsReportData.value = tempReportData
     dynamicRoomsMap.value = tempRoomsMap
-
-  } catch (error) {
-    console.error('Erro ao processar agregação de dados do relatório:', error)
+  } catch (e) {
+    console.error('Erro ao processar relatório:', e)
   } finally {
     carregando.value = false
   }
@@ -351,58 +335,64 @@ async function gerarRelatorioReal() {
 <style scoped>
 .filters-card { background: #fff; border-radius: 8px; padding: 20px; border: 1px solid #eee; }
 .form-group { display: flex; flex-direction: column; gap: 8px; max-width: 400px; }
-.form-group label { font-size: 0.9rem; font-weight: 600; color: #0d0d2b; }
-.form-control { padding: 10px 14px; border-radius: 6px; border: 1px solid #ccc; background-color: #fff; font-size: 0.9rem; color: #333; outline: none; width: 100%; }
+.form-group label { font-size: 0.9rem; font-weight: 600; color: #333; }
+.form-control { padding: 10px 14px; border-radius: 6px; border: 1px solid #ccc; font-size: 0.9rem; color: #333; outline: none; width: 100%; }
 .form-control:focus { border-color: #00e5cc; }
 
-.report-actions { display: flex; justify-content: space-between; }
-.btn-back { background: none; border: none; color: #555; font-weight: 600; cursor: pointer; }
-.btn-print { background: #00e5cc; color: #0d0d2b; border: none; padding: 10px 20px; border-radius: 6px; font-weight: bold; cursor: pointer; }
+.report-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; }
+.btn-group { display: flex; gap: 10px; }
+.btn-back { background: none; border: none; color: #555; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; }
+.btn-print { background: #e8e8e8; color: #333; border: none; padding: 10px 20px; border-radius: 6px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 6px; }
+.btn-pdf { background: #0b1120; color: #fff; border: none; padding: 10px 20px; border-radius: 6px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 6px; }
+.btn-pdf:disabled { opacity: 0.6; cursor: not-allowed; }
 
-.loading-box { text-align: center; padding: 40px; background: #fff; border-radius: 8px; border: 1px solid #eee; color: #555; font-weight: 500; display: flex; flex-direction: column; align-items: center; gap: 12px; }
+.loading-box { text-align: center; padding: 40px; background: #fff; border-radius: 8px; border: 1px solid #eee; color: #555; display: flex; flex-direction: column; align-items: center; gap: 12px; margin-top: 20px; }
 .loading-icon { font-size: 1.8rem; color: #00e5cc; }
-
-.empty-card { background: #fff; border-radius: 8px; padding: 40px; border: 1px solid #eee; text-align: center; color: #666; display: flex; flex-direction: column; align-items: center; gap: 12px; }
+.empty-card { background: #fff; border-radius: 8px; padding: 40px; border: 1px solid #eee; text-align: center; color: #666; display: flex; flex-direction: column; align-items: center; gap: 12px; margin-top: 20px; }
 .empty-icon { font-size: 2rem; color: #b0bec5; }
 
-.report-paper { background: #fff; color: #222; padding: 40px; border-radius: 8px; border: 1px solid #ddd; box-shadow: 0 4px 12px rgba(0,0,0,0.05); font-family: sans-serif; margin-top: 20px; }
+.report-paper { background: #fff; color: #222; padding: 48px; border-radius: 8px; border: 1px solid #ddd; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-top: 20px; font-family: 'Inter', sans-serif; }
+
+/* Header */
 .report-header { display: flex; justify-content: space-between; align-items: flex-start; }
-.header-main h1 { font-size: 1.3rem; color: #0d0d2b; margin: 0 0 4px 0; letter-spacing: 0.5px; }
-.header-main h2 { font-size: 0.9rem; color: #555; font-weight: 500; margin: 0; }
-.header-meta { text-align: right; font-size: 0.85rem; color: #666; margin: 0; }
-.header-meta p { margin: 4px 0; }
-.divider { border: 0; border-top: 2px solid #0d0d2b; margin: 20px 0; }
+.header-brand { display: flex; align-items: center; gap: 16px; }
+.brand-badge { background: #0b1120; color: #00e5cc; font-weight: 800; font-size: 1rem; padding: 6px 14px; border-radius: 6px; letter-spacing: 1px; }
+.header-titles h1 { font-size: 1.2rem; color: #0b1120; margin: 0 0 2px; letter-spacing: 0.5px; }
+.header-titles h2 { font-size: 0.85rem; color: #666; font-weight: 400; margin: 0; }
+.header-meta { text-align: right; font-size: 0.82rem; color: #555; }
+.header-meta p { margin: 3px 0; }
+.divider { border: 0; border-top: 2px solid #0b1120; margin: 20px 0; }
 
-.report-section { margin-bottom: 30px; }
-.report-section h3 { font-size: 1.05rem; color: #0d0d2b; border-left: 4px solid #00e5cc; padding-left: 10px; margin-top: 0; margin-bottom: 15px; }
-.section-description { font-size: 0.85rem; color: #555; margin-bottom: 15px; }
+/* Sections */
+.report-section { margin-bottom: 32px; }
+.report-section h3 { font-size: 0.95rem; color: #0b1120; border-left: 4px solid #00e5cc; padding-left: 10px; margin: 0 0 16px; }
+.section-description { font-size: 0.82rem; color: #666; margin-bottom: 12px; }
 
-.quality-grid { display: flex; gap: 20px; background: #f9f9f9; padding: 20px; border-radius: 8px; border: 1px solid #eee; }
-.quality-card { background: #fff; border: 1px solid #e0e0e0; padding: 16px; border-radius: 6px; min-width: 200px; display: flex; flex-direction: column; justify-content: center; border-top: 4px solid #c0392b; }
-.card-label { font-size: 0.78rem; font-weight: bold; color: #555; }
-.card-value { font-size: 1.8rem; font-weight: 800; color: #c0392b; margin: 4px 0; }
-.card-sub { font-size: 0.7rem; color: #888; }
-.formula-box { flex: 1; font-size: 0.82rem; color: #444; }
-.formula-display { background: #fff; padding: 10px; border-radius: 6px; margin: 6px 0; border: 1px dashed #ccc; font-family: monospace; }
-.formula-note { font-size: 0.72rem; color: #777; font-style: italic; margin: 0; }
+/* Summary cards */
+.summary-cards { display: flex; gap: 12px; flex-wrap: wrap; }
+.summary-card { background: #f9f9f9; border: 1px solid #eee; border-radius: 8px; padding: 14px 18px; min-width: 150px; display: flex; flex-direction: column; gap: 4px; }
+.summary-card.highlight { border-top: 3px solid #c0392b; }
+.summary-label { font-size: 0.72rem; color: #777; font-weight: 600; text-transform: uppercase; }
+.summary-value { font-size: 1.6rem; font-weight: 800; color: #0b1120; }
 
-.tables-split { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-.table-wrapper h4 { font-size: 0.85rem; color: #444; margin-top: 0; margin-bottom: 10px; }
+/* Tables */
 .report-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
-.report-table th { background: #f1f1f1; color: #333; font-weight: 600; padding: 8px 10px; border: 1px solid #ddd; }
-.report-table td { padding: 8px 10px; border: 1px solid #ddd; color: #444; }
-.report-table tfoot td { background: #f9f9f9; font-weight: bold; border-top: 2px solid #333; }
+.report-table th { background: #f1f1f1; color: #333; font-weight: 600; padding: 8px 12px; border: 1px solid #ddd; }
+.report-table td { padding: 8px 12px; border: 1px solid #ddd; color: #444; }
+.report-table tfoot td { background: #f5f5f5; font-weight: bold; border-top: 2px solid #333; }
+.apartments-table tbody tr:nth-child(even) { background: #fafafa; }
 
-.apartments-table tbody tr:nth-child(even) { background: #fbfbfb; }
 .text-center { text-align: center; }
 .font-bold { font-weight: bold; }
 .color-danger { color: #c0392b; }
 .color-success { color: #00897b; }
+.color-info { color: #1976d2; }
 .text-muted { color: #888; font-style: italic; }
 
-.report-badge { padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: bold; }
+.report-badge { padding: 3px 10px; border-radius: 4px; font-size: 0.72rem; font-weight: bold; }
 .badge-alert { background: #fdecea; color: #c0392b; }
 .badge-safe { background: #e0faf6; color: #00897b; }
+
 .print-footer { display: none; }
 
 @media print {
