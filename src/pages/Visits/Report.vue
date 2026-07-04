@@ -19,11 +19,7 @@
       </button>
       <div class="btn-group">
         <button class="btn-print" @click="printReport">
-          <FontAwesomeIcon :icon="['fas', 'print']" /> Imprimir
-        </button>
-        <button class="btn-pdf" :disabled="gerandoPdf" @click="downloadPdf">
-          <FontAwesomeIcon :icon="['fas', 'file-circle-plus']" />
-          {{ gerandoPdf ? 'Gerando PDF...' : 'Baixar PDF' }}
+          <FontAwesomeIcon :icon="['fas', 'print']" /> Imprimir / Salvar PDF
         </button>
       </div>
     </div>
@@ -180,7 +176,6 @@ const router = useRouter()
 const empreendimentos = ref([])
 const selectedBuildingId = ref('')
 const carregando = ref(false)
-const gerandoPdf = ref(false)
 
 const apartmentsReportData = ref([])
 const dynamicRoomsMap = ref({})
@@ -210,48 +205,6 @@ const qualityObjectiveResult = computed(() => {
 
 function printReport() {
   window.print()
-}
-
-async function downloadPdf() {
-  gerandoPdf.value = true
-  try {
-    const { default: jsPDF } = await import('jspdf')
-    const { default: html2canvas } = await import('html2canvas')
-
-    const element = document.getElementById('report-paper')
-    const canvas = await html2canvas(element, {
-      scale: 2,
-      useCORS: true,
-      backgroundColor: '#ffffff',
-    })
-
-    const imgData = canvas.toDataURL('image/png')
-    const pdf = new jsPDF('p', 'mm', 'a4')
-    const pdfWidth = pdf.internal.pageSize.getWidth()
-    const pdfHeight = (canvas.height * pdfWidth) / canvas.width
-
-    // Se o conteúdo for maior que uma página, divide em páginas
-    const pageHeight = pdf.internal.pageSize.getHeight()
-    let position = 0
-    let heightLeft = pdfHeight
-
-    pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, pdfHeight)
-    heightLeft -= pageHeight
-
-    while (heightLeft > 0) {
-      position = heightLeft - pdfHeight
-      pdf.addPage()
-      pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, pdfHeight)
-      heightLeft -= pageHeight
-    }
-
-    const fileName = `laudo-${nomePredioSelecionado.value.replace(/\s+/g, '-').toLowerCase()}-${new Date().toISOString().slice(0,10)}.pdf`
-    pdf.save(fileName)
-  } catch (e) {
-    console.error('Erro ao gerar PDF:', e)
-  } finally {
-    gerandoPdf.value = false
-  }
 }
 
 onMounted(async () => {
@@ -342,9 +295,7 @@ async function gerarRelatorioReal() {
 .report-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; }
 .btn-group { display: flex; gap: 10px; }
 .btn-back { background: none; border: none; color: #555; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; }
-.btn-print { background: #e8e8e8; color: #333; border: none; padding: 10px 20px; border-radius: 6px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 6px; }
-.btn-pdf { background: #0b1120; color: #fff; border: none; padding: 10px 20px; border-radius: 6px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 6px; }
-.btn-pdf:disabled { opacity: 0.6; cursor: not-allowed; }
+.btn-print { background: #0b1120; color: #fff; border: none; padding: 10px 20px; border-radius: 6px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 6px; }
 
 .loading-box { text-align: center; padding: 40px; background: #fff; border-radius: 8px; border: 1px solid #eee; color: #555; display: flex; flex-direction: column; align-items: center; gap: 12px; margin-top: 20px; }
 .loading-icon { font-size: 1.8rem; color: #00e5cc; }
