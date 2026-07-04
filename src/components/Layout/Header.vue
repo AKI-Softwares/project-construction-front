@@ -61,7 +61,7 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 32px 0 0;
+  padding: 0 32px;
   position: fixed;
   top: 0;
   left: 0;
@@ -72,16 +72,14 @@ onMounted(async () => {
 .header-left {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding-left: 60px;
+  gap: 12px;
 }
 .header-logo {
-  height: 42px;
+  height: 36px;
   width: auto;
   object-fit: contain;
-  padding-left: 0;
 }
-.titulo { color: #00e5cc; font-size: 1.4rem; font-weight: 600; }
+.titulo { color: #00e5cc; font-size: 1.4rem; font-weight: 600; margin-left: 16px; }
 .perfil { display: flex; align-items: center; gap: 12px; cursor: pointer; }
 .perfil-info { display: flex; flex-direction: column; align-items: flex-end; }
 .perfil-nome { color: #ffffff; font-size: 0.9rem; font-weight: 600; }
