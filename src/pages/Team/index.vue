@@ -24,7 +24,10 @@
           <FontAwesomeIcon :icon="['fas', 'user']" class="user-icon" />
           <span class="user-name">{{ user.name }}</span>
           <span class="user-separator">-</span>
-          <span class="user-role">{{ user.role?.name || '—' }}</span>
+          <span class="user-role">
+            <span v-if="user.isCompanyAdmin" class="role-badge-admin">Administrador</span>
+            <span v-else>{{ user.role?.name || '—' }}</span>
+          </span>
           <button class="btn-delete" @click="confirmDelete(user)" title="Excluir usuário">
             <FontAwesomeIcon :icon="['fas', 'trash']" />
           </button>
@@ -392,6 +395,7 @@ onMounted(async () => {
 .user-name { font-weight: 500; }
 .user-separator { color: rgba(255,255,255,0.5); }
 .user-role { color: rgba(255,255,255,0.85); flex: 1; }
+.role-badge-admin { background: #00e5cc; color: #0b1120; padding: 2px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; }
 .roles-list { display: flex; flex-direction: column; gap: 12px; }
 .role-card { display: flex; align-items: flex-start; justify-content: space-between; background: #fff; border-radius: 12px; padding: 20px 24px; border: 1px solid #eee; box-shadow: 0 2px 8px rgba(0,0,0,0.02); }
 .role-info { display: flex; flex-direction: column; gap: 6px; flex: 1; }
