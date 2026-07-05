@@ -65,12 +65,17 @@
       </div>
 
       <div class="field">
-        <input
-          v-model="form.password"
-          type="password"
-          placeholder="Senha (mínimo 8 caracteres)"
-          :class="{ invalid: errors.password }"
-        />
+        <div class="input-wrapper">
+          <input
+            v-model="form.password"
+            :type="showPassword ? 'text' : 'password'"
+            placeholder="Senha (mínimo 8 caracteres)"
+            :class="{ invalid: errors.password }"
+          />
+          <button class="toggle-password" type="button" @click="showPassword = !showPassword">
+            <FontAwesomeIcon :icon="['fas', showPassword ? 'eye-slash' : 'eye']" />
+          </button>
+        </div>
         <span v-if="errors.password" class="field-error">{{ errors.password }}</span>
       </div>
 
@@ -93,6 +98,7 @@ import { registerCompany } from '../../services/auth.js'
 
 const router = useRouter()
 const submitting = ref(false)
+const showPassword = ref(false)
 const success = ref(false)
 const error = ref('')
 
@@ -241,6 +247,11 @@ async function submit() {
   color: #999;
   margin-top: 8px;
 }
+
+.input-wrapper { position: relative; display: flex; align-items: center; }
+.input-wrapper input { flex: 1; }
+.toggle-password { position: absolute; right: 16px; background: none; border: none; color: #888; cursor: pointer; font-size: 1rem; padding: 0; }
+.toggle-password:hover { color: #333; }
 
 .field {
   display: flex;
