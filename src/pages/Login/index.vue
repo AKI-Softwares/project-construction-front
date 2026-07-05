@@ -61,7 +61,7 @@
 
           <!-- Links inferiores originais mantidos -->
           <p class="register-text">
-            Não tem uma conta? <a href="#">Cadastre-se</a>
+            Não tem uma conta? <a @click="router.push('/register')" style="cursor:pointer;">Cadastre-se</a>
           </p>
         </div>
       </div>
