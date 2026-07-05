@@ -26,7 +26,7 @@ api.interceptors.request.use((config) => {
   if (token) config.headers.Authorization = `Bearer ${token}`
 
   const payload = getTokenPayload()
-  if (payload?.isPlatformAdmin && payload?.companyId) {
+  if (payload?.companyId) {
     config.headers['X-Company-Id'] = payload.companyId
   }
 
