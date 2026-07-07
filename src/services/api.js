@@ -26,8 +26,17 @@ api.interceptors.request.use((config) => {
   if (token) config.headers.Authorization = `Bearer ${token}`
 
   const payload = getTokenPayload()
+
+  // Usuário comum — usa o companyId do próprio JWT
   if (payload?.companyId) {
     config.headers['X-Company-Id'] = payload.companyId
+  }
+  // Platform Admin — usa a empresa ativa selecionada manualmente
+  else if (payload?.isPlatformAdmin) {
+    const activeCompanyId = localStorage.getItem('activeCompanyId')
+    if (activeCompanyId) {
+      config.headers['X-Company-Id'] = activeCompanyId
+    }
   }
 
   return config
