@@ -89,7 +89,7 @@ onUnmounted(() => window.removeEventListener('app:toast', showToast))
 }
 .toast--error   { background-color: #c0392b; }
 .toast--warning { background-color: #f5a623; }
-.toast--success { background-color: #00e5cc; color: #46C7D5; }
+.toast--success { background-color: #00e5cc; color: #0b1120; }
 
 .toast button {
   background: none;
