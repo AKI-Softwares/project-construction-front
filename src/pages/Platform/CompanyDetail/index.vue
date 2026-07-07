@@ -84,11 +84,14 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import MainLayout from '../../../components/Layout/MainLayout.vue'
 import { getCompany, updateCompany, updateCompanyStatus } from '../../../services/platform.js'
 
+import { useAuthStore } from '../../../store/auth.js'
+
+const authStore = useAuthStore()
 const route = useRoute()
 const router = useRouter()
 const companyId = Number(route.params.id)
@@ -141,6 +144,8 @@ async function saveEdit() {
 }
 
 onMounted(async () => {
+  // Platform Admin entra no contexto desta empresa
+  authStore.setActiveCompany(companyId)
   try {
     company.value = await getCompany(companyId)
     editForm.name = company.value.name
@@ -150,6 +155,11 @@ onMounted(async () => {
   } finally {
     loading.value = false
   }
+})
+
+onUnmounted(() => {
+  // Sai do contexto da empresa ao deixar a tela
+  authStore.setActiveCompany(null)
 })
 </script>
 
