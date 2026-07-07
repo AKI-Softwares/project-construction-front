@@ -20,17 +20,17 @@
 
         <div class="metric-card border-orange">
           <span class="metric-label">Vistorias Realizadas</span>
-          <span class="metric-value">{{ isRich ? overview.visitsFinalized : '—' }}</span>
+          <span class="metric-value">{{ isRich ? safeNum(overview.visitsFinalized) : '—' }}</span>
         </div>
 
         <div class="metric-card border-coral">
           <span class="metric-label">Não Conformidades</span>
-          <span class="metric-value">{{ isRich ? overview.totalNonConformities : '—' }}</span>
+          <span class="metric-value">{{ isRich ? safeNum(overview.totalNonConformities) : '—' }}</span>
         </div>
 
         <div class="metric-card border-teal">
-          <span class="metric-label">Unidades Entregues</span>
-          <span class="metric-value">{{ isRich ? (totalApartments - overview.visitsPending) : '—' }}</span>
+          <span class="metric-label">Vistorias Pendentes</span>
+          <span class="metric-value">{{ isRich ? safeNum(overview.visitsPending) : '—' }}</span>
         </div>
       </template>
     </div>
@@ -152,6 +152,12 @@ const totalApartments = computed(() => apartments.value.length)
 
 function navigate(path) {
   router.push(path)
+}
+
+// Garante que nunca exibe NaN — converte qualquer valor para número seguro
+function safeNum(val) {
+  const n = Number(val)
+  return isNaN(n) ? 0 : n
 }
 
 function traduzirStatus(status) {
