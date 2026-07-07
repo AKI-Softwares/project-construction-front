@@ -16,6 +16,7 @@ export const useAuthStore = defineStore('auth', {
     return {
       token,
       user: payload ? { name: payload.name, email: payload.email, id: payload.sub ?? payload.id } : null,
+      activeCompanyId: localStorage.getItem('activeCompanyId') || null,
     }
   },
   getters: {
@@ -46,11 +47,21 @@ export const useAuthStore = defineStore('auth', {
       localStorage.setItem('token', token)
       const payload = decodeToken(token)
       this.user = payload ? { name: payload.name, email: payload.email, id: payload.sub ?? payload.id } : null
+      // Limpa empresa ativa ao trocar de token
+      this.activeCompanyId = null
+      localStorage.removeItem('activeCompanyId')
+    },
+    setActiveCompany(companyId) {
+      this.activeCompanyId = companyId
+      if (companyId) localStorage.setItem('activeCompanyId', companyId)
+      else localStorage.removeItem('activeCompanyId')
     },
     logout() {
       this.token = null
       this.user = null
+      this.activeCompanyId = null
       localStorage.removeItem('token')
+      localStorage.removeItem('activeCompanyId')
     },
   },
 })
