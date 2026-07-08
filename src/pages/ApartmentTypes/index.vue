@@ -306,15 +306,21 @@ const togglingService = ref({})
 // Verifica se um serviço já está vinculado ao cômodo
 function isServiceLinked(room, serviceId) {
   return roomLinkedServices.value[room.id]?.has(serviceId) ?? false
-}
-
-// Carrega os serviços vinculados de um cômodo específico via API
+}// Carrega os serviços vinculados de um cômodo específico via API
 async function loadRoomServices(typeId, room) {
   if (loadingRoomServices.value[room.id]) return
   loadingRoomServices.value[room.id] = true
   try {
-    const linked = await getRoomServices(typeId, room.id)
-    roomLinkedServices.value[room.id] = new Set(linked.map(s => s.serviceId ?? s.id))
+    // Se o room já veio com defaultServices do backend, usa diretamente
+    if (room.defaultServices?.length) {
+      roomLinkedServices.value[room.id] = new Set(
+        room.defaultServices.map(s => s.service?.id ?? s.serviceId)
+      )
+    } else {
+      // Fallback: busca via API
+      const linked = await getRoomServices(typeId, room.id)
+      roomLinkedServices.value[room.id] = new Set(linked.map(s => s.serviceId ?? s.id))
+    }
   } catch (e) {
     console.error('Erro ao carregar serviços do cômodo', e)
     roomLinkedServices.value[room.id] = new Set()
