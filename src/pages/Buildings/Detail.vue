@@ -72,17 +72,17 @@
                   {{ room.name }}
                 </div>
                 <div class="services-list">
-                  <div v-if="!room.services?.length && !room.apartmentRoomServices?.length" class="no-services">
+                  <div v-if="!room.defaultServices?.length" class="no-services">
                     Sem serviços vinculados
                   </div>
                   <span
-                    v-for="svc in (room.services || room.apartmentRoomServices || [])"
-                    :key="svc.id"
+                    v-for="svc in room.defaultServices"
+                    :key="svc.service.id"
                     class="service-tag"
                   >
-                    {{ svc.service?.name || svc.name }}
-                    <span v-if="svc.service?.category || svc.category" class="service-category">
-                      {{ svc.service?.category || svc.category }}
+                    {{ svc.service.name }}
+                    <span v-if="svc.service.category" class="service-category">
+                      {{ svc.service.category }}
                     </span>
                   </span>
                 </div>
@@ -130,7 +130,7 @@ const totalRooms = computed(() =>
 const totalServices = computed(() =>
   Object.values(aptRooms.value).reduce((acc, rooms) =>
     acc + (rooms || []).reduce((a, r) =>
-      a + ((r.services || r.apartmentRoomServices || []).length), 0
+      a + (r.defaultServices?.length || 0), 0
     ), 0
   )
 )
