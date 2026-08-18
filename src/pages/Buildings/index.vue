@@ -2,10 +2,17 @@
   <MainLayout titulo="Empreendimentos">
 
     <div class="tabs">
-      <button :class="['tab-btn', { active: activeTab === 'buildings' }]" @click="activeTab = 'buildings'">
+      <button
+        :class="['tab-btn', { active: activeTab === 'buildings' }]"
+        @click="activeTab = 'buildings'"
+      >
         Empreendimentos
       </button>
-      <button :class="['tab-btn', { active: activeTab === 'apartments' }]" @click="activeTab = 'apartments'">
+
+      <button
+        :class="['tab-btn', { active: activeTab === 'apartments' }]"
+        @click="activeTab = 'apartments'"
+      >
         Atribuir Vistorias
       </button>
     </div>
@@ -16,48 +23,106 @@
     <div v-if="activeTab === 'buildings'">
 
       <div style="margin-bottom: 20px;">
-        <button v-if="authStore.hasPermission('buildings:create')" class="btn-add" @click="showBuildingForm = !showBuildingForm">
+        <button
+          v-if="authStore.hasPermission('buildings:create')"
+          class="btn-add"
+          @click="showBuildingForm = !showBuildingForm"
+        >
           + Adicionar empreendimento
         </button>
       </div>
 
       <div v-if="showBuildingForm" class="form-card">
         <h3 class="form-title">Novo Empreendimento</h3>
+
         <div v-if="buildingSuccess" class="alert success">
-          <FontAwesomeIcon :icon="['fas', 'circle-check']" /> Empreendimento cadastrado com sucesso!
+          <FontAwesomeIcon :icon="['fas', 'circle-check']" />
+          Empreendimento cadastrado com sucesso!
         </div>
+
         <div v-if="buildingError" class="alert error">
-          <FontAwesomeIcon :icon="['fas', 'circle-exclamation']" /> {{ buildingError }}
+          <FontAwesomeIcon :icon="['fas', 'circle-exclamation']" />
+          {{ buildingError }}
         </div>
-        <input v-model="buildingForm.name" type="text" placeholder="Nome do Empreendimento" :class="{ invalid: buildingErrors.name }" />
-        <span v-if="buildingErrors.name" class="field-error">{{ buildingErrors.name }}</span>
-        <input v-model="buildingForm.address" type="text" placeholder="Endereço" :class="{ invalid: buildingErrors.address }" />
-        <span v-if="buildingErrors.address" class="field-error">{{ buildingErrors.address }}</span>
+
+        <input
+          v-model="buildingForm.name"
+          type="text"
+          placeholder="Nome do Empreendimento"
+          :class="{ invalid: buildingErrors.name }"
+        />
+
+        <span v-if="buildingErrors.name" class="field-error">
+          {{ buildingErrors.name }}
+        </span>
+
+        <input
+          v-model="buildingForm.address"
+          type="text"
+          placeholder="Endereço"
+          :class="{ invalid: buildingErrors.address }"
+        />
+
+        <span v-if="buildingErrors.address" class="field-error">
+          {{ buildingErrors.address }}
+        </span>
+
         <div class="form-actions">
-          <button class="btn-save" :disabled="savingBuilding" @click="saveBuilding">
+          <button
+            class="btn-save"
+            :disabled="savingBuilding"
+            @click="saveBuilding"
+          >
             {{ savingBuilding ? 'Salvando...' : 'Salvar' }}
           </button>
-          <button class="btn-cancel" @click="cancelBuilding">Cancelar</button>
+
+          <button class="btn-cancel" @click="cancelBuilding">
+            Cancelar
+          </button>
         </div>
       </div>
 
       <div class="item-list">
-        <div v-for="building in buildings" :key="building.id" class="item-card" @click="router.push(`/buildings/${building.id}`)">
+        <div
+          v-for="building in buildings"
+          :key="building.id"
+          class="item-card"
+          @click="router.push(`/buildings/${building.id}`)"
+        >
           <div class="building-card-info">
-            <span class="building-card-name">{{ building.name }}</span>
+            <span class="building-card-name">
+              {{ building.name }}
+            </span>
+
             <span class="building-card-count">
-              {{ apartments.filter(a => a.buildingId === building.id).length }} apartamento(s)
+              {{ apartments.filter(a => a.buildingId === building.id).length }}
+              apartamento(s)
             </span>
           </div>
+
           <div class="building-card-right">
-            <button class="btn-card-delete" title="Excluir empreendimento" @click.stop="confirmDeleteBuilding(building)">
+            <button
+              class="btn-card-delete"
+              title="Excluir empreendimento"
+              @click.stop="confirmDeleteBuilding(building)"
+            >
               <FontAwesomeIcon :icon="['fas', 'trash']" />
             </button>
+
             <span class="building-card-arrow">→</span>
           </div>
         </div>
-        <div v-if="buildings.length === 0 && !loadingBuildings" class="empty">Nenhum empreendimento cadastrado.</div>
-        <div v-if="loadingBuildings" class="empty">Carregando...</div>
+
+        <div
+          v-if="buildings.length === 0 && !loadingBuildings"
+          class="empty"
+        >
+          Nenhum empreendimento cadastrado.
+        </div>
+
+        <div v-if="loadingBuildings" class="empty">
+          Carregando...
+        </div>
       </div>
 
     </div>
@@ -66,157 +131,387 @@
     <div v-if="activeTab === 'apartments'">
 
       <div class="apt-actions">
-        <button v-if="authStore.hasPermission('apartments:create')" :class="['btn-add', { active: aptMode === 'single' }]" @click="aptMode = aptMode === 'single' ? null : 'single'">
+        <button
+          v-if="authStore.hasPermission('apartments:create')"
+          :class="['btn-add', { active: aptMode === 'single' }]"
+          @click="aptMode = aptMode === 'single' ? null : 'single'"
+        >
           + Adicionar Apartamento individual
         </button>
-        <button v-if="authStore.hasPermission('apartments:create')" :class="['btn-batch', { active: aptMode === 'batch' }]" @click="aptMode = aptMode === 'batch' ? null : 'batch'">
+
+        <button
+          v-if="authStore.hasPermission('apartments:create')"
+          :class="['btn-batch', { active: aptMode === 'batch' }]"
+          @click="aptMode = aptMode === 'batch' ? null : 'batch'"
+        >
           Cadastro em Lote
         </button>
       </div>
 
+      <!-- ===== NOVO APARTAMENTO ===== -->
       <div v-if="aptMode === 'single'" class="form-card">
         <h3 class="form-title">Novo Apartamento</h3>
+
         <div v-if="aptSuccess" class="alert success">
-          <FontAwesomeIcon :icon="['fas', 'circle-check']" /> Apartamento cadastrado com sucesso!
+          <FontAwesomeIcon :icon="['fas', 'circle-check']" />
+          Apartamento cadastrado com sucesso!
         </div>
-        <div v-if="aptError" class="alert error">{{ aptError }}</div>
 
-        <select v-model="singleApt.buildingId" :class="{ invalid: aptErrors.buildingId }">
-          <option value="" disabled>Selecionar Empreendimento</option>
-          <option v-for="b in buildings" :key="b.id" :value="b.id">{{ b.name }}</option>
-        </select>
-        <span v-if="aptErrors.buildingId" class="field-error">{{ aptErrors.buildingId }}</span>
+        <div v-if="aptError" class="alert error">
+          {{ aptError }}
+        </div>
 
-        <select v-model="singleApt.apartmentTypeId" :class="{ invalid: aptErrors.apartmentTypeId }">
-          <option value="" disabled>Tipo de Apartamento</option>
-          <option v-for="t in apartmentTypes" :key="t.id" :value="t.id">{{ t.name }}</option>
+        <select
+          v-model="singleApt.buildingId"
+          :class="{ invalid: aptErrors.buildingId }"
+        >
+          <option value="" disabled>
+            Selecionar Empreendimento
+          </option>
+
+          <option
+            v-for="b in buildings"
+            :key="b.id"
+            :value="b.id"
+          >
+            {{ b.name }}
+          </option>
         </select>
-        <span v-if="aptErrors.apartmentTypeId" class="field-error">{{ aptErrors.apartmentTypeId }}</span>
+
+        <span v-if="aptErrors.buildingId" class="field-error">
+          {{ aptErrors.buildingId }}
+        </span>
+
+        <select
+          v-model="singleApt.apartmentTypeId"
+          :class="{ invalid: aptErrors.apartmentTypeId }"
+        >
+          <option value="" disabled>
+            Tipo de Apartamento
+          </option>
+
+          <option
+            v-for="t in apartmentTypes"
+            :key="t.id"
+            :value="t.id"
+          >
+            {{ t.name }}
+          </option>
+        </select>
+
+        <span v-if="aptErrors.apartmentTypeId" class="field-error">
+          {{ aptErrors.apartmentTypeId }}
+        </span>
 
         <div class="form-row">
           <div class="form-col">
-            <input v-model="singleApt.identifier" type="text" placeholder="Número (ex: 101)" :class="{ invalid: aptErrors.identifier }" />
-            <span v-if="aptErrors.identifier" class="field-error">{{ aptErrors.identifier }}</span>
+            <input
+              v-model="singleApt.identifier"
+              type="text"
+              placeholder="Número (ex: 101)"
+              :class="{ invalid: aptErrors.identifier }"
+            />
+
+            <span
+              v-if="aptErrors.identifier"
+              class="field-error"
+            >
+              {{ aptErrors.identifier }}
+            </span>
           </div>
+
           <div class="form-col">
-            <input v-model="singleApt.floor" type="number" placeholder="Andar" min="1" />
+            <input
+              v-model="singleApt.floor"
+              type="number"
+              placeholder="Andar"
+              min="1"
+            />
           </div>
+
           <div class="form-col">
-            <input v-model="singleApt.block" type="text" placeholder="Bloco (ex: A)" />
+            <input
+              v-model="singleApt.block"
+              type="text"
+              placeholder="Bloco (ex: A)"
+            />
           </div>
         </div>
 
         <div class="form-actions">
-          <button class="btn-save" :disabled="savingApt" @click="saveSingleApt">
+          <button
+            class="btn-save"
+            :disabled="savingApt"
+            @click="saveSingleApt"
+          >
             {{ savingApt ? 'Salvando...' : 'Salvar' }}
           </button>
-          <button class="btn-cancel" @click="aptMode = null">Voltar</button>
+
+          <button
+            class="btn-cancel"
+            @click="aptMode = null"
+          >
+            Voltar
+          </button>
         </div>
       </div>
 
+      <!-- ===== CADASTRO EM LOTE ===== -->
       <div v-if="aptMode === 'batch'" class="form-card">
-        <h3 class="form-title">Cadastrar em Lote - Gerar múltiplos apartamentos</h3>
+        <h3 class="form-title">
+          Cadastrar em Lote - Gerar múltiplos apartamentos
+        </h3>
 
         <div class="info-box">
-          <FontAwesomeIcon :icon="['fas', 'circle-exclamation']" class="info-icon" />
+          <FontAwesomeIcon
+            :icon="['fas', 'circle-exclamation']"
+            class="info-icon"
+          />
+
           <div>
             <strong>Como funciona:</strong>
+
             <ul>
-              <li>Bloco B, 4 andares, 3 apts/andar → Gera B101, B102, B103, B201...</li>
-              <li>Formato: BlocoAndarNúmero (ex: B101 = Bloco B, 1º andar, apt 01)</li>
+              <li>
+                Bloco B, 4 andares, 3 apts/andar →
+                Gera B101, B102, B103, B201...
+              </li>
+
+              <li>
+                Formato: BlocoAndarNúmero
+                (ex: B101 = Bloco B, 1º andar, apt 01)
+              </li>
             </ul>
           </div>
         </div>
 
         <div v-if="batchSuccess" class="alert success">
-          <FontAwesomeIcon :icon="['fas', 'circle-check']" /> {{ batchSuccess }}
+          <FontAwesomeIcon :icon="['fas', 'circle-check']" />
+          {{ batchSuccess }}
         </div>
 
-        <div v-if="batchError" class="alert error">{{ batchError }}</div>
+        <div v-if="batchError" class="alert error">
+          {{ batchError }}
+        </div>
 
-        <select v-model="batchForm.buildingId" :class="{ invalid: batchErrors.buildingId }">
-          <option value="" disabled>Selecionar Empreendimento</option>
-          <option v-for="b in buildings" :key="b.id" :value="b.id">{{ b.name }}</option>
-        </select>
-        <span v-if="batchErrors.buildingId" class="field-error">{{ batchErrors.buildingId }}</span>
+        <select
+          v-model="batchForm.buildingId"
+          :class="{ invalid: batchErrors.buildingId }"
+        >
+          <option value="" disabled>
+            Selecionar Empreendimento
+          </option>
 
-        <select v-model="batchForm.apartmentTypeId" :class="{ invalid: batchErrors.apartmentTypeId }">
-          <option value="" disabled>Tipo de Apartamento</option>
-          <option v-for="t in apartmentTypes" :key="t.id" :value="t.id">{{ t.name }}</option>
+          <option
+            v-for="b in buildings"
+            :key="b.id"
+            :value="b.id"
+          >
+            {{ b.name }}
+          </option>
         </select>
-        <span v-if="batchErrors.apartmentTypeId" class="field-error">{{ batchErrors.apartmentTypeId }}</span>
+
+        <span v-if="batchErrors.buildingId" class="field-error">
+          {{ batchErrors.buildingId }}
+        </span>
+
+        <select
+          v-model="batchForm.apartmentTypeId"
+          :class="{ invalid: batchErrors.apartmentTypeId }"
+        >
+          <option value="" disabled>
+            Tipo de Apartamento
+          </option>
+
+          <option
+            v-for="t in apartmentTypes"
+            :key="t.id"
+            :value="t.id"
+          >
+            {{ t.name }}
+          </option>
+        </select>
+
+        <span v-if="batchErrors.apartmentTypeId" class="field-error">
+          {{ batchErrors.apartmentTypeId }}
+        </span>
 
         <div class="form-row">
           <div class="form-col">
-            <input v-model="batchForm.block" type="text" placeholder="Ex: Bloco B" :class="{ invalid: batchErrors.block }" />
-            <span v-if="batchErrors.block" class="field-error">{{ batchErrors.block }}</span>
+            <input
+              v-model="batchForm.block"
+              type="text"
+              placeholder="Ex: Bloco B"
+              :class="{ invalid: batchErrors.block }"
+            />
+
+            <span
+              v-if="batchErrors.block"
+              class="field-error"
+            >
+              {{ batchErrors.block }}
+            </span>
           </div>
 
           <div class="form-col">
-            <input v-model.number="batchForm.floors" type="number" placeholder="Qtd de andares" min="1" :class="{ invalid: batchErrors.floors }" />
-            <span v-if="batchErrors.floors" class="field-error">{{ batchErrors.floors }}</span>
+            <input
+              v-model.number="batchForm.floors"
+              type="number"
+              placeholder="Qtd de andares"
+              min="1"
+              :class="{ invalid: batchErrors.floors }"
+            />
+
+            <span
+              v-if="batchErrors.floors"
+              class="field-error"
+            >
+              {{ batchErrors.floors }}
+            </span>
           </div>
 
           <div class="form-col">
-            <input v-model.number="batchForm.aptsPerFloor" type="number" placeholder="Apts por andar" min="1" :class="{ invalid: batchErrors.aptsPerFloor }" />
-            <span v-if="batchErrors.aptsPerFloor" class="field-error">{{ batchErrors.aptsPerFloor }}</span>
+            <input
+              v-model.number="batchForm.aptsPerFloor"
+              type="number"
+              placeholder="Apts por andar"
+              min="1"
+              :class="{ invalid: batchErrors.aptsPerFloor }"
+            />
+
+            <span
+              v-if="batchErrors.aptsPerFloor"
+              class="field-error"
+            >
+              {{ batchErrors.aptsPerFloor }}
+            </span>
           </div>
         </div>
 
-        <div v-if="batchPreview.length > 0" class="preview">
-          <strong>Preview ({{ batchPreview.length }} apartamentos):</strong>
+        <div
+          v-if="batchPreview.length > 0"
+          class="preview"
+        >
+          <strong>
+            Preview ({{ batchPreview.length }} apartamentos):
+          </strong>
+
           <div class="preview-list">
-            <span v-for="id in batchPreview.slice(0, 20)" :key="id" class="preview-tag">{{ id }}</span>
-            <span v-if="batchPreview.length > 20" class="preview-tag more">+{{ batchPreview.length - 20 }} mais</span>
+            <span
+              v-for="id in batchPreview.slice(0, 20)"
+              :key="id"
+              class="preview-tag"
+            >
+              {{ id }}
+            </span>
+
+            <span
+              v-if="batchPreview.length > 20"
+              class="preview-tag more"
+            >
+              +{{ batchPreview.length - 20 }} mais
+            </span>
           </div>
         </div>
 
         <div class="form-actions">
-          <button class="btn-save" :disabled="savingBatch" @click="saveBatch">
-            {{ savingBatch ? `Salvando... (${batchProgress}/${batchPreview.length})` : 'Salvar' }}
+          <button
+            class="btn-save"
+            :disabled="savingBatch"
+            @click="saveBatch"
+          >
+            {{
+              savingBatch
+                ? `Salvando... (${batchProgress}/${batchPreview.length})`
+                : 'Salvar'
+            }}
           </button>
-          <button class="btn-cancel" @click="aptMode = null">Voltar</button>
+
+          <button
+            class="btn-cancel"
+            @click="aptMode = null"
+          >
+            Voltar
+          </button>
         </div>
       </div>
 
+      <!-- ===== LISTAGEM DE APARTAMENTOS ===== -->
       <div v-if="!aptMode">
 
-        <div v-if="selectedBuildingId" class="back-action-container">
-          <button class="btn-back" @click="goBackToBuildings">← Voltar para Empreendimentos</button>
+        <div
+          v-if="selectedBuildingId"
+          class="back-action-container"
+        >
+          <button
+            class="btn-back"
+            @click="goBackToBuildings"
+          >
+            ← Voltar para Empreendimentos
+          </button>
         </div>
 
-        <div v-if="selectedBuildingId" class="building-header">
+        <div
+          v-if="selectedBuildingId"
+          class="building-header"
+        >
           <div class="building-header-top">
             <span class="building-title">
               <FontAwesomeIcon :icon="['fas', 'building']" />
-              {{ buildings.find(b => b.id === selectedBuildingId)?.name }}
+
+              {{
+                buildings.find(
+                  b => b.id === selectedBuildingId
+                )?.name
+              }}
             </span>
           </div>
 
           <p class="apartments-tab-hint">
-            Atribua um vistoriador a um apartamento para abrir uma nova vistoria.
-            Para acompanhar o andamento das vistorias já abertas, use a tela
-            <router-link to="/visits">Vistorias</router-link>.
+            Atribua um vistoriador a um apartamento para abrir
+            uma nova vistoria. Para acompanhar o andamento das
+            vistorias já abertas, use a tela
+            <router-link to="/visits">
+              Vistorias
+            </router-link>.
           </p>
 
           <div class="building-header-info">
             <span>
-              <strong>Total de apts:</strong> {{ apartmentsFiltered.length }}
+              <strong>Total de apts:</strong>
+              {{ apartmentsFiltered.length }}
             </span>
 
             <span>
               <strong>Vistoriadores atuando:</strong>
-              <span v-if="buildingInspectors.length > 0">{{ buildingInspectors.join(', ') }}</span>
-              <span v-else class="text-muted">Nenhum</span>
+
+              <span v-if="buildingInspectors.length > 0">
+                {{ buildingInspectors.join(', ') }}
+              </span>
+
+              <span
+                v-else
+                class="text-muted"
+              >
+                Nenhum
+              </span>
             </span>
           </div>
         </div>
 
-        <div v-if="assignSuccess" class="alert success" style="margin-bottom:12px;">
+        <div
+          v-if="assignSuccess"
+          class="alert success"
+          style="margin-bottom:12px;"
+        >
           {{ assignSuccess }}
         </div>
 
-        <div v-if="assignError" class="alert error" style="margin-bottom:12px;">
+        <div
+          v-if="assignError"
+          class="alert error"
+          style="margin-bottom:12px;"
+        >
           {{ assignError }}
         </div>
 
@@ -230,13 +525,32 @@
         </div>
 
         <div class="item-list">
-          <div v-for="apt in apartmentsFiltered" :key="apt.id" class="apt-row">
 
-            <div class="apt-row-clickable-wrapper" @click="openChecklist(apt)">
-              <span>{{ getBuildingName(apt.buildingId) }}</span>
-              <span>{{ apt.identifier }}</span>
-              <span>{{ apt.block || '—' }}</span>
-              <span>{{ apt.floor ? apt.floor + 'º' : '—' }}</span>
+          <div
+            v-for="apt in apartmentsFiltered"
+            :key="apt.id"
+            class="apt-row"
+          >
+
+            <div
+              class="apt-row-clickable-wrapper"
+              @click="openChecklist(apt)"
+            >
+              <span>
+                {{ getBuildingName(apt.buildingId) }}
+              </span>
+
+              <span>
+                {{ apt.identifier }}
+              </span>
+
+              <span>
+                {{ apt.block || '—' }}
+              </span>
+
+              <span>
+                {{ apt.floor ? apt.floor + 'º' : '—' }}
+              </span>
             </div>
 
             <div class="apt-assign-inline">
@@ -247,90 +561,174 @@
                 @change="assignInline(apt, apt.currentInspectorId)"
                 @click.stop
               >
-                <option :value="undefined" v-if="!apt.currentInspectorId">+ Atribuir</option>
-                <option v-for="u in users" :key="u.id" :value="u.id">{{ u.name }}</option>
+                <option
+                  :value="undefined"
+                  v-if="!apt.currentInspectorId"
+                >
+                  + Atribuir
+                </option>
+
+                <option
+                  v-for="u in users"
+                  :key="u.id"
+                  :value="u.id"
+                >
+                  {{ u.name }}
+                </option>
               </select>
             </div>
 
             <div class="apt-delete-cell">
-              <button class="btn-apt-delete" title="Remover apartamento" @click.stop="confirmDeleteApt(apt)">
+              <button
+                class="btn-apt-delete"
+                title="Remover apartamento"
+                @click.stop="confirmDeleteApt(apt)"
+              >
                 <FontAwesomeIcon :icon="['fas', 'trash']" />
               </button>
             </div>
 
           </div>
 
-          <div v-if="apartmentsFiltered.length === 0 && !loadingApts" class="empty">
+          <div
+            v-if="apartmentsFiltered.length === 0 && !loadingApts"
+            class="empty"
+          >
             Nenhum apartamento cadastrado.
           </div>
 
-          <div v-if="loadingApts" class="empty">
+          <div
+            v-if="loadingApts"
+            class="empty"
+          >
             Carregando...
           </div>
+
         </div>
       </div>
 
     </div>
 
-    <!-- Modal: excluir empreendimento -->
-    <div v-if="buildingToDelete" class="modal-overlay" @click.self="buildingToDelete = null">
+    <!-- ===== MODAL: EXCLUIR EMPREENDIMENTO ===== -->
+    <div
+      v-if="buildingToDelete"
+      class="modal-overlay"
+      @click.self="buildingToDelete = null"
+    >
       <div class="modal-confirm">
+
         <div class="modal-icon">
-          <FontAwesomeIcon :icon="['fas', 'triangle-exclamation']" />
+          <FontAwesomeIcon
+            :icon="['fas', 'triangle-exclamation']"
+          />
         </div>
 
         <h3>Excluir empreendimento</h3>
 
         <p>
-          Excluir <strong>{{ buildingToDelete.name }}</strong>?
+          Excluir
+          <strong>{{ buildingToDelete.name }}</strong>?
           Esta ação não pode ser desfeita.
         </p>
 
         <div class="modal-actions">
-          <button class="btn-confirm-delete" :disabled="deletingBuilding" @click="doDeleteBuilding">
-            {{ deletingBuilding ? 'Excluindo...' : 'Sim, excluir' }}
+          <button
+            class="btn-confirm-delete"
+            :disabled="deletingBuilding"
+            @click="doDeleteBuilding"
+          >
+            {{
+              deletingBuilding
+                ? 'Excluindo...'
+                : 'Sim, excluir'
+            }}
           </button>
 
-          <button class="btn-cancel" @click="buildingToDelete = null">
+          <button
+            class="btn-cancel"
+            @click="buildingToDelete = null"
+          >
             Cancelar
           </button>
         </div>
+
       </div>
     </div>
 
-    <!-- Modal: excluir apartamento -->
-    <div v-if="aptToDelete" class="modal-overlay" @click.self="aptToDelete = null">
+    <!-- ===== MODAL: EXCLUIR APARTAMENTO ===== -->
+    <div
+      v-if="aptToDelete"
+      class="modal-overlay"
+      @click.self="aptToDelete = null; deleteAptError = ''"
+    >
       <div class="modal-confirm">
+
         <div class="modal-icon">
-          <FontAwesomeIcon :icon="['fas', 'triangle-exclamation']" />
+          <FontAwesomeIcon
+            :icon="['fas', 'triangle-exclamation']"
+          />
         </div>
 
         <h3>Remover apartamento</h3>
 
         <p>
-          Remover o apartamento <strong>{{ aptToDelete.identifier }}</strong>
+          Remover o apartamento
+          <strong>{{ aptToDelete.identifier }}</strong>
           da lista? Esta ação não pode ser desfeita.
         </p>
 
+        <!-- NOVO: erro da exclusão -->
+        <p
+          v-if="deleteAptError"
+          class="modal-error"
+        >
+          {{ deleteAptError }}
+        </p>
+
         <div class="modal-actions">
-          <button class="btn-confirm-delete" :disabled="deletingApt" @click="doDeleteApt">
-            {{ deletingApt ? 'Removendo...' : 'Sim, remover' }}
+          <button
+            class="btn-confirm-delete"
+            :disabled="deletingApt"
+            @click="doDeleteApt"
+          >
+            {{
+              deletingApt
+                ? 'Removendo...'
+                : 'Sim, remover'
+            }}
           </button>
 
-          <button class="btn-cancel" @click="aptToDelete = null">
+          <button
+            class="btn-cancel"
+            @click="aptToDelete = null; deleteAptError = ''"
+          >
             Cancelar
           </button>
         </div>
+
       </div>
     </div>
 
-    <div v-if="loadingChecklist" class="checklist-overlay-state">
+    <!-- ===== CHECKLIST ===== -->
+    <div
+      v-if="loadingChecklist"
+      class="checklist-overlay-state"
+    >
       Carregando checklist...
     </div>
 
-    <div v-if="checklistError" class="checklist-overlay-state error">
+    <div
+      v-if="checklistError"
+      class="checklist-overlay-state error"
+    >
       {{ checklistError }}
-      <button class="btn-cancel" @click="checklistError = ''">Fechar</button>
+
+      <button
+        class="btn-cancel"
+        @click="checklistError = ''"
+      >
+        Fechar
+      </button>
     </div>
 
     <ChecklistModal
@@ -344,28 +742,132 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue'
+import {
+  ref,
+  reactive,
+  computed,
+  onMounted
+} from 'vue'
+
 import { useRouter } from 'vue-router'
+
 import MainLayout from '../../components/Layout/MainLayout.vue'
 import ChecklistModal from '../../components/Layout/ChecklistModal.vue'
-import { getBuildings, createBuilding, deleteBuilding } from '../../services/buildings.js'
-import { getApartments, createApartment, deleteApartment } from '../../services/apartments.js'
-import { getChecklistByApartment } from '../../services/checklists.js'
-import { createVisit, assignInspectorToVisit } from '../../services/visits.js'
-import { getUsers } from '../../services/users.js'
-import { groupChecklistByRoom } from '../../utils/checklist.js'
-import { useAuthStore } from '../../store/auth.js'
-import { getApartmentTypes } from '../../services/apartmentTypes.js'
 
-const assignSuccess = ref('')
-const assignError = ref('')
+import {
+  getBuildings,
+  createBuilding,
+  deleteBuilding
+} from '../../services/buildings.js'
+
+import {
+  getApartments,
+  createApartment,
+  deleteApartment
+} from '../../services/apartments.js'
+
+import {
+  getChecklistByApartment
+} from '../../services/checklists.js'
+
+import {
+  createVisit,
+  assignInspectorToVisit
+} from '../../services/visits.js'
+
+import {
+  getUsers
+} from '../../services/users.js'
+
+import {
+  groupChecklistByRoom
+} from '../../utils/checklist.js'
+
+import {
+  useAuthStore
+} from '../../store/auth.js'
+
+import {
+  getApartmentTypes
+} from '../../services/apartmentTypes.js'
+
+
+/* ============================================================
+   GERAL
+============================================================ */
 
 const router = useRouter()
 const authStore = useAuthStore()
+
+const activeTab = ref('buildings')
+
+const buildings = ref([])
+const apartments = ref([])
+const apartmentTypes = ref([])
+const users = ref([])
+
+const loadingBuildings = ref(false)
+const loadingApts = ref(false)
+
+
+/* ============================================================
+   CHECKLIST
+============================================================ */
+
 const selectedChecklist = ref(null)
 const loadingChecklist = ref(false)
 const checklistError = ref('')
-const users = ref([])
+
+async function openChecklist(apt) {
+  checklistError.value = ''
+  loadingChecklist.value = true
+
+  try {
+    const detail = await getChecklistByApartment(apt.id)
+
+    if (!detail || !detail.items?.length) {
+      const tipoDoApt = apartmentTypes.value.find(
+        t => t.id === apt.apartmentTypeId
+      )
+
+      if (tipoDoApt?.rooms?.length) {
+        selectedChecklist.value = {
+          identifier: apt.identifier,
+          block: apt.block || '—',
+
+          rooms: tipoDoApt.rooms.map(room => ({
+            id: room.id,
+            name: room.name,
+            items: []
+          }))
+        }
+      } else {
+        checklistError.value =
+          'Este apartamento ainda não tem checklist gerado.'
+      }
+
+      return
+    }
+
+    selectedChecklist.value =
+      groupChecklistByRoom(detail)
+
+  } catch (e) {
+    checklistError.value =
+      e.response?.data?.message ||
+      'Erro ao carregar o checklist.'
+  } finally {
+    loadingChecklist.value = false
+  }
+}
+
+
+/* ============================================================
+   ATRIBUIÇÃO DE VISTORIADOR
+============================================================ */
+
+const assignSuccess = ref('')
+const assignError = ref('')
 
 async function assignInline(apt, userId) {
   if (!userId) return
@@ -376,16 +878,55 @@ async function assignInline(apt, userId) {
   try {
     const checklist = await getChecklistByApartment(apt.id)
 
+    /*
+     * Não permite atribuição se o ciclo já foi finalizado.
+     */
     if (checklist?.status === 'FINALIZED') {
-      assignError.value = 'Este apartamento já está com o ciclo de vistorias finalizado.'
+      assignError.value =
+        'Este apartamento já está com o ciclo de vistorias finalizado.'
+
       return
     }
 
+    /*
+     * Verifica se já existe uma vistoria ativa.
+     *
+     * NOT_STARTED = criada mas ainda não iniciada
+     * ONGOING     = em andamento
+     */
+    const activeVisit = checklist?.visits?.find(
+      v =>
+        v.status === 'NOT_STARTED' ||
+        v.status === 'ONGOING'
+    )
+
+    if (activeVisit) {
+      apt.currentInspectorId =
+        activeVisit.inspector?.id ||
+        apt.currentInspectorId
+
+      assignError.value = activeVisit.inspector
+        ? `Já existe uma vistoria em andamento para este apartamento, atribuída a ${activeVisit.inspector.name}.`
+        : 'Já existe uma vistoria em andamento para este apartamento.'
+
+      return
+    }
+
+    /*
+     * Não existe vistoria ativa:
+     * cria uma nova e atribui o vistoriador.
+     */
     const visit = await createVisit(checklist.id)
-    await assignInspectorToVisit(visit.id, userId)
+
+    await assignInspectorToVisit(
+      visit.id,
+      userId
+    )
 
     apt.currentInspectorId = Number(userId)
-    assignSuccess.value = 'Vistoriador atribuído com sucesso!'
+
+    assignSuccess.value =
+      'Vistoriador atribuído com sucesso!'
 
     setTimeout(() => {
       assignSuccess.value = ''
@@ -395,70 +936,55 @@ async function assignInline(apt, userId) {
     const status = e.response?.status
 
     if (status === 422) {
-      assignError.value = 'Este usuário não possui a permissão para realizar vistorias.'
+      assignError.value =
+        'Este usuário não possui a permissão para realizar vistorias.'
+
+    } else if (status === 409) {
+      assignError.value =
+        e.response?.data?.message?.includes('finaliz')
+          ? 'Este checklist já foi finalizado.'
+          : 'Já existe uma vistoria em andamento para este apartamento. Atualize a página.'
+
     } else if (status === 400) {
-      assignError.value = 'Esta vistoria já está finalizada e não pode ser reatribuída.'
+      assignError.value =
+        'Esta vistoria já está finalizada e não pode ser reatribuída.'
+
     } else {
-      assignError.value = 'Erro ao atribuir vistoriador.'
+      assignError.value =
+        'Erro ao atribuir vistoriador.'
     }
   }
 }
 
-async function openChecklist(apt) {
-  checklistError.value = ''
-  loadingChecklist.value = true
 
-  try {
-    const detail = await getChecklistByApartment(apt.id)
+/* ============================================================
+   EMPREENDIMENTOS
+============================================================ */
 
-    if (!detail || !detail.items?.length) {
-      const tipoDoApt = apartmentTypes.value.find(t => t.id === apt.apartmentTypeId)
-
-      if (tipoDoApt?.rooms?.length) {
-        selectedChecklist.value = {
-          identifier: apt.identifier,
-          block: apt.block || '—',
-          rooms: tipoDoApt.rooms.map(room => ({
-            id: room.id,
-            name: room.name,
-            items: []
-          })),
-        }
-      } else {
-        checklistError.value = 'Este apartamento ainda não tem checklist gerado.'
-      }
-
-      return
-    }
-
-    selectedChecklist.value = groupChecklistByRoom(detail)
-
-  } catch (e) {
-    checklistError.value = e.response?.data?.message || 'Erro ao carregar o checklist.'
-  } finally {
-    loadingChecklist.value = false
-  }
-}
-
-const activeTab = ref('buildings')
-const buildings = ref([])
-const apartments = ref([])
-const apartmentTypes = ref([])
-const loadingBuildings = ref(false)
-const loadingApts = ref(false)
 const showBuildingForm = ref(false)
 const savingBuilding = ref(false)
 const buildingSuccess = ref(false)
 const buildingError = ref('')
-const buildingForm = reactive({ name: '', address: '' })
-const buildingErrors = reactive({ name: '', address: '' })
+
+const buildingForm = reactive({
+  name: '',
+  address: ''
+})
+
+const buildingErrors = reactive({
+  name: '',
+  address: ''
+})
 
 function cancelBuilding() {
   showBuildingForm.value = false
+
   buildingForm.name = ''
   buildingForm.address = ''
+
   buildingErrors.name = ''
   buildingErrors.address = ''
+
   buildingSuccess.value = false
   buildingError.value = ''
 }
@@ -469,13 +995,20 @@ function validateBuilding() {
 
   let valid = true
 
-  if (!buildingForm.name || buildingForm.name.length < 2) {
-    buildingErrors.name = 'Nome deve ter pelo menos 2 caracteres.'
+  if (
+    !buildingForm.name ||
+    buildingForm.name.length < 2
+  ) {
+    buildingErrors.name =
+      'Nome deve ter pelo menos 2 caracteres.'
+
     valid = false
   }
 
   if (!buildingForm.address) {
-    buildingErrors.address = 'Endereço é obrigatório.'
+    buildingErrors.address =
+      'Endereço é obrigatório.'
+
     valid = false
   }
 
@@ -496,18 +1029,26 @@ async function saveBuilding() {
     })
 
     buildings.value.push(created)
+
     buildingSuccess.value = true
+
     buildingForm.name = ''
     buildingForm.address = ''
 
   } catch (e) {
-    buildingError.value = e.response?.data?.message || 'Erro ao cadastrar empreendimento.'
+    buildingError.value =
+      e.response?.data?.message ||
+      'Erro ao cadastrar empreendimento.'
   } finally {
     savingBuilding.value = false
   }
 }
 
-// ─── Excluir empreendimento ───────────────────────────────────
+
+/* ============================================================
+   EXCLUIR EMPREENDIMENTO
+============================================================ */
+
 const buildingToDelete = ref(null)
 const deletingBuilding = ref(false)
 
@@ -521,9 +1062,16 @@ async function doDeleteBuilding() {
   deletingBuilding.value = true
 
   try {
-    await deleteBuilding(buildingToDelete.value.id)
+    await deleteBuilding(
+      buildingToDelete.value.id
+    )
+
   } catch (e) {
-    console.error('Erro ao excluir empreendimento na API:', e)
+    console.error(
+      'Erro ao excluir empreendimento na API:',
+      e
+    )
+
   } finally {
     buildings.value = buildings.value.filter(
       b => b.id !== buildingToDelete.value.id
@@ -533,7 +1081,10 @@ async function doDeleteBuilding() {
       a => a.buildingId !== buildingToDelete.value.id
     )
 
-    if (selectedBuildingId.value === buildingToDelete.value.id) {
+    if (
+      selectedBuildingId.value ===
+      buildingToDelete.value.id
+    ) {
       selectedBuildingId.value = null
     }
 
@@ -542,43 +1093,32 @@ async function doDeleteBuilding() {
   }
 }
 
-// ─── Excluir apartamento ──────────────────────────────────────
-const aptToDelete = ref(null)
-const deletingApt = ref(false)
 
-function confirmDeleteApt(apt) {
-  aptToDelete.value = apt
-}
-
-async function doDeleteApt() {
-  if (!aptToDelete.value) return
-
-  deletingApt.value = true
-
-  try {
-    await deleteApartment(aptToDelete.value.id)
-  } catch (e) {
-    console.error('Erro ao excluir apartamento na API:', e)
-  } finally {
-    apartments.value = apartments.value.filter(
-      a => a.id !== aptToDelete.value.id
-    )
-
-    aptToDelete.value = null
-    deletingApt.value = false
-  }
-}
+/* ============================================================
+   APARTAMENTOS
+============================================================ */
 
 const selectedBuildingId = ref(null)
 
 const apartmentsFiltered = computed(() =>
   selectedBuildingId.value
-    ? apartments.value.filter(a => a.buildingId === selectedBuildingId.value)
+    ? apartments.value.filter(
+        a =>
+          a.buildingId ===
+          selectedBuildingId.value
+      )
     : apartments.value
 )
 
+
+/* ============================================================
+   VISTORIADORES DO EMPREENDIMENTO
+============================================================ */
+
 const buildingInspectors = computed(() => {
-  if (!selectedBuildingId.value) return []
+  if (!selectedBuildingId.value) {
+    return []
+  }
 
   const inspectorIds = new Set(
     apartmentsFiltered.value
@@ -587,7 +1127,10 @@ const buildingInspectors = computed(() => {
   )
 
   return Array.from(inspectorIds).map(id => {
-    const u = users.value.find(user => user.id === id)
+    const u = users.value.find(
+      user => user.id === id
+    )
+
     return u ? u.name : 'Desconhecido'
   })
 })
@@ -597,10 +1140,25 @@ function goBackToBuildings() {
   activeTab.value = 'buildings'
 }
 
+function getBuildingName(buildingId) {
+  const b = buildings.value.find(
+    b => b.id === buildingId
+  )
+
+  return b ? b.name : '—'
+}
+
+
+/* ============================================================
+   NOVO APARTAMENTO INDIVIDUAL
+============================================================ */
+
 const aptMode = ref(null)
+
 const savingApt = ref(false)
 const aptSuccess = ref(false)
 const aptError = ref('')
+
 const singleApt = reactive({
   buildingId: '',
   apartmentTypeId: '',
@@ -623,17 +1181,23 @@ function validateSingleApt() {
   let valid = true
 
   if (!singleApt.buildingId) {
-    aptErrors.buildingId = 'Selecione um empreendimento.'
+    aptErrors.buildingId =
+      'Selecione um empreendimento.'
+
     valid = false
   }
 
   if (!singleApt.apartmentTypeId) {
-    aptErrors.apartmentTypeId = 'Selecione um tipo.'
+    aptErrors.apartmentTypeId =
+      'Selecione um tipo.'
+
     valid = false
   }
 
   if (!singleApt.identifier) {
-    aptErrors.identifier = 'Número é obrigatório.'
+    aptErrors.identifier =
+      'Número é obrigatório.'
+
     valid = false
   }
 
@@ -649,14 +1213,27 @@ async function saveSingleApt() {
 
   try {
     const created = await createApartment({
-      buildingId: Number(singleApt.buildingId),
-      apartmentTypeId: Number(singleApt.apartmentTypeId),
-      identifier: singleApt.identifier,
-      floor: singleApt.floor ? Number(singleApt.floor) : undefined,
-      block: singleApt.block || undefined,
+      buildingId:
+        Number(singleApt.buildingId),
+
+      apartmentTypeId:
+        Number(singleApt.apartmentTypeId),
+
+      identifier:
+        singleApt.identifier,
+
+      floor:
+        singleApt.floor
+          ? Number(singleApt.floor)
+          : undefined,
+
+      block:
+        singleApt.block ||
+        undefined
     })
 
     apartments.value.push(created)
+
     aptSuccess.value = true
 
     singleApt.identifier = ''
@@ -665,14 +1242,109 @@ async function saveSingleApt() {
 
   } catch (e) {
     if (e.response?.status === 409) {
-      aptError.value = 'Número de apartamento já existe.'
+      aptError.value =
+        'Número de apartamento já existe.'
     } else {
-      aptError.value = e.response?.data?.message || 'Erro ao cadastrar.'
+      aptError.value =
+        e.response?.data?.message ||
+        'Erro ao cadastrar.'
     }
   } finally {
     savingApt.value = false
   }
 }
+
+
+/* ============================================================
+   EXCLUIR APARTAMENTO
+============================================================ */
+
+const aptToDelete = ref(null)
+const deletingApt = ref(false)
+const deleteAptError = ref('')
+
+function confirmDeleteApt(apt) {
+  aptToDelete.value = apt
+  deleteAptError.value = ''
+}
+
+async function doDeleteApt() {
+  if (!aptToDelete.value) return
+
+  deletingApt.value = true
+  deleteAptError.value = ''
+
+  try {
+    await deleteApartment(
+      aptToDelete.value.id
+    )
+
+    /*
+     * Só remove da lista depois que a API
+     * confirmar a exclusão.
+     */
+    apartments.value =
+      apartments.value.filter(
+        a =>
+          a.id !== aptToDelete.value.id
+      )
+
+    aptToDelete.value = null
+
+  } catch (e) {
+    const status = e.response?.status
+    const backendMessage =
+      e.response?.data?.message
+
+    /*
+     * Conflito: apartamento possui dados
+     * vinculados, como checklist/vistoria.
+     */
+    if (status === 409) {
+      deleteAptError.value =
+        backendMessage?.includes('checklist')
+          ? 'Este apartamento já possui uma vistoria/checklist vinculado e não pode ser excluído.'
+          : (
+              backendMessage ||
+              'Não foi possível excluir: existem dados vinculados a este apartamento.'
+            )
+
+    /*
+     * Se o backend disser que não existe,
+     * removemos da lista local.
+     */
+    } else if (status === 404) {
+      apartments.value =
+        apartments.value.filter(
+          a =>
+            a.id !== aptToDelete.value.id
+        )
+
+      aptToDelete.value = null
+
+    /*
+     * Outros erros.
+     */
+    } else {
+      deleteAptError.value =
+        backendMessage ||
+        'Erro ao excluir apartamento. Tente novamente.'
+    }
+
+    console.error(
+      'Erro ao excluir apartamento na API:',
+      e
+    )
+
+  } finally {
+    deletingApt.value = false
+  }
+}
+
+
+/* ============================================================
+   CADASTRO EM LOTE
+============================================================ */
 
 const savingBatch = ref(false)
 const batchProgress = ref(0)
@@ -696,22 +1368,46 @@ const batchErrors = reactive({
 })
 
 const batchPreview = computed(() => {
-  if (!batchForm.block || !batchForm.floors || !batchForm.aptsPerFloor) {
+  if (
+    !batchForm.block ||
+    !batchForm.floors ||
+    !batchForm.aptsPerFloor
+  ) {
     return []
   }
 
-  const block = batchForm.block.replace('Bloco ', '').trim()
-  const floors = Number(batchForm.floors)
-  const aptsPerFloor = Number(batchForm.aptsPerFloor)
+  const block =
+    batchForm.block
+      .replace('Bloco ', '')
+      .trim()
 
-  if (!floors || !aptsPerFloor || floors < 1 || aptsPerFloor < 1) {
+  const floors =
+    Number(batchForm.floors)
+
+  const aptsPerFloor =
+    Number(batchForm.aptsPerFloor)
+
+  if (
+    !floors ||
+    !aptsPerFloor ||
+    floors < 1 ||
+    aptsPerFloor < 1
+  ) {
     return []
   }
 
   const identifiers = []
 
-  for (let floor = 1; floor <= floors; floor++) {
-    for (let apt = 1; apt <= aptsPerFloor; apt++) {
+  for (
+    let floor = 1;
+    floor <= floors;
+    floor++
+  ) {
+    for (
+      let apt = 1;
+      apt <= aptsPerFloor;
+      apt++
+    ) {
       identifiers.push(
         `${block}${floor}${String(apt).padStart(2, '0')}`
       )
@@ -722,7 +1418,9 @@ const batchPreview = computed(() => {
 })
 
 function validateBatch() {
-  Object.keys(batchErrors).forEach(k => batchErrors[k] = '')
+  Object.keys(batchErrors).forEach(
+    k => batchErrors[k] = ''
+  )
 
   let valid = true
 
@@ -741,12 +1439,18 @@ function validateBatch() {
     valid = false
   }
 
-  if (!batchForm.floors || batchForm.floors < 1) {
+  if (
+    !batchForm.floors ||
+    batchForm.floors < 1
+  ) {
     batchErrors.floors = 'Mínimo 1.'
     valid = false
   }
 
-  if (!batchForm.aptsPerFloor || batchForm.aptsPerFloor < 1) {
+  if (
+    !batchForm.aptsPerFloor ||
+    batchForm.aptsPerFloor < 1
+  ) {
     batchErrors.aptsPerFloor = 'Mínimo 1.'
     valid = false
   }
@@ -762,57 +1466,87 @@ async function saveBatch() {
   batchSuccess.value = ''
   batchError.value = ''
 
-  const block = batchForm.block.replace('Bloco ', '').trim()
-  const floors = Number(batchForm.floors)
-  const aptsPerFloor = Number(batchForm.aptsPerFloor)
+  const block =
+    batchForm.block
+      .replace('Bloco ', '')
+      .trim()
+
+  const floors =
+    Number(batchForm.floors)
+
+  const aptsPerFloor =
+    Number(batchForm.aptsPerFloor)
 
   let created = 0
   let errors = 0
 
-  for (let floor = 1; floor <= floors; floor++) {
-    for (let apt = 1; apt <= aptsPerFloor; apt++) {
+  for (
+    let floor = 1;
+    floor <= floors;
+    floor++
+  ) {
+    for (
+      let apt = 1;
+      apt <= aptsPerFloor;
+      apt++
+    ) {
 
       const identifier =
         `${block}${floor}${String(apt).padStart(2, '0')}`
 
       try {
-        const result = await createApartment({
-          buildingId: Number(batchForm.buildingId),
-          apartmentTypeId: Number(batchForm.apartmentTypeId),
-          identifier,
-          floor,
-          block,
-        })
+        const result =
+          await createApartment({
+            buildingId:
+              Number(batchForm.buildingId),
+
+            apartmentTypeId:
+              Number(batchForm.apartmentTypeId),
+
+            identifier,
+
+            floor,
+
+            block
+          })
 
         apartments.value.push(result)
+
         created++
 
       } catch {
         errors++
       }
 
-      batchProgress.value = created + errors
+      batchProgress.value =
+        created + errors
     }
   }
 
   savingBatch.value = false
 
-  batchSuccess.value = errors === 0
-    ? `${created} cadastrados!`
-    : `${created} cadastrados. ${errors} falharam.`
+  batchSuccess.value =
+    errors === 0
+      ? `${created} cadastrados!`
+      : `${created} cadastrados. ${errors} falharam.`
 }
 
-function getBuildingName(buildingId) {
-  const b = buildings.value.find(b => b.id === buildingId)
-  return b ? b.name : '—'
-}
+
+/* ============================================================
+   CARREGAMENTO INICIAL
+============================================================ */
 
 onMounted(async () => {
   loadingBuildings.value = true
   loadingApts.value = true
 
   try {
-    const [b, a, t, u] = await Promise.all([
+    const [
+      b,
+      a,
+      t,
+      u
+    ] = await Promise.all([
       getBuildings(),
       getApartments(),
       getApartmentTypes(),
@@ -825,7 +1559,11 @@ onMounted(async () => {
     users.value = u
 
   } catch (e) {
-    console.error('Erro ao carregar dados', e)
+    console.error(
+      'Erro ao carregar dados',
+      e
+    )
+
   } finally {
     loadingBuildings.value = false
     loadingApts.value = false
@@ -1051,7 +1789,10 @@ select.invalid {
   color: #0b1120;
 }
 
-/* Lista de empreendimentos */
+/* ============================================================
+   LISTA DE EMPREENDIMENTOS
+============================================================ */
+
 .item-list {
   display: flex;
   flex-direction: column;
@@ -1066,16 +1807,21 @@ select.invalid {
   color: #1a1a2e;
   font-size: 1rem;
   cursor: pointer;
-  transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s,
+    transform 0.2s;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
+  box-shadow:
+    0 1px 2px rgba(16, 24, 40, 0.04);
 }
 
 .item-card:hover {
   border-color: #00e5cc;
-  box-shadow: 0 4px 12px rgba(16, 24, 40, 0.08);
+  box-shadow:
+    0 4px 12px rgba(16, 24, 40, 0.08);
   transform: translateY(-1px);
 }
 
@@ -1115,7 +1861,9 @@ select.invalid {
   font-size: 0.9rem;
   padding: 6px 8px;
   border-radius: 6px;
-  transition: color 0.2s, background 0.2s;
+  transition:
+    color 0.2s,
+    background 0.2s;
   flex-shrink: 0;
 }
 
@@ -1124,7 +1872,11 @@ select.invalid {
   background: #fdecea;
 }
 
-/* Botão voltar */
+
+/* ============================================================
+   BOTÃO VOLTAR
+============================================================ */
+
 .back-action-container {
   margin-bottom: 12px;
 }
@@ -1143,6 +1895,11 @@ select.invalid {
 .btn-back:hover {
   background: #d0d0d0;
 }
+
+
+/* ============================================================
+   HEADER DO EMPREENDIMENTO
+============================================================ */
 
 .building-header {
   background: #fff;
@@ -1202,26 +1959,50 @@ select.invalid {
   font-style: italic;
 }
 
-/* Tabela de apartamentos */
+
+/* ============================================================
+   TABELA DE APARTAMENTOS
+============================================================ */
+
 .apt-table-header {
   display: grid;
-  grid-template-columns: 2fr 1fr 1fr 1fr 2fr 40px;
+  grid-template-columns:
+    2fr
+    1fr
+    1fr
+    1fr
+    2fr
+    40px;
+
   padding: 8px 24px;
+
   font-size: 0.85rem;
   color: #555;
   font-weight: 600;
+
   margin-bottom: 8px;
 }
 
 .apt-row {
   display: grid;
-  grid-template-columns: 2fr 1fr 1fr 1fr 2fr 40px;
+  grid-template-columns:
+    2fr
+    1fr
+    1fr
+    1fr
+    2fr
+    40px;
+
   background: #6b6b6b;
   border-radius: 10px;
+
   padding: 14px 24px;
+
   color: #fff;
   font-size: 0.9rem;
+
   margin-bottom: 8px;
+
   align-items: center;
 }
 
@@ -1238,6 +2019,11 @@ select.invalid {
   opacity: 0.8;
 }
 
+
+/* ============================================================
+   ATRIBUIÇÃO INLINE
+============================================================ */
+
 .apt-assign-inline {
   display: flex;
   justify-content: flex-start;
@@ -1246,15 +2032,21 @@ select.invalid {
 .apt-assign-inline select {
   width: 100%;
   max-width: 160px;
+
   padding: 8px 16px;
+
   border-radius: 20px;
   border: 1px dashed rgba(255,255,255,0.5);
+
   background: transparent;
+
   font-size: 0.85rem;
   color: #fff;
+
   cursor: pointer;
   outline: none;
   appearance: none;
+
   transition: all 0.2s ease;
 }
 
@@ -1275,6 +2067,11 @@ select.invalid {
   opacity: 1;
   cursor: default;
 }
+
+
+/* ============================================================
+   EXCLUIR APARTAMENTO
+============================================================ */
 
 .apt-delete-cell {
   display: flex;
@@ -1297,26 +2094,38 @@ select.invalid {
   color: #f87171;
 }
 
-/* Modais */
+
+/* ============================================================
+   MODAIS
+============================================================ */
+
 .modal-overlay {
   position: fixed;
   inset: 0;
+
   background: rgba(0,0,0,0.5);
+
   display: flex;
   align-items: center;
   justify-content: center;
+
   z-index: 1000;
 }
 
 .modal-confirm {
   background: #fff;
   border-radius: 16px;
+
   padding: 40px;
+
   width: 420px;
+
   text-align: center;
+
   display: flex;
   flex-direction: column;
   align-items: center;
+
   gap: 16px;
 }
 
@@ -1338,6 +2147,15 @@ select.invalid {
   margin: 0;
 }
 
+/* NOVO: mensagem de erro dentro do modal */
+.modal-error {
+  background: #fdecea;
+  color: #c0392b;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-weight: 500;
+}
+
 .modal-actions {
   display: flex;
   gap: 12px;
@@ -1345,12 +2163,17 @@ select.invalid {
 
 .btn-confirm-delete {
   padding: 10px 24px;
+
   background: #c0392b;
+
   border: none;
   border-radius: 30px;
+
   color: #fff;
+
   font-size: 0.9rem;
   font-weight: bold;
+
   cursor: pointer;
 }
 
@@ -1359,16 +2182,26 @@ select.invalid {
   cursor: not-allowed;
 }
 
+
+/* ============================================================
+   CHECKLIST
+============================================================ */
+
 .checklist-overlay-state {
   position: fixed;
   inset: 0;
+
   background: rgba(0,0,0,0.5);
+
   display: flex;
   align-items: center;
   justify-content: center;
+
   z-index: 1000;
+
   color: #fff;
   font-size: 1rem;
+
   flex-direction: column;
   gap: 16px;
 }
@@ -1381,9 +2214,13 @@ select.invalid {
   padding: 10px 28px;
 }
 
+
+/* ============================================================
+   VAZIO
+============================================================ */
+
 .empty {
   text-align: center;
   padding: 40px;
   color: #888;
 }
-</style>
