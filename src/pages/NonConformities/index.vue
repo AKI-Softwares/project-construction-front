@@ -112,40 +112,6 @@
         </table>
       </div>
 
-    </div>
-  </MainLayout>
-</template>
-
-<style scoped>
-.nc-table {
-  width: 100%;
-  border-collapse: collapse;
-  table-layout: fixed;
-  text-align: left;
-  font-size: 0.9rem;
-}
-
-.nc-table th {
-  background: #0d0d2b;
-  color: #fff;
-  padding: 14px 16px;
-  font-weight: 600;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.nc-table td {
-  padding: 14px 16px;
-  border-bottom: 1px solid #eee;
-  color: #444;
-  vertical-align: middle;
-  word-wrap: break-word;
-  overflow-wrap: break-word;
-}
-</style>
-      </div>
-
       <div v-else class="empty-card">
         <FontAwesomeIcon :icon="['fas', 'circle-info']" class="empty-icon" />
         <p v-if="!selectedBuildingId">Selecione um empreendimento acima para listar os problemas ativos em aberto.</p>
@@ -183,10 +149,6 @@ onMounted(async () => {
   }
 })
 
-// Usa o endpoint dedicado GET /non-conformities (já traz description,
-// createdAt, fotos e todo o vínculo apartamento/cômodo/vistoria em uma
-// única chamada — substitui a antiga varredura manual apartamento a
-// apartamento).
 async function carregarNaoConformidades() {
   if (!selectedBuildingId.value) {
     naoConformidades.value = []
@@ -236,9 +198,6 @@ function formatDate(date) {
   })
 }
 
-// Só oferece o botão para NCs ainda pendentes cuja vistoria de origem seja
-// INITIAL — regra idêntica à validada pelo back em POST /visits/:id/reinspection
-// (não é possível reinspecionar uma re-inspeção).
 function canReinspect(nc) {
   return !nc.resolvedAt && nc.visitItem?.visit?.type === 'INITIAL'
 }
