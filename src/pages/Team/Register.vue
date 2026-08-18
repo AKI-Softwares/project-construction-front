@@ -251,7 +251,7 @@ select.invalid { border-color: #c0392b; background: #fff3f0; }
 .link { color: #00897b; cursor: pointer; text-decoration: underline; margin-left: 4px; }
 
 .form-actions { display: flex; gap: 12px; justify-content: flex-end; padding-top: 8px; }
-.btn-save { padding: 12px 32px; background: #00e5cc; border: none; border-radius: 8px; font-size: 0.92rem; font-weight: 700; color: #0b1120; cursor: pointer; }
+.btn-save { padding: 12px 32px; background: #00e5cc; border: none; border-radius: 8px; font-size: 0.92rem; font-weight: 700; color: #0d0d2b; cursor: pointer; }
 .btn-save:disabled { opacity: 0.6; cursor: not-allowed; }
 .btn-cancel { padding: 12px 32px; background: #e8e8e8; border: none; border-radius: 8px; font-size: 0.92rem; font-weight: 600; color: #333; cursor: pointer; }
 </style>
