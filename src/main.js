@@ -111,7 +111,7 @@ library.add(
   faSpinner,
   faCity,
   faFileCirclePlus,
-  FaBars,
+  faBars,
 )
 
 const app = createApp(App)
