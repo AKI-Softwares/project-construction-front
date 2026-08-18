@@ -57,7 +57,8 @@ import {
   faPrint,
   faSpinner,
   faCity,
-  faFileCirclePlus,
+  faFileCirclePlus, 
+  faBars,
 } from '@fortawesome/free-solid-svg-icons'
 
 library.add(
@@ -110,6 +111,7 @@ library.add(
   faSpinner,
   faCity,
   faFileCirclePlus,
+  FaBars,
 )
 
 const app = createApp(App)
