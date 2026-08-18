@@ -1,3 +1,4 @@
+```vue
 <template>
   <MainLayout titulo="Empreendimentos">
 
@@ -275,13 +276,9 @@ import { getApartments, createApartment, deleteApartment } from '../../services/
 import { getChecklistByApartment } from '../../services/checklists.js'
 import { createVisit, assignInspectorToVisit } from '../../services/visits.js'
 import { getUsers } from '../../services/users.js'
-import { getRoles } from '../../services/roles.js'
 import { groupChecklistByRoom } from '../../utils/checklist.js'
-import { filterUsersByPermission } from '../../utils/permissions.js'
 import { useAuthStore } from '../../store/auth.js'
 import { getApartmentTypes } from '../../services/apartmentTypes.js'
-
-
 
 const assignSuccess = ref('')
 const assignError = ref('')
@@ -292,16 +289,6 @@ const selectedChecklist = ref(null)
 const loadingChecklist = ref(false)
 const checklistError = ref('')
 const users = ref([])
-const roles = ref([])
-
-// Só usuários cujo cargo tem a permissão 'visits:perform' podem ser
-// designados como inspetor (mesma regra validada pelo back no PATCH).
-const inspectorCandidates = computed(() =>
-  filterUsersByPermission(users.value, roles.value, 'visits:perform')
-)
-
-const assignSuccess = ref('')
-const assignError = ref('')
 
 async function assignInline(apt, userId) {
   if (!userId) return
@@ -584,8 +571,8 @@ function getBuildingName(buildingId) {
 onMounted(async () => {
   loadingBuildings.value = true; loadingApts.value = true
   try {
-    const [b, a, t, u, r] = await Promise.all([getBuildings(), getApartments(), getApartmentTypes(), getUsers(), getRoles()])
-    buildings.value = b; apartments.value = a; apartmentTypes.value = t; users.value = u; roles.value = r
+    const [b, a, t, u] = await Promise.all([getBuildings(), getApartments(), getApartmentTypes(), getUsers()])
+    buildings.value = b; apartments.value = a; apartmentTypes.value = t; users.value = u
   } catch (e) {
     console.error('Erro ao carregar dados', e)
   } finally {
@@ -612,7 +599,7 @@ input.invalid, select.invalid { border: 2px solid #c0392b; background: #fff3f0; 
 .form-col { display: flex; flex-direction: column; gap: 4px; }
 .field-error { font-size: 0.78rem; color: #c0392b; padding-left: 8px; }
 .form-actions { display: flex; gap: 16px; justify-content: flex-end; }
-.btn-save { padding: 12px 36px; background: #00e5cc; border: none; border-radius: 30px; font-size: 0.95rem; font-weight: bold; color: #46C7D5; cursor: pointer; }
+.btn-save { padding: 12px 36px; background: #00e5cc; border: none; border-radius: 30px; font-size: 0.95rem; font-weight: bold; color: #0d0d2b; cursor: pointer; }
 .btn-save:disabled { opacity: 0.6; cursor: not-allowed; }
 .btn-cancel { padding: 12px 36px; background: #e8e8e8; border: none; border-radius: 30px; font-size: 0.95rem; font-weight: bold; color: #333; cursor: pointer; }
 .alert { display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-radius: 8px; font-size: 0.9rem; font-weight: 500; }
