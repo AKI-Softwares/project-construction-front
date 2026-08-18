@@ -273,9 +273,11 @@ import ChecklistModal from '../../components/Layout/ChecklistModal.vue'
 import { getBuildings, createBuilding, deleteBuilding } from '../../services/buildings.js'
 import { getApartments, createApartment, deleteApartment } from '../../services/apartments.js'
 import { getChecklistByApartment } from '../../services/checklists.js'
-import { createVisit } from '../../services/visits.js'
+import { createVisit, assignInspectorToVisit } from '../../services/visits.js'
 import { getUsers } from '../../services/users.js'
+import { getRoles } from '../../services/roles.js'
 import { groupChecklistByRoom } from '../../utils/checklist.js'
+import { filterUsersByPermission } from '../../utils/permissions.js'
 import { useAuthStore } from '../../store/auth.js'
 import { getApartmentTypes } from '../../services/apartmentTypes.js'
 
@@ -285,6 +287,23 @@ const selectedChecklist = ref(null)
 const loadingChecklist = ref(false)
 const checklistError = ref('')
 const users = ref([])
+
+const assignSuccess = ref('')
+const assignError = ref('')
+
+const router = useRouter()
+const authStore = useAuthStore()
+const selectedChecklist = ref(null)
+const loadingChecklist = ref(false)
+const checklistError = ref('')
+const users = ref([])
+const roles = ref([])
+
+// Só usuários cujo cargo tem a permissão 'visits:perform' podem ser
+// designados como inspetor (mesma regra validada pelo back no PATCH).
+const inspectorCandidates = computed(() =>
+  filterUsersByPermission(users.value, roles.value, 'visits:perform')
+)
 
 const assignSuccess = ref('')
 const assignError = ref('')
@@ -299,12 +318,24 @@ async function assignInline(apt, userId) {
       assignError.value = 'Este apartamento já está com o ciclo de vistorias finalizado.'
       return
     }
-    await createVisit(checklist.id, userId)
+    // POST /checklists/:id/visits não aceita mais inspectorId — o back
+    // atribui automaticamente (round-robin). Para respeitar a escolha do
+    // usuário no dropdown, criamos a vistoria e, em seguida, sobrescrevemos
+    // o inspetor via PATCH /visits/:id/inspector.
+    const visit = await createVisit(checklist.id)
+    await assignInspectorToVisit(visit.id, userId)
     apt.currentInspectorId = Number(userId)
     assignSuccess.value = 'Vistoriador atribuído com sucesso!'
     setTimeout(() => { assignSuccess.value = '' }, 3000)
   } catch (e) {
-    assignError.value = 'Erro ao atribuir vistoriador.'
+    const status = e.response?.status
+    if (status === 422) {
+      assignError.value = 'Este usuário não possui a permissão para realizar vistorias.'
+    } else if (status === 400) {
+      assignError.value = 'Esta vistoria já está finalizada e não pode ser reatribuída.'
+    } else {
+      assignError.value = 'Erro ao atribuir vistoriador.'
+    }
   }
 }
 
@@ -558,8 +589,8 @@ function getBuildingName(buildingId) {
 onMounted(async () => {
   loadingBuildings.value = true; loadingApts.value = true
   try {
-    const [b, a, t, u] = await Promise.all([getBuildings(), getApartments(), getApartmentTypes(), getUsers()])
-    buildings.value = b; apartments.value = a; apartmentTypes.value = t; users.value = u
+    const [b, a, t, u, r] = await Promise.all([getBuildings(), getApartments(), getApartmentTypes(), getUsers(), getRoles()])
+    buildings.value = b; apartments.value = a; apartmentTypes.value = t; users.value = u; roles.value = r
   } catch (e) {
     console.error('Erro ao carregar dados', e)
   } finally {
