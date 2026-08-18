@@ -281,12 +281,7 @@ import { filterUsersByPermission } from '../../utils/permissions.js'
 import { useAuthStore } from '../../store/auth.js'
 import { getApartmentTypes } from '../../services/apartmentTypes.js'
 
-const router = useRouter()
-const authStore = useAuthStore()
-const selectedChecklist = ref(null)
-const loadingChecklist = ref(false)
-const checklistError = ref('')
-const users = ref([])
+
 
 const assignSuccess = ref('')
 const assignError = ref('')
