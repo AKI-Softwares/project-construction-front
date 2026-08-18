@@ -1,7 +1,14 @@
 <template>
-  <div :class="['sidebar', { expandida: aberta }]" @mouseenter="toggleSidebar(true)" @mouseleave="toggleSidebar(false)">
+  <!-- Overlay de fundo — só aparece no mobile quando o menu está aberto -->
+  <div v-if="mobileOpen" class="sidebar-backdrop" @click="$emit('close')"></div>
 
-    <nav class="menu">
+  <div
+    :class="['sidebar', { expandida: aberta, 'mobile-aberta': mobileOpen }]"
+    @mouseenter="toggleSidebar(true)"
+    @mouseleave="toggleSidebar(false)"
+  >
+
+    <nav class="menu" @click="onMenuClick">
 
       <!-- VISÃO GERAL -->
       <div class="menu-separator"><span v-if="aberta">VISÃO GERAL</span></div>
@@ -109,11 +116,14 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../../store/auth.js'
 
-const emit = defineEmits(['update:aberta'])
+const props = defineProps({
+  mobileOpen: { type: Boolean, default: false },
+})
+const emit = defineEmits(['update:aberta', 'close'])
 const router = useRouter()
 const authStore = useAuthStore()
 const aberta = ref(false)
@@ -121,6 +131,18 @@ const aberta = ref(false)
 function toggleSidebar(estado) {
   aberta.value = estado
   emit('update:aberta', estado)
+}
+
+// Quando o menu mobile abre, mantém os rótulos visíveis mesmo sem hover.
+watch(() => props.mobileOpen, (val) => {
+  if (val) aberta.value = true
+})
+
+// No mobile, navegar para uma página fecha o menu automaticamente.
+function onMenuClick(event) {
+  if (props.mobileOpen && event.target.closest('.menu-item')) {
+    emit('close')
+  }
 }
 
 function sair() {
@@ -195,4 +217,34 @@ function sair() {
 .sair:hover { background-color: rgba(239,68,68,0.1); color: #f87171; }
 
 @media print { .sidebar { display: none !important; } }
+
+/* --- Responsivo: sidebar fixa no desktop, menu hambúrguer no mobile --- */
+.sidebar-backdrop {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  .sidebar {
+    width: 260px;
+    transform: translateX(-100%);
+    transition: transform 0.25s ease;
+    z-index: 200;
+  }
+  .sidebar.mobile-aberta {
+    transform: translateX(0);
+  }
+  /* No mobile, o hover não deve mais controlar a largura — só o toggle. */
+  .sidebar.expandida:not(.mobile-aberta) {
+    width: 260px;
+    transform: translateX(-100%);
+  }
+
+  .sidebar-backdrop {
+    display: block;
+    position: fixed;
+    inset: 60px 0 0 0;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 190;
+  }
+}
 </style>
