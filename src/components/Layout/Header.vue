@@ -1,6 +1,9 @@
 <template>
   <div class="header">
     <div class="header-left">
+      <button class="hamburger-btn" @click="$emit('toggle-menu')" aria-label="Abrir menu">
+        <FontAwesomeIcon :icon="['fas', 'bars']" />
+      </button>
       <img 
         src="../../assets/logo_check_hotizontal.png" 
         alt="CheckObra Logo" 
@@ -26,6 +29,7 @@ import { me } from '../../services/auth.js'
 defineProps({
   titulo: { type: String, default: 'Dashboard' }
 })
+defineEmits(['toggle-menu'])
 
 const user = ref({ name: '', role: null })
 
@@ -74,6 +78,16 @@ onMounted(async () => {
   align-items: center;
   gap: 12px;
 }
+.hamburger-btn {
+  display: none;
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 1.3rem;
+  cursor: pointer;
+  padding: 6px;
+  margin-right: 4px;
+}
 .header-logo {
   height: 36px;
   width: auto;
@@ -95,5 +109,12 @@ onMounted(async () => {
   justify-content: center;
   font-weight: bold;
   font-size: 0.85rem;
+}
+
+@media (max-width: 767px) {
+  .header { padding: 0 16px; }
+  .hamburger-btn { display: inline-flex; align-items: center; justify-content: center; }
+  .titulo { font-size: 1.05rem; margin-left: 8px; }
+  .perfil-info { display: none; }
 }
 </style>
