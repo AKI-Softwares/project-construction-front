@@ -615,8 +615,32 @@ input.invalid, select.invalid { border: 2px solid #c0392b; background: #fff3f0; 
 
 /* Lista de empreendimentos */
 .item-list { display: flex; flex-direction: column; gap: 10px; }
-.item-card { background: #6b6b6b; border-radius: 12px; padding: 18px 24px; color: #fff; font-size: 1rem; cursor: pointer; transition: background 0.2s; display: flex; align-items: center; justify-content: space-between; }
-.item-card:hover { background: #555; }
+.item-card {
+  background: #fff;
+  border: 1px solid #eee;
+  border-radius: 12px;
+  padding: 18px 24px;
+  color: #1a1a2e;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
+}
+.item-card:hover {
+  border-color: #00e5cc;
+  box-shadow: 0 4px 12px rgba(16, 24, 40, 0.08);
+  transform: translateY(-1px);
+}
+.building-card-info { display: flex; flex-direction: column; gap: 4px; }
+.building-card-name { font-size: 1rem; font-weight: 600; color: #1a1a2e; }
+.building-card-count { font-size: 0.8rem; color: #888; }
+.building-card-right { display: flex; align-items: center; gap: 12px; }
+.building-card-arrow { font-size: 1.2rem; color: #00c2a8; }
+.btn-card-delete { background: none; border: none; color: #cbd5e0; cursor: pointer; font-size: 0.9rem; padding: 6px 8px; border-radius: 6px; transition: color 0.2s, background 0.2s; flex-shrink: 0; }
+.btn-card-delete:hover { color: #c0392b; background: #fdecea; }
 .building-card-info { display: flex; flex-direction: column; gap: 4px; }
 .building-card-name { font-size: 1rem; font-weight: 600; }
 .building-card-count { font-size: 0.8rem; color: rgba(255,255,255,0.7); }
