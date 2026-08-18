@@ -129,6 +129,24 @@
         </div>
       </div>
 
+      <!-- SEÇÃO INFERIOR: Ambientes com mais não conformidades -->
+      <div class="bottom-table-area" v-if="topRoomIssues.length > 0">
+        <div class="table-card-full">
+          <h3 class="chart-title">Ambientes com mais Não Conformidades</h3>
+          <div class="table-header-grid">
+            <span>Cômodo</span>
+            <span>Ocorrências</span>
+          </div>
+          <div v-for="row in topRoomIssues" :key="row.roomName" class="table-row-grid">
+            <span class="service-name">{{ row.roomName }}</span>
+            <div class="progress-bar-horizontal">
+              <div class="progress-bar-fill-horizontal teal-bg" :style="{ width: row.relativePct + '%' }"></div>
+              <span class="progress-bar-number">{{ row.count }} ocorrência{{ row.count !== 1 ? 's' : '' }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
     </div>
   </MainLayout>
 </template>
@@ -140,6 +158,7 @@ import { getBuildings } from '../../services/buildings.js'
 import { getApartments } from '../../services/apartments.js'
 import { getUsers } from '../../services/users.js'
 import { getOverview, getQuality } from '../../services/analytics.js'
+import { getNonConformities } from '../../services/nonConformities.js'
 
 const loading = ref(true)
 const error = ref('')
@@ -148,6 +167,7 @@ const apartments = ref([])
 const users = ref([])
 const isRich = ref(false)
 const qualityRows = ref([])
+const ncRows = ref([])
 
 // Estado reativo para controlar o filtro selecionado
 const selectedBuildingId = ref('todos')
@@ -284,6 +304,27 @@ const topQualityIssues = computed(() => {
     .slice(0, 5)
 })
 
+// 7. Ambientes (cômodos) com mais não conformidades — agregado no
+// front a partir de GET /non-conformities, já que o back não tem um
+// endpoint dedicado de ranking por cômodo.
+const topRoomIssues = computed(() => {
+  if (!Array.isArray(ncRows.value) || ncRows.value.length === 0) return []
+
+  const counts = {}
+  for (const nc of ncRows.value) {
+    const roomName = nc.visitItem?.checklistItem?.apartmentRoomService?.apartmentRoom?.name || 'Não identificado'
+    counts[roomName] = (counts[roomName] || 0) + 1
+  }
+
+  const rows = Object.entries(counts)
+    .map(([roomName, count]) => ({ roomName, count }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 5)
+
+  const max = rows[0]?.count || 1
+  return rows.map(r => ({ ...r, relativePct: Math.round((r.count / max) * 100) }))
+})
+
 // Ciclo de vida: Carregamento assíncrono blindado contra respostas sem o wrapper '.data'
 onMounted(async () => {
   try {
@@ -320,6 +361,13 @@ onMounted(async () => {
     } catch (analyticsError) {
       console.warn('Serviço de análise avançada offline. Rodando no modo reativo local.')
       isRich.value = false
+    }
+
+    try {
+      ncRows.value = await getNonConformities()
+    } catch (ncError) {
+      console.warn('Não foi possível carregar o ranking de ambientes com mais não conformidades.')
+      ncRows.value = []
     }
   } catch (e) {
     console.error('Erro geral ao montar a estrutura da dashboard:', e)
