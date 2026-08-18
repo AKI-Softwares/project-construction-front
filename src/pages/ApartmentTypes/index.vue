@@ -471,7 +471,7 @@ onMounted(async () => {
 .layout-split { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 24px; align-items: start; }
 .col-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
 .col-title { font-size: 1.1rem; font-weight: 700; color: #1a1a2e; margin: 0; }
-.btn-primary { display: flex; align-items: center; gap: 8px; background: #46C7D5; color: #fff; border: none; border-radius: 30px; padding: 10px 20px; font-size: 0.9rem; font-weight: 600; cursor: pointer; }
+.btn-primary { display: flex; align-items: center; gap: 8px; background: #0d0d2b; color: #fff; border: none; border-radius: 30px; padding: 10px 20px; font-size: 0.9rem; font-weight: 600; cursor: pointer; }
 .btn-close { background: none; border: 1px solid #ccc; border-radius: 30px; padding: 8px 16px; font-size: 0.85rem; color: #555; cursor: pointer; }
 .form-card { background: #fff; border-radius: 12px; padding: 24px; border: 1px solid #eee; display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; }
 .form-title { font-size: 0.95rem; font-weight: 700; color: #1a1a2e; margin: 0; }
@@ -480,7 +480,7 @@ input[type="text"].invalid { border: 2px solid #c0392b; background: #fff3f0; }
 textarea { width: 100%; padding: 12px 18px; border: none; border-radius: 12px; background: #e8e8e8; font-size: 0.9rem; outline: none; color: #333; resize: vertical; box-sizing: border-box; font-family: inherit; }
 .field-error { font-size: 0.78rem; color: #c0392b; padding-left: 4px; }
 .form-actions { display: flex; gap: 12px; justify-content: flex-end; }
-.btn-save { padding: 10px 28px; background: #00e5cc; border: none; border-radius: 30px; font-size: 0.9rem; font-weight: bold; color: #0b1120; cursor: pointer; }
+.btn-save { padding: 10px 28px; background: #00e5cc; border: none; border-radius: 30px; font-size: 0.9rem; font-weight: bold; color: #0d0d2b; cursor: pointer; }
 .btn-save:disabled { opacity: 0.6; cursor: not-allowed; }
 .btn-cancel { padding: 10px 28px; background: #e8e8e8; border: none; border-radius: 30px; font-size: 0.9rem; font-weight: bold; color: #333; cursor: pointer; }
 .state { text-align: center; padding: 32px; color: #888; }
@@ -534,7 +534,7 @@ textarea { width: 100%; padding: 12px 18px; border: none; border-radius: 12px; b
 .new-service-input:focus { border-color: #00e5cc; }
 .new-service-error { font-size: 0.78rem; color: #c0392b; }
 .new-service-actions { display: flex; gap: 8px; }
-.btn-save-service { padding: 7px 18px; background: #00e5cc; border: none; border-radius: 20px; font-size: 0.82rem; font-weight: bold; color: #0b1120; cursor: pointer; }
+.btn-save-service { padding: 7px 18px; background: #00e5cc; border: none; border-radius: 20px; font-size: 0.82rem; font-weight: bold; color: #0d0d2b; cursor: pointer; }
 .btn-save-service:disabled { opacity: 0.6; cursor: not-allowed; }
 .btn-cancel-service { padding: 7px 18px; background: #e8e8e8; border: none; border-radius: 20px; font-size: 0.82rem; color: #333; cursor: pointer; }
 .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; }
