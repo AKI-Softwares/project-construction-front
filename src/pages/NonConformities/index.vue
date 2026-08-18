@@ -38,6 +38,16 @@
 
       <div v-else-if="naoConformidades.length > 0" class="table-card">
         <table class="nc-table">
+          <colgroup>
+            <col style="width: 12%;">
+            <col style="width: 12%;">
+            <col style="width: 16%;">
+            <col style="width: 22%;">
+            <col style="width: 12%;">
+            <col style="width: 9%;">
+            <col style="width: 9%;">
+            <col style="width: 8%;">
+          </colgroup>
           <thead>
             <tr>
               <th>Bloco / Apto</th>
@@ -100,6 +110,40 @@
             </template>
           </tbody>
         </table>
+      </div>
+
+    </div>
+  </MainLayout>
+</template>
+
+<style scoped>
+.nc-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  text-align: left;
+  font-size: 0.9rem;
+}
+
+.nc-table th {
+  background: #0d0d2b;
+  color: #fff;
+  padding: 14px 16px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.nc-table td {
+  padding: 14px 16px;
+  border-bottom: 1px solid #eee;
+  color: #444;
+  vertical-align: middle;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+</style>
       </div>
 
       <div v-else class="empty-card">
