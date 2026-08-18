@@ -19,7 +19,10 @@
 
     <hr class="divider" />
 
-    <!-- ===== TAB: EMPREENDIMENTOS ===== -->
+    <!-- ====================================================== -->
+    <!-- TAB: EMPREENDIMENTOS -->
+    <!-- ====================================================== -->
+
     <div v-if="activeTab === 'buildings'">
 
       <div style="margin-bottom: 20px;">
@@ -33,6 +36,7 @@
       </div>
 
       <div v-if="showBuildingForm" class="form-card">
+
         <h3 class="form-title">Novo Empreendimento</h3>
 
         <div v-if="buildingSuccess" class="alert success">
@@ -80,15 +84,18 @@
             Cancelar
           </button>
         </div>
+
       </div>
 
       <div class="item-list">
+
         <div
           v-for="building in buildings"
           :key="building.id"
           class="item-card"
           @click="router.push(`/buildings/${building.id}`)"
         >
+
           <div class="building-card-info">
             <span class="building-card-name">
               {{ building.name }}
@@ -101,6 +108,7 @@
           </div>
 
           <div class="building-card-right">
+
             <button
               class="btn-card-delete"
               title="Excluir empreendimento"
@@ -110,7 +118,9 @@
             </button>
 
             <span class="building-card-arrow">→</span>
+
           </div>
+
         </div>
 
         <div
@@ -123,14 +133,19 @@
         <div v-if="loadingBuildings" class="empty">
           Carregando...
         </div>
+
       </div>
 
     </div>
 
-    <!-- ===== TAB: ATRIBUIR VISTORIAS ===== -->
+    <!-- ====================================================== -->
+    <!-- TAB: ATRIBUIR VISTORIAS -->
+    <!-- ====================================================== -->
+
     <div v-if="activeTab === 'apartments'">
 
       <div class="apt-actions">
+
         <button
           v-if="authStore.hasPermission('apartments:create')"
           :class="['btn-add', { active: aptMode === 'single' }]"
@@ -146,10 +161,15 @@
         >
           Cadastro em Lote
         </button>
+
       </div>
 
-      <!-- ===== NOVO APARTAMENTO ===== -->
+      <!-- ====================================================== -->
+      <!-- APARTAMENTO INDIVIDUAL -->
+      <!-- ====================================================== -->
+
       <div v-if="aptMode === 'single'" class="form-card">
+
         <h3 class="form-title">Novo Apartamento</h3>
 
         <div v-if="aptSuccess" class="alert success">
@@ -204,6 +224,7 @@
         </span>
 
         <div class="form-row">
+
           <div class="form-col">
             <input
               v-model="singleApt.identifier"
@@ -236,9 +257,11 @@
               placeholder="Bloco (ex: A)"
             />
           </div>
+
         </div>
 
         <div class="form-actions">
+
           <button
             class="btn-save"
             :disabled="savingApt"
@@ -253,22 +276,30 @@
           >
             Voltar
           </button>
+
         </div>
+
       </div>
 
-      <!-- ===== CADASTRO EM LOTE ===== -->
+      <!-- ====================================================== -->
+      <!-- CADASTRO EM LOTE -->
+      <!-- ====================================================== -->
+
       <div v-if="aptMode === 'batch'" class="form-card">
+
         <h3 class="form-title">
           Cadastrar em Lote - Gerar múltiplos apartamentos
         </h3>
 
         <div class="info-box">
+
           <FontAwesomeIcon
             :icon="['fas', 'circle-exclamation']"
             class="info-icon"
           />
 
           <div>
+
             <strong>Como funciona:</strong>
 
             <ul>
@@ -282,7 +313,9 @@
                 (ex: B101 = Bloco B, 1º andar, apt 01)
               </li>
             </ul>
+
           </div>
+
         </div>
 
         <div v-if="batchSuccess" class="alert success">
@@ -311,7 +344,10 @@
           </option>
         </select>
 
-        <span v-if="batchErrors.buildingId" class="field-error">
+        <span
+          v-if="batchErrors.buildingId"
+          class="field-error"
+        >
           {{ batchErrors.buildingId }}
         </span>
 
@@ -332,12 +368,17 @@
           </option>
         </select>
 
-        <span v-if="batchErrors.apartmentTypeId" class="field-error">
+        <span
+          v-if="batchErrors.apartmentTypeId"
+          class="field-error"
+        >
           {{ batchErrors.apartmentTypeId }}
         </span>
 
         <div class="form-row">
+
           <div class="form-col">
+
             <input
               v-model="batchForm.block"
               type="text"
@@ -351,9 +392,11 @@
             >
               {{ batchErrors.block }}
             </span>
+
           </div>
 
           <div class="form-col">
+
             <input
               v-model.number="batchForm.floors"
               type="number"
@@ -368,9 +411,11 @@
             >
               {{ batchErrors.floors }}
             </span>
+
           </div>
 
           <div class="form-col">
+
             <input
               v-model.number="batchForm.aptsPerFloor"
               type="number"
@@ -385,18 +430,22 @@
             >
               {{ batchErrors.aptsPerFloor }}
             </span>
+
           </div>
+
         </div>
 
         <div
           v-if="batchPreview.length > 0"
           class="preview"
         >
+
           <strong>
             Preview ({{ batchPreview.length }} apartamentos):
           </strong>
 
           <div class="preview-list">
+
             <span
               v-for="id in batchPreview.slice(0, 20)"
               :key="id"
@@ -411,10 +460,13 @@
             >
               +{{ batchPreview.length - 20 }} mais
             </span>
+
           </div>
+
         </div>
 
         <div class="form-actions">
+
           <button
             class="btn-save"
             :disabled="savingBatch"
@@ -433,10 +485,15 @@
           >
             Voltar
           </button>
+
         </div>
+
       </div>
 
-      <!-- ===== LISTAGEM DE APARTAMENTOS ===== -->
+      <!-- ====================================================== -->
+      <!-- LISTA DE APARTAMENTOS -->
+      <!-- ====================================================== -->
+
       <div v-if="!aptMode">
 
         <div
@@ -455,37 +512,53 @@
           v-if="selectedBuildingId"
           class="building-header"
         >
+
           <div class="building-header-top">
+
             <span class="building-title">
-              <FontAwesomeIcon :icon="['fas', 'building']" />
+
+              <FontAwesomeIcon
+                :icon="['fas', 'building']"
+              />
 
               {{
                 buildings.find(
                   b => b.id === selectedBuildingId
                 )?.name
               }}
+
             </span>
+
           </div>
 
           <p class="apartments-tab-hint">
+
             Atribua um vistoriador a um apartamento para abrir
-            uma nova vistoria. Para acompanhar o andamento das
-            vistorias já abertas, use a tela
+            uma nova vistoria.
+
+            Para acompanhar o andamento das vistorias já abertas,
+            use a tela
+
             <router-link to="/visits">
               Vistorias
             </router-link>.
+
           </p>
 
           <div class="building-header-info">
+
             <span>
               <strong>Total de apts:</strong>
               {{ apartmentsFiltered.length }}
             </span>
 
             <span>
+
               <strong>Vistoriadores atuando:</strong>
 
-              <span v-if="buildingInspectors.length > 0">
+              <span
+                v-if="buildingInspectors.length > 0"
+              >
                 {{ buildingInspectors.join(', ') }}
               </span>
 
@@ -495,8 +568,11 @@
               >
                 Nenhum
               </span>
+
             </span>
+
           </div>
+
         </div>
 
         <div
@@ -516,12 +592,14 @@
         </div>
 
         <div class="apt-table-header">
+
           <span>Nome</span>
           <span>Número</span>
           <span>Bloco</span>
           <span>Andar</span>
           <span>Vistoriador</span>
           <span></span>
+
         </div>
 
         <div class="item-list">
@@ -536,6 +614,7 @@
               class="apt-row-clickable-wrapper"
               @click="openChecklist(apt)"
             >
+
               <span>
                 {{ getBuildingName(apt.buildingId) }}
               </span>
@@ -551,9 +630,11 @@
               <span>
                 {{ apt.floor ? apt.floor + 'º' : '—' }}
               </span>
+
             </div>
 
             <div class="apt-assign-inline">
+
               <select
                 v-model="apt.currentInspectorId"
                 :class="{ 'is-assigned': apt.currentInspectorId }"
@@ -561,6 +642,7 @@
                 @change="assignInline(apt, apt.currentInspectorId)"
                 @click.stop
               >
+
                 <option
                   :value="undefined"
                   v-if="!apt.currentInspectorId"
@@ -575,17 +657,23 @@
                 >
                   {{ u.name }}
                 </option>
+
               </select>
+
             </div>
 
             <div class="apt-delete-cell">
+
               <button
                 class="btn-apt-delete"
                 title="Remover apartamento"
                 @click.stop="confirmDeleteApt(apt)"
               >
-                <FontAwesomeIcon :icon="['fas', 'trash']" />
+                <FontAwesomeIcon
+                  :icon="['fas', 'trash']"
+                />
               </button>
+
             </div>
 
           </div>
@@ -605,43 +693,50 @@
           </div>
 
         </div>
+
       </div>
 
     </div>
 
-    <!-- ===== MODAL: EXCLUIR EMPREENDIMENTO ===== -->
+    <!-- ====================================================== -->
+    <!-- MODAL EXCLUIR EMPREENDIMENTO -->
+    <!-- ====================================================== -->
+
     <div
       v-if="buildingToDelete"
       class="modal-overlay"
       @click.self="buildingToDelete = null"
     >
+
       <div class="modal-confirm">
 
         <div class="modal-icon">
+
           <FontAwesomeIcon
             :icon="['fas', 'triangle-exclamation']"
           />
+
         </div>
 
         <h3>Excluir empreendimento</h3>
 
         <p>
+
           Excluir
           <strong>{{ buildingToDelete.name }}</strong>?
+
           Esta ação não pode ser desfeita.
+
         </p>
 
         <div class="modal-actions">
+
           <button
             class="btn-confirm-delete"
             :disabled="deletingBuilding"
             @click="doDeleteBuilding"
           >
-            {{
-              deletingBuilding
-                ? 'Excluindo...'
-                : 'Sim, excluir'
-            }}
+            {{ deletingBuilding ? 'Excluindo...' : 'Sim, excluir' }}
           </button>
 
           <button
@@ -650,34 +745,47 @@
           >
             Cancelar
           </button>
+
         </div>
 
       </div>
+
     </div>
 
-    <!-- ===== MODAL: EXCLUIR APARTAMENTO ===== -->
+    <!-- ====================================================== -->
+    <!-- MODAL EXCLUIR APARTAMENTO -->
+    <!-- ====================================================== -->
+
     <div
       v-if="aptToDelete"
       class="modal-overlay"
-      @click.self="aptToDelete = null; deleteAptError = ''"
+      @click.self="cancelDeleteApt"
     >
+
       <div class="modal-confirm">
 
         <div class="modal-icon">
+
           <FontAwesomeIcon
             :icon="['fas', 'triangle-exclamation']"
           />
+
         </div>
 
         <h3>Remover apartamento</h3>
 
         <p>
+
           Remover o apartamento
           <strong>{{ aptToDelete.identifier }}</strong>
-          da lista? Esta ação não pode ser desfeita.
+          da lista?
+
+          Esta ação não pode ser desfeita.
+
         </p>
 
-        <!-- NOVO: erro da exclusão -->
+        <!-- ERRO DA EXCLUSÃO -->
+
         <p
           v-if="deleteAptError"
           class="modal-error"
@@ -686,30 +794,32 @@
         </p>
 
         <div class="modal-actions">
+
           <button
             class="btn-confirm-delete"
             :disabled="deletingApt"
             @click="doDeleteApt"
           >
-            {{
-              deletingApt
-                ? 'Removendo...'
-                : 'Sim, remover'
-            }}
+            {{ deletingApt ? 'Removendo...' : 'Sim, remover' }}
           </button>
 
           <button
             class="btn-cancel"
-            @click="aptToDelete = null; deleteAptError = ''"
+            @click="cancelDeleteApt"
           >
             Cancelar
           </button>
+
         </div>
 
       </div>
+
     </div>
 
-    <!-- ===== CHECKLIST ===== -->
+    <!-- ====================================================== -->
+    <!-- LOADING CHECKLIST -->
+    <!-- ====================================================== -->
+
     <div
       v-if="loadingChecklist"
       class="checklist-overlay-state"
@@ -721,6 +831,7 @@
       v-if="checklistError"
       class="checklist-overlay-state error"
     >
+
       {{ checklistError }}
 
       <button
@@ -729,6 +840,7 @@
       >
         Fechar
       </button>
+
     </div>
 
     <ChecklistModal
@@ -751,8 +863,11 @@ import {
 
 import { useRouter } from 'vue-router'
 
-import MainLayout from '../../components/Layout/MainLayout.vue'
-import ChecklistModal from '../../components/Layout/ChecklistModal.vue'
+import MainLayout
+  from '../../components/Layout/MainLayout.vue'
+
+import ChecklistModal
+  from '../../components/Layout/ChecklistModal.vue'
 
 import {
   getBuildings,
@@ -801,14 +916,6 @@ const authStore = useAuthStore()
 
 const activeTab = ref('buildings')
 
-const buildings = ref([])
-const apartments = ref([])
-const apartmentTypes = ref([])
-const users = ref([])
-
-const loadingBuildings = ref(false)
-const loadingApts = ref(false)
-
 
 /* ============================================================
    CHECKLIST
@@ -819,18 +926,23 @@ const loadingChecklist = ref(false)
 const checklistError = ref('')
 
 async function openChecklist(apt) {
+
   checklistError.value = ''
   loadingChecklist.value = true
 
   try {
+
     const detail = await getChecklistByApartment(apt.id)
 
     if (!detail || !detail.items?.length) {
-      const tipoDoApt = apartmentTypes.value.find(
-        t => t.id === apt.apartmentTypeId
-      )
+
+      const tipoDoApt =
+        apartmentTypes.value.find(
+          t => t.id === apt.apartmentTypeId
+        )
 
       if (tipoDoApt?.rooms?.length) {
+
         selectedChecklist.value = {
           identifier: apt.identifier,
           block: apt.block || '—',
@@ -841,9 +953,12 @@ async function openChecklist(apt) {
             items: []
           }))
         }
+
       } else {
+
         checklistError.value =
           'Este apartamento ainda não tem checklist gerado.'
+
       }
 
       return
@@ -853,77 +968,103 @@ async function openChecklist(apt) {
       groupChecklistByRoom(detail)
 
   } catch (e) {
+
     checklistError.value =
       e.response?.data?.message ||
       'Erro ao carregar o checklist.'
+
   } finally {
+
     loadingChecklist.value = false
+
   }
 }
 
 
 /* ============================================================
-   ATRIBUIÇÃO DE VISTORIADOR
+   USUÁRIOS
+============================================================ */
+
+const users = ref([])
+
+
+/* ============================================================
+   ATRIBUIÇÃO DE VISTORIA
 ============================================================ */
 
 const assignSuccess = ref('')
 const assignError = ref('')
 
 async function assignInline(apt, userId) {
+
   if (!userId) return
 
   assignSuccess.value = ''
   assignError.value = ''
 
   try {
-    const checklist = await getChecklistByApartment(apt.id)
 
-    /*
-     * Não permite atribuição se o ciclo já foi finalizado.
-     */
+    const checklist =
+      await getChecklistByApartment(apt.id)
+
+    /* --------------------------------------------------------
+       Checklist finalizado
+    -------------------------------------------------------- */
+
     if (checklist?.status === 'FINALIZED') {
+
       assignError.value =
         'Este apartamento já está com o ciclo de vistorias finalizado.'
 
       return
     }
 
-    /*
-     * Verifica se já existe uma vistoria ativa.
-     *
-     * NOT_STARTED = criada mas ainda não iniciada
-     * ONGOING     = em andamento
-     */
-    const activeVisit = checklist?.visits?.find(
-      v =>
-        v.status === 'NOT_STARTED' ||
-        v.status === 'ONGOING'
-    )
+    /* --------------------------------------------------------
+       Verifica se já existe vistoria ativa
+    -------------------------------------------------------- */
+
+    const activeVisit =
+      checklist?.visits?.find(
+        v =>
+          v.status === 'NOT_STARTED' ||
+          v.status === 'ONGOING'
+      )
 
     if (activeVisit) {
+
       apt.currentInspectorId =
         activeVisit.inspector?.id ||
         apt.currentInspectorId
 
-      assignError.value = activeVisit.inspector
-        ? `Já existe uma vistoria em andamento para este apartamento, atribuída a ${activeVisit.inspector.name}.`
-        : 'Já existe uma vistoria em andamento para este apartamento.'
+      if (activeVisit.inspector) {
+
+        assignError.value =
+          `Já existe uma vistoria em andamento para este apartamento, atribuída a ${activeVisit.inspector.name}.`
+
+      } else {
+
+        assignError.value =
+          'Já existe uma vistoria em andamento para este apartamento.'
+
+      }
 
       return
     }
 
-    /*
-     * Não existe vistoria ativa:
-     * cria uma nova e atribui o vistoriador.
-     */
-    const visit = await createVisit(checklist.id)
+    /* --------------------------------------------------------
+       Cria nova vistoria
+    -------------------------------------------------------- */
+
+    const visit =
+      await createVisit(checklist.id)
 
     await assignInspectorToVisit(
       visit.id,
       userId
     )
 
-    apt.currentInspectorId = Number(userId)
+    apt.currentInspectorId =
+      Number(userId)
 
     assignSuccess.value =
       'Vistoriador atribuído com sucesso!'
@@ -933,26 +1074,43 @@ async function assignInline(apt, userId) {
     }, 3000)
 
   } catch (e) {
-    const status = e.response?.status
+
+    console.error(
+      'Erro ao atribuir vistoriador:',
+      e
+    )
+
+    const status =
+      e.response?.status
+
+    const backendMessage =
+      e.response?.data?.message || ''
 
     if (status === 422) {
+
       assignError.value =
         'Este usuário não possui a permissão para realizar vistorias.'
 
     } else if (status === 409) {
+
       assignError.value =
-        e.response?.data?.message?.includes('finaliz')
+        backendMessage.toLowerCase().includes('finaliz')
           ? 'Este checklist já foi finalizado.'
           : 'Já existe uma vistoria em andamento para este apartamento. Atualize a página.'
 
     } else if (status === 400) {
+
       assignError.value =
         'Esta vistoria já está finalizada e não pode ser reatribuída.'
 
     } else {
+
       assignError.value =
+        backendMessage ||
         'Erro ao atribuir vistoriador.'
+
     }
+
   }
 }
 
@@ -961,8 +1119,12 @@ async function assignInline(apt, userId) {
    EMPREENDIMENTOS
 ============================================================ */
 
+const buildings = ref([])
+const loadingBuildings = ref(false)
+
 const showBuildingForm = ref(false)
 const savingBuilding = ref(false)
+
 const buildingSuccess = ref(false)
 const buildingError = ref('')
 
@@ -976,7 +1138,9 @@ const buildingErrors = reactive({
   address: ''
 })
 
+
 function cancelBuilding() {
+
   showBuildingForm.value = false
 
   buildingForm.name = ''
@@ -989,7 +1153,9 @@ function cancelBuilding() {
   buildingError.value = ''
 }
 
+
 function validateBuilding() {
+
   buildingErrors.name = ''
   buildingErrors.address = ''
 
@@ -999,6 +1165,7 @@ function validateBuilding() {
     !buildingForm.name ||
     buildingForm.name.length < 2
   ) {
+
     buildingErrors.name =
       'Nome deve ter pelo menos 2 caracteres.'
 
@@ -1006,6 +1173,7 @@ function validateBuilding() {
   }
 
   if (!buildingForm.address) {
+
     buildingErrors.address =
       'Endereço é obrigatório.'
 
@@ -1015,7 +1183,9 @@ function validateBuilding() {
   return valid
 }
 
+
 async function saveBuilding() {
+
   if (!validateBuilding()) return
 
   savingBuilding.value = true
@@ -1023,10 +1193,12 @@ async function saveBuilding() {
   buildingSuccess.value = false
 
   try {
-    const created = await createBuilding({
-      name: buildingForm.name,
-      address: buildingForm.address
-    })
+
+    const created =
+      await createBuilding({
+        name: buildingForm.name,
+        address: buildingForm.address
+      })
 
     buildings.value.push(created)
 
@@ -1036,11 +1208,15 @@ async function saveBuilding() {
     buildingForm.address = ''
 
   } catch (e) {
+
     buildingError.value =
       e.response?.data?.message ||
       'Erro ao cadastrar empreendimento.'
+
   } finally {
+
     savingBuilding.value = false
+
   }
 }
 
@@ -1053,43 +1229,58 @@ const buildingToDelete = ref(null)
 const deletingBuilding = ref(false)
 
 function confirmDeleteBuilding(building) {
+
   buildingToDelete.value = building
+
 }
 
+
 async function doDeleteBuilding() {
+
   if (!buildingToDelete.value) return
 
   deletingBuilding.value = true
 
   try {
+
     await deleteBuilding(
       buildingToDelete.value.id
     )
 
+    const deletedId =
+      buildingToDelete.value.id
+
+    buildings.value =
+      buildings.value.filter(
+        b => b.id !== deletedId
+      )
+
+    apartments.value =
+      apartments.value.filter(
+        a => a.buildingId !== deletedId
+      )
+
+    if (
+      selectedBuildingId.value === deletedId
+    ) {
+
+      selectedBuildingId.value = null
+
+    }
+
+    buildingToDelete.value = null
+
   } catch (e) {
+
     console.error(
       'Erro ao excluir empreendimento na API:',
       e
     )
 
   } finally {
-    buildings.value = buildings.value.filter(
-      b => b.id !== buildingToDelete.value.id
-    )
 
-    apartments.value = apartments.value.filter(
-      a => a.buildingId !== buildingToDelete.value.id
-    )
-
-    if (
-      selectedBuildingId.value ===
-      buildingToDelete.value.id
-    ) {
-      selectedBuildingId.value = null
-    }
-
-    buildingToDelete.value = null
     deletingBuilding.value = false
+
   }
 }
 
@@ -1098,161 +1289,10 @@ async function doDeleteBuilding() {
    APARTAMENTOS
 ============================================================ */
 
-const selectedBuildingId = ref(null)
+const apartments = ref([])
+const loadingApts = ref(false)
 
-const apartmentsFiltered = computed(() =>
-  selectedBuildingId.value
-    ? apartments.value.filter(
-        a =>
-          a.buildingId ===
-          selectedBuildingId.value
-      )
-    : apartments.value
-)
-
-
-/* ============================================================
-   VISTORIADORES DO EMPREENDIMENTO
-============================================================ */
-
-const buildingInspectors = computed(() => {
-  if (!selectedBuildingId.value) {
-    return []
-  }
-
-  const inspectorIds = new Set(
-    apartmentsFiltered.value
-      .filter(a => a.currentInspectorId)
-      .map(a => a.currentInspectorId)
-  )
-
-  return Array.from(inspectorIds).map(id => {
-    const u = users.value.find(
-      user => user.id === id
-    )
-
-    return u ? u.name : 'Desconhecido'
-  })
-})
-
-function goBackToBuildings() {
-  selectedBuildingId.value = null
-  activeTab.value = 'buildings'
-}
-
-function getBuildingName(buildingId) {
-  const b = buildings.value.find(
-    b => b.id === buildingId
-  )
-
-  return b ? b.name : '—'
-}
-
-
-/* ============================================================
-   NOVO APARTAMENTO INDIVIDUAL
-============================================================ */
-
-const aptMode = ref(null)
-
-const savingApt = ref(false)
-const aptSuccess = ref(false)
-const aptError = ref('')
-
-const singleApt = reactive({
-  buildingId: '',
-  apartmentTypeId: '',
-  identifier: '',
-  floor: '',
-  block: ''
-})
-
-const aptErrors = reactive({
-  buildingId: '',
-  apartmentTypeId: '',
-  identifier: ''
-})
-
-function validateSingleApt() {
-  aptErrors.buildingId = ''
-  aptErrors.apartmentTypeId = ''
-  aptErrors.identifier = ''
-
-  let valid = true
-
-  if (!singleApt.buildingId) {
-    aptErrors.buildingId =
-      'Selecione um empreendimento.'
-
-    valid = false
-  }
-
-  if (!singleApt.apartmentTypeId) {
-    aptErrors.apartmentTypeId =
-      'Selecione um tipo.'
-
-    valid = false
-  }
-
-  if (!singleApt.identifier) {
-    aptErrors.identifier =
-      'Número é obrigatório.'
-
-    valid = false
-  }
-
-  return valid
-}
-
-async function saveSingleApt() {
-  if (!validateSingleApt()) return
-
-  savingApt.value = true
-  aptError.value = ''
-  aptSuccess.value = false
-
-  try {
-    const created = await createApartment({
-      buildingId:
-        Number(singleApt.buildingId),
-
-      apartmentTypeId:
-        Number(singleApt.apartmentTypeId),
-
-      identifier:
-        singleApt.identifier,
-
-      floor:
-        singleApt.floor
-          ? Number(singleApt.floor)
-          : undefined,
-
-      block:
-        singleApt.block ||
-        undefined
-    })
-
-    apartments.value.push(created)
-
-    aptSuccess.value = true
-
-    singleApt.identifier = ''
-    singleApt.floor = ''
-    singleApt.block = ''
-
-  } catch (e) {
-    if (e.response?.status === 409) {
-      aptError.value =
-        'Número de apartamento já existe.'
-    } else {
-      aptError.value =
-        e.response?.data?.message ||
-        'Erro ao cadastrar.'
-    }
-  } finally {
-    savingApt.value = false
-  }
-}
+const apartmentTypes = ref([])
 
 
 /* ============================================================
@@ -1263,81 +1303,293 @@ const aptToDelete = ref(null)
 const deletingApt = ref(false)
 const deleteAptError = ref('')
 
+
 function confirmDeleteApt(apt) {
+
   aptToDelete.value = apt
   deleteAptError.value = ''
+
 }
 
+
+function cancelDeleteApt() {
+
+  aptToDelete.value = null
+  deleteAptError.value = ''
+
+}
+
+
 async function doDeleteApt() {
+
   if (!aptToDelete.value) return
 
   deletingApt.value = true
   deleteAptError.value = ''
 
+  const apartmentId =
+    aptToDelete.value.id
+
   try {
+
     await deleteApartment(
-      aptToDelete.value.id
+      apartmentId
     )
 
-    /*
-     * Só remove da lista depois que a API
-     * confirmar a exclusão.
-     */
     apartments.value =
       apartments.value.filter(
-        a =>
-          a.id !== aptToDelete.value.id
+        a => a.id !== apartmentId
       )
 
     aptToDelete.value = null
 
   } catch (e) {
-    const status = e.response?.status
-    const backendMessage =
-      e.response?.data?.message
-
-    /*
-     * Conflito: apartamento possui dados
-     * vinculados, como checklist/vistoria.
-     */
-    if (status === 409) {
-      deleteAptError.value =
-        backendMessage?.includes('checklist')
-          ? 'Este apartamento já possui uma vistoria/checklist vinculado e não pode ser excluído.'
-          : (
-              backendMessage ||
-              'Não foi possível excluir: existem dados vinculados a este apartamento.'
-            )
-
-    /*
-     * Se o backend disser que não existe,
-     * removemos da lista local.
-     */
-    } else if (status === 404) {
-      apartments.value =
-        apartments.value.filter(
-          a =>
-            a.id !== aptToDelete.value.id
-        )
-
-      aptToDelete.value = null
-
-    /*
-     * Outros erros.
-     */
-    } else {
-      deleteAptError.value =
-        backendMessage ||
-        'Erro ao excluir apartamento. Tente novamente.'
-    }
 
     console.error(
       'Erro ao excluir apartamento na API:',
       e
     )
 
+    const status =
+      e.response?.status
+
+    const backendMessage =
+      e.response?.data?.message || ''
+
+    if (status === 409) {
+
+      if (
+        backendMessage
+          .toLowerCase()
+          .includes('checklist')
+      ) {
+
+        deleteAptError.value =
+          'Este apartamento já possui uma vistoria/checklist vinculado e não pode ser excluído.'
+
+      } else {
+
+        deleteAptError.value =
+          backendMessage ||
+          'Não foi possível excluir: existem dados vinculados a este apartamento.'
+
+      }
+
+    } else if (status === 404) {
+
+      apartments.value =
+        apartments.value.filter(
+          a => a.id !== apartmentId
+        )
+
+      aptToDelete.value = null
+
+    } else {
+
+      deleteAptError.value =
+        backendMessage ||
+        'Erro ao excluir apartamento. Tente novamente.'
+
+    }
+
   } finally {
+
     deletingApt.value = false
+
+  }
+}
+
+
+/* ============================================================
+   EMPREENDIMENTO SELECIONADO
+============================================================ */
+
+const selectedBuildingId = ref(null)
+
+const apartmentsFiltered = computed(() => {
+
+  if (selectedBuildingId.value) {
+
+    return apartments.value.filter(
+      a =>
+        a.buildingId ===
+        selectedBuildingId.value
+    )
+
+  }
+
+  return apartments.value
+
+})
+
+
+const buildingInspectors = computed(() => {
+
+  if (!selectedBuildingId.value) {
+    return []
+  }
+
+  const inspectorIds =
+    new Set(
+      apartmentsFiltered.value
+        .filter(a => a.currentInspectorId)
+        .map(a => a.currentInspectorId)
+    )
+
+  return Array.from(inspectorIds)
+    .map(id => {
+
+      const u =
+        users.value.find(
+          user => user.id === id
+        )
+
+      return u
+        ? u.name
+        : 'Desconhecido'
+
+    })
+
+})
+
+
+function goBackToBuildings() {
+
+  selectedBuildingId.value = null
+  activeTab.value = 'buildings'
+
+}
+
+
+/* ============================================================
+   APARTAMENTO INDIVIDUAL
+============================================================ */
+
+const aptMode = ref(null)
+
+const savingApt = ref(false)
+const aptSuccess = ref(false)
+const aptError = ref('')
+
+const singleApt = reactive({
+
+  buildingId: '',
+  apartmentTypeId: '',
+  identifier: '',
+  floor: '',
+  block: ''
+
+})
+
+const aptErrors = reactive({
+
+  buildingId: '',
+  apartmentTypeId: '',
+  identifier: ''
+
+})
+
+
+function validateSingleApt() {
+
+  aptErrors.buildingId = ''
+  aptErrors.apartmentTypeId = ''
+  aptErrors.identifier = ''
+
+  let valid = true
+
+  if (!singleApt.buildingId) {
+
+    aptErrors.buildingId =
+      'Selecione um empreendimento.'
+
+    valid = false
+
+  }
+
+  if (!singleApt.apartmentTypeId) {
+
+    aptErrors.apartmentTypeId =
+      'Selecione um tipo.'
+
+    valid = false
+
+  }
+
+  if (!singleApt.identifier) {
+
+    aptErrors.identifier =
+      'Número é obrigatório.'
+
+    valid = false
+
+  }
+
+  return valid
+
+}
+
+
+async function saveSingleApt() {
+
+  if (!validateSingleApt()) return
+
+  savingApt.value = true
+  aptError.value = ''
+  aptSuccess.value = false
+
+  try {
+
+    const created =
+      await createApartment({
+
+        buildingId:
+          Number(singleApt.buildingId),
+
+        apartmentTypeId:
+          Number(singleApt.apartmentTypeId),
+
+        identifier:
+          singleApt.identifier,
+
+        floor:
+          singleApt.floor
+            ? Number(singleApt.floor)
+            : undefined,
+
+        block:
+          singleApt.block ||
+          undefined
+
+      })
+
+    apartments.value.push(created)
+
+    aptSuccess.value = true
+
+    singleApt.identifier = ''
+    singleApt.floor = ''
+    singleApt.block = ''
+
+  } catch (e) {
+
+    if (e.response?.status === 409) {
+
+      aptError.value =
+        'Número de apartamento já existe.'
+
+    } else {
+
+      aptError.value =
+        e.response?.data?.message ||
+        'Erro ao cadastrar.'
+
+    }
+
+  } finally {
+
+    savingApt.value = false
+
   }
 }
 
@@ -1352,28 +1604,36 @@ const batchSuccess = ref('')
 const batchError = ref('')
 
 const batchForm = reactive({
+
   buildingId: '',
   apartmentTypeId: '',
   block: '',
   floors: '',
   aptsPerFloor: ''
+
 })
 
 const batchErrors = reactive({
+
   buildingId: '',
   apartmentTypeId: '',
   block: '',
   floors: '',
   aptsPerFloor: ''
+
 })
 
+
 const batchPreview = computed(() => {
+
   if (
     !batchForm.block ||
     !batchForm.floors ||
     !batchForm.aptsPerFloor
   ) {
+
     return []
+
   }
 
   const block =
@@ -1393,7 +1653,9 @@ const batchPreview = computed(() => {
     floors < 1 ||
     aptsPerFloor < 1
   ) {
+
     return []
+
   }
 
   const identifiers = []
@@ -1403,62 +1665,93 @@ const batchPreview = computed(() => {
     floor <= floors;
     floor++
   ) {
+
     for (
       let apt = 1;
       apt <= aptsPerFloor;
       apt++
     ) {
+
       identifiers.push(
         `${block}${floor}${String(apt).padStart(2, '0')}`
       )
+
     }
+
   }
 
   return identifiers
+
 })
 
+
 function validateBatch() {
-  Object.keys(batchErrors).forEach(
-    k => batchErrors[k] = ''
-  )
+
+  Object.keys(batchErrors)
+    .forEach(
+      k => batchErrors[k] = ''
+    )
 
   let valid = true
 
   if (!batchForm.buildingId) {
-    batchErrors.buildingId = 'Selecione.'
+
+    batchErrors.buildingId =
+      'Selecione.'
+
     valid = false
+
   }
 
   if (!batchForm.apartmentTypeId) {
-    batchErrors.apartmentTypeId = 'Selecione.'
+
+    batchErrors.apartmentTypeId =
+      'Selecione.'
+
     valid = false
+
   }
 
   if (!batchForm.block) {
-    batchErrors.block = 'Obrigatório.'
+
+    batchErrors.block =
+      'Obrigatório.'
+
     valid = false
+
   }
 
   if (
     !batchForm.floors ||
     batchForm.floors < 1
   ) {
-    batchErrors.floors = 'Mínimo 1.'
+
+    batchErrors.floors =
+      'Mínimo 1.'
+
     valid = false
+
   }
 
   if (
     !batchForm.aptsPerFloor ||
     batchForm.aptsPerFloor < 1
   ) {
-    batchErrors.aptsPerFloor = 'Mínimo 1.'
+
+    batchErrors.aptsPerFloor =
+      'Mínimo 1.'
+
     valid = false
+
   }
 
   return valid
+
 }
 
+
 async function saveBatch() {
+
   if (!validateBatch()) return
 
   savingBatch.value = true
@@ -1485,6 +1778,7 @@ async function saveBatch() {
     floor <= floors;
     floor++
   ) {
+
     for (
       let apt = 1;
       apt <= aptsPerFloor;
@@ -1495,8 +1789,10 @@ async function saveBatch() {
         `${block}${floor}${String(apt).padStart(2, '0')}`
 
       try {
+
         const result =
           await createApartment({
+
             buildingId:
               Number(batchForm.buildingId),
 
@@ -1508,19 +1804,29 @@ async function saveBatch() {
             floor,
 
             block
+
           })
 
         apartments.value.push(result)
 
         created++
 
-      } catch {
+      } catch (e) {
+
+        console.error(
+          `Erro ao criar apartamento ${identifier}:`,
+          e
+        )
+
         errors++
+
       }
 
       batchProgress.value =
         created + errors
+
     }
+
   }
 
   savingBatch.value = false
@@ -1529,6 +1835,25 @@ async function saveBatch() {
     errors === 0
       ? `${created} cadastrados!`
       : `${created} cadastrados. ${errors} falharam.`
+
+}
+
+
+/* ============================================================
+   UTILITÁRIOS
+============================================================ */
+
+function getBuildingName(buildingId) {
+
+  const b =
+    buildings.value.find(
+      b => b.id === buildingId
+    )
+
+  return b
+    ? b.name
+    : '—'
+
 }
 
 
@@ -1537,20 +1862,24 @@ async function saveBatch() {
 ============================================================ */
 
 onMounted(async () => {
+
   loadingBuildings.value = true
   loadingApts.value = true
 
   try {
+
     const [
       b,
       a,
       t,
       u
     ] = await Promise.all([
+
       getBuildings(),
       getApartments(),
       getApartmentTypes(),
       getUsers()
+
     ])
 
     buildings.value = b
@@ -1559,19 +1888,24 @@ onMounted(async () => {
     users.value = u
 
   } catch (e) {
+
     console.error(
       'Erro ao carregar dados',
       e
     )
 
   } finally {
+
     loadingBuildings.value = false
     loadingApts.value = false
+
   }
+
 })
 </script>
 
 <style scoped>
+
 .tabs {
   display: flex;
   gap: 12px;
@@ -1814,14 +2148,12 @@ select.invalid {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  box-shadow:
-    0 1px 2px rgba(16, 24, 40, 0.04);
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
 }
 
 .item-card:hover {
   border-color: #00e5cc;
-  box-shadow:
-    0 4px 12px rgba(16, 24, 40, 0.08);
+  box-shadow: 0 4px 12px rgba(16, 24, 40, 0.08);
   transform: translateY(-1px);
 }
 
@@ -1872,7 +2204,6 @@ select.invalid {
   background: #fdecea;
 }
 
-
 /* ============================================================
    BOTÃO VOLTAR
 ============================================================ */
@@ -1896,9 +2227,8 @@ select.invalid {
   background: #d0d0d0;
 }
 
-
 /* ============================================================
-   HEADER DO EMPREENDIMENTO
+   HEADER EMPREENDIMENTO
 ============================================================ */
 
 .building-header {
@@ -1959,9 +2289,8 @@ select.invalid {
   font-style: italic;
 }
 
-
 /* ============================================================
-   TABELA DE APARTAMENTOS
+   TABELA APARTAMENTOS
 ============================================================ */
 
 .apt-table-header {
@@ -1975,11 +2304,9 @@ select.invalid {
     40px;
 
   padding: 8px 24px;
-
   font-size: 0.85rem;
   color: #555;
   font-weight: 600;
-
   margin-bottom: 8px;
 }
 
@@ -1995,14 +2322,10 @@ select.invalid {
 
   background: #6b6b6b;
   border-radius: 10px;
-
   padding: 14px 24px;
-
   color: #fff;
   font-size: 0.9rem;
-
   margin-bottom: 8px;
-
   align-items: center;
 }
 
@@ -2019,11 +2342,6 @@ select.invalid {
   opacity: 0.8;
 }
 
-
-/* ============================================================
-   ATRIBUIÇÃO INLINE
-============================================================ */
-
 .apt-assign-inline {
   display: flex;
   justify-content: flex-start;
@@ -2032,21 +2350,15 @@ select.invalid {
 .apt-assign-inline select {
   width: 100%;
   max-width: 160px;
-
   padding: 8px 16px;
-
   border-radius: 20px;
   border: 1px dashed rgba(255,255,255,0.5);
-
   background: transparent;
-
   font-size: 0.85rem;
   color: #fff;
-
   cursor: pointer;
   outline: none;
   appearance: none;
-
   transition: all 0.2s ease;
 }
 
@@ -2067,11 +2379,6 @@ select.invalid {
   opacity: 1;
   cursor: default;
 }
-
-
-/* ============================================================
-   EXCLUIR APARTAMENTO
-============================================================ */
 
 .apt-delete-cell {
   display: flex;
@@ -2094,7 +2401,6 @@ select.invalid {
   color: #f87171;
 }
 
-
 /* ============================================================
    MODAIS
 ============================================================ */
@@ -2102,30 +2408,23 @@ select.invalid {
 .modal-overlay {
   position: fixed;
   inset: 0;
-
   background: rgba(0,0,0,0.5);
-
   display: flex;
   align-items: center;
   justify-content: center;
-
   z-index: 1000;
 }
 
 .modal-confirm {
   background: #fff;
   border-radius: 16px;
-
   padding: 40px;
-
   width: 420px;
-
+  max-width: calc(100vw - 32px);
   text-align: center;
-
   display: flex;
   flex-direction: column;
   align-items: center;
-
   gap: 16px;
 }
 
@@ -2147,33 +2446,36 @@ select.invalid {
   margin: 0;
 }
 
-/* NOVO: mensagem de erro dentro do modal */
+/* ============================================================
+   NOVO: ERRO DENTRO DO MODAL
+============================================================ */
+
 .modal-error {
+  width: 100%;
+  box-sizing: border-box;
   background: #fdecea;
-  color: #c0392b;
+  color: #c0392b !important;
+  border: 1px solid #f5b7b1;
   border-radius: 8px;
   padding: 10px 14px;
   font-weight: 500;
+  text-align: left;
 }
 
 .modal-actions {
   display: flex;
   gap: 12px;
+  justify-content: center;
 }
 
 .btn-confirm-delete {
   padding: 10px 24px;
-
   background: #c0392b;
-
   border: none;
   border-radius: 30px;
-
   color: #fff;
-
   font-size: 0.9rem;
   font-weight: bold;
-
   cursor: pointer;
 }
 
@@ -2182,7 +2484,6 @@ select.invalid {
   cursor: not-allowed;
 }
 
-
 /* ============================================================
    CHECKLIST
 ============================================================ */
@@ -2190,18 +2491,13 @@ select.invalid {
 .checklist-overlay-state {
   position: fixed;
   inset: 0;
-
   background: rgba(0,0,0,0.5);
-
   display: flex;
   align-items: center;
   justify-content: center;
-
   z-index: 1000;
-
   color: #fff;
   font-size: 1rem;
-
   flex-direction: column;
   gap: 16px;
 }
@@ -2214,13 +2510,10 @@ select.invalid {
   padding: 10px 28px;
 }
 
-
-/* ============================================================
-   VAZIO
-============================================================ */
-
 .empty {
   text-align: center;
   padding: 40px;
   color: #888;
 }
+
+</style>
