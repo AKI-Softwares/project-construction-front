@@ -337,6 +337,7 @@ async function handleReinspection(nc) {
 .nc-table {
   width: 100%;
   border-collapse: collapse;
+  table-layout: fixed;
   text-align: left;
   font-size: 0.9rem;
 }
@@ -347,6 +348,8 @@ async function handleReinspection(nc) {
   padding: 14px 16px;
   font-weight: 600;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .nc-table td {
@@ -354,6 +357,8 @@ async function handleReinspection(nc) {
   border-bottom: 1px solid #eee;
   color: #444;
   vertical-align: middle;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 .nc-table tr:last-child td {
