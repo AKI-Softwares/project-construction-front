@@ -24,14 +24,38 @@
           <FontAwesomeIcon :icon="['fas', 'user']" class="user-icon" />
           <span class="user-name">{{ user.name }}</span>
           <span class="user-separator">-</span>
-          <span class="user-role">
+
+          <span class="user-role" v-if="editingRoleUserId !== user.id">
             <span v-if="user.isCompanyAdmin" class="role-badge-admin">Administrador</span>
             <span v-else>{{ user.role?.name || '—' }}</span>
           </span>
+          <div class="user-role-edit" v-else>
+            <select v-model="roleEditValue">
+              <option v-for="r in roles" :key="r.id" :value="r.id">
+                {{ r.isCompanyAdmin ? `${r.name} (Administrador da empresa)` : r.name }}
+              </option>
+            </select>
+            <button class="btn-role-confirm" :disabled="savingUserRole" @click="confirmRoleChange(user)">
+              <FontAwesomeIcon :icon="['fas', 'circle-check']" />
+            </button>
+            <button class="btn-role-cancel" @click="cancelRoleEdit">
+              <FontAwesomeIcon :icon="['fas', 'circle-exclamation']" />
+            </button>
+          </div>
+
+          <button
+            v-if="editingRoleUserId !== user.id"
+            class="btn-edit-role"
+            title="Alterar cargo"
+            @click="startRoleEdit(user)"
+          >
+            <FontAwesomeIcon :icon="['fas', 'pen']" />
+          </button>
           <button class="btn-delete" @click="confirmDelete(user)" title="Excluir usuário">
             <FontAwesomeIcon :icon="['fas', 'trash']" />
           </button>
         </div>
+        <div v-if="userRoleChangeError" class="state error small">{{ userRoleChangeError }}</div>
         <div v-if="users.length === 0" class="state">Nenhum usuário cadastrado.</div>
       </div>
     </div>
@@ -165,7 +189,7 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import MainLayout from '../../components/Layout/MainLayout.vue'
-import { getUsers, deleteUser } from '../../services/users.js'
+import { getUsers, deleteUser, updateUser } from '../../services/users.js'
 import { getRoles, createRole, updateRole, deleteRole } from '../../services/roles.js'
 import { getPermissions } from '../../services/permissions.js'
 
@@ -193,6 +217,48 @@ async function doDeleteUser() {
     userToDelete.value = null
   } finally {
     deleting.value = false
+  }
+}
+
+// ─── Editar cargo do usuário (PATCH /users/:id, campo roleId) ─────
+// O back já aceita isso (updateUserSchema.roleId) e exige a permissão
+// 'users:update' — só falta a UI. Reatribuir alguém ao cargo especial
+// "Company Admin" (isCompanyAdmin: true) é hoje a única forma de dar
+// admin da empresa a mais de uma pessoa, já que não existe endpoint
+// pra marcar esse flag em um cargo customizado.
+const editingRoleUserId = ref(null)
+const roleEditValue = ref(null)
+const savingUserRole = ref(false)
+const userRoleChangeError = ref('')
+
+function startRoleEdit(user) {
+  userRoleChangeError.value = ''
+  editingRoleUserId.value = user.id
+  roleEditValue.value = user.role?.id || user.roleId || null
+}
+
+function cancelRoleEdit() {
+  editingRoleUserId.value = null
+  roleEditValue.value = null
+}
+
+async function confirmRoleChange(user) {
+  if (!roleEditValue.value) return
+  savingUserRole.value = true
+  userRoleChangeError.value = ''
+  try {
+    const updated = await updateUser(user.id, { roleId: Number(roleEditValue.value) })
+    // PATCH /users/:id não "achata" isCompanyAdmin no topo do objeto como
+    // o GET /users faz — vem só em updated.role.isCompanyAdmin. Normaliza
+    // aqui pra não precisar recarregar a página pra ver o selo atualizar.
+    const normalized = { ...updated, isCompanyAdmin: updated.role?.isCompanyAdmin ?? false }
+    const idx = users.value.findIndex(u => u.id === user.id)
+    if (idx !== -1) users.value[idx] = normalized
+    editingRoleUserId.value = null
+  } catch (e) {
+    userRoleChangeError.value = e.response?.data?.message || 'Erro ao alterar o cargo do usuário.'
+  } finally {
+    savingUserRole.value = false
   }
 }
 
@@ -396,6 +462,15 @@ onMounted(async () => {
 .user-separator { color: rgba(255,255,255,0.5); }
 .user-role { color: rgba(255,255,255,0.85); flex: 1; }
 .role-badge-admin { background: #00e5cc; color: #0b1120; padding: 2px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; }
+.user-role-edit { flex: 1; display: flex; align-items: center; gap: 8px; }
+.user-role-edit select { flex: 1; max-width: 280px; padding: 8px 12px; border-radius: 8px; border: none; background: rgba(255,255,255,0.1); color: #fff; font-size: 0.85rem; outline: none; }
+.user-role-edit select option { color: #0d0d2b; }
+.btn-role-confirm, .btn-role-cancel { background: none; border: none; cursor: pointer; font-size: 1rem; padding: 4px; }
+.btn-role-confirm { color: #00e5cc; }
+.btn-role-confirm:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-role-cancel { color: #f87171; }
+.btn-edit-role { background: none; border: none; color: rgba(255,255,255,0.5); cursor: pointer; font-size: 0.9rem; padding: 6px; border-radius: 6px; transition: color 0.2s; }
+.btn-edit-role:hover { color: #00e5cc; }
 .roles-list { display: flex; flex-direction: column; gap: 12px; }
 .role-card { display: flex; align-items: flex-start; justify-content: space-between; background: #fff; border-radius: 12px; padding: 20px 24px; border: 1px solid #eee; box-shadow: 0 2px 8px rgba(0,0,0,0.02); }
 .role-info { display: flex; flex-direction: column; gap: 6px; flex: 1; }
