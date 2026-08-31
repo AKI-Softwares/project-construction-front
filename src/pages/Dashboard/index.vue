@@ -132,7 +132,11 @@
       <!-- SEÇÃO INFERIOR: Ambientes com mais não conformidades -->
       <div class="bottom-table-area" v-if="topRoomIssues.length > 0">
         <div class="table-card-full">
-          <h3 class="chart-title">Ambientes com mais Não Conformidades</h3>
+          <h3 class="chart-title">
+            {{ selectedBuildingId === 'todos'
+              ? 'Ambientes com mais Não Conformidades (Todos os Empreendimentos)'
+              : `Ambientes com mais Não Conformidades — ${buildings.find(b => b.id === selectedBuildingId)?.name || ''}` }}
+          </h3>
           <div class="table-header-grid">
             <span>Cômodo</span>
             <span>Ocorrências</span>
@@ -310,8 +314,14 @@ const topQualityIssues = computed(() => {
 const topRoomIssues = computed(() => {
   if (!Array.isArray(ncRows.value) || ncRows.value.length === 0) return []
 
+  const filtered = selectedBuildingId.value === 'todos'
+    ? ncRows.value
+    : ncRows.value.filter(
+        (nc) => nc.visitItem?.visit?.checklist?.apartment?.building?.id === selectedBuildingId.value
+      )
+
   const counts = {}
-  for (const nc of ncRows.value) {
+  for (const nc of filtered) {
     const roomName = nc.visitItem?.checklistItem?.apartmentRoomService?.apartmentRoom?.name || 'Não identificado'
     counts[roomName] = (counts[roomName] || 0) + 1
   }
