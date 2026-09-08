@@ -107,8 +107,8 @@
             <span class="row-apt">{{ visit.apartment?.identifier || '—' }}</span>
             <span class="row-title-container">
               <span class="row-title">{{ visit.title || '—' }}</span>
-              <span class="row-inspector" v-if="visit.user?.name">
-                Por: {{ visit.user.name }}
+              <span class="row-inspector" v-if="visit.inspector?.name">
+                Por: {{ visit.inspector.name }}
               </span>
             </span>
             <span :class="['row-badge', `badge-${visit.status.toLowerCase()}`]">
@@ -227,7 +227,7 @@ const uniqueBuildings = computed(() => {
 })
 
 const uniqueInspectors = computed(() => {
-  const names = visits.value.map(v => v.user?.name).filter(Boolean)
+  const names = visits.value.map(v => v.inspector?.name).filter(Boolean)
   return [...new Set(names)]
 })
 
@@ -257,7 +257,7 @@ const filteredVisits = computed(() => {
   if (selectedInspector.value !== 'ALL') {
     const targetInspector = selectedInspector.value.toLowerCase().trim()
     result = result.filter(v => {
-      const inspectorName = v.user?.name || ''
+      const inspectorName = v.inspector?.name || ''
       return inspectorName.toLowerCase().trim() === targetInspector
     })
   }
@@ -297,11 +297,12 @@ async function openVisit(id) {
   loadingVisit.value = true
   try {
     const raw = await getVisit(id)
-    if (raw.checklist) {
-      raw.items = raw.checklist.items || []
-    } else {
-      raw.items = raw.items || []
-    }
+    // GET /visits/:id retorna items no nível raiz (correto) e o
+    // apartamento aninhado em checklist.apartment — mas o VisitModal
+    // espera visit.apartment já achatado. A lógica antiga sobrescrevia
+    // items com checklist.items (que não existe), zerando o modal.
+    raw.apartment = raw.checklist?.apartment || raw.apartment
+    raw.items = raw.items || []
     selectedVisit.value = raw
   } catch (e) {
     console.error('Erro ao carregar vistoria:', e)
