@@ -264,7 +264,7 @@ async function handleReinspection(nc) {
 
 .filters-card {
   background: #fff;
-  border-radius: 8px;
+  border-radius: 12px;
   padding: 20px;
   border: 1px solid #eee;
   display: flex;
@@ -312,7 +312,7 @@ async function handleReinspection(nc) {
   text-align: center;
   padding: 40px;
   background: #fff;
-  border-radius: 8px;
+  border-radius: 12px;
   border: 1px solid #eee;
   color: #555;
   font-weight: 500;
@@ -320,7 +320,7 @@ async function handleReinspection(nc) {
 
 .table-card {
   background: #fff;
-  border-radius: 8px;
+  border-radius: 12px;
   border: 1px solid #eee;
   overflow-x: auto;
 }
@@ -335,12 +335,13 @@ async function handleReinspection(nc) {
 }
 
 .nc-table th {
-  background: #0d0d2b;
-  color: #fff;
+  background: #f5f5f5;
+  color: #555;
   padding: 12px 12px;
   font-weight: 600;
   font-size: 0.8rem;
   white-space: nowrap;
+  border-bottom: 1px solid #eee;
 }
 
 .nc-table td {
@@ -442,7 +443,7 @@ async function handleReinspection(nc) {
 
 .empty-card {
   background: #fff;
-  border-radius: 8px;
+  border-radius: 12px;
   padding: 40px;
   border: 1px solid #eee;
   text-align: center;
