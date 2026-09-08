@@ -1,7 +1,11 @@
 <template>
-  <div class="main-layout">
-    <Header :titulo="titulo" />
-    <Sidebar />
+  <div class="main-layout" :class="{ 'sidebar-hover-expanded': sidebarHoverExpanded }">
+    <Header :titulo="titulo" @toggle-menu="mobileMenuOpen = !mobileMenuOpen" />
+    <Sidebar
+      :mobile-open="mobileMenuOpen"
+      @close="mobileMenuOpen = false"
+      @update:aberta="sidebarHoverExpanded = $event"
+    />
     <div class="conteudo-wrapper">
       <main class="conteudo">
         <slot />
@@ -31,6 +35,8 @@ defineProps({
 })
 
 const toast = ref({ visible: false, message: '', type: 'error' })
+const mobileMenuOpen = ref(false)
+const sidebarHoverExpanded = ref(false)
 let timer = null
 
 function showToast({ detail }) {
@@ -65,9 +71,21 @@ onUnmounted(() => window.removeEventListener('app:toast', showToast))
   flex: 1;
 }
 
-/* Quando sidebar expande via hover, empurra o conteúdo */
-.main-layout:has(.sidebar.expandida) .conteudo-wrapper {
+/* Quando sidebar expande via hover, empurra o conteúdo. Usa uma classe
+   reativa (via evento update:aberta do Sidebar) em vez do seletor CSS
+   :has(), que não é suportado em todos os navegadores. */
+.main-layout.sidebar-hover-expanded .conteudo-wrapper {
   margin-left: 260px;
+}
+
+/* No mobile a sidebar vira um menu flutuante (drawer) — não deve
+   empurrar o conteúdo, que ocupa a largura toda. */
+@media (max-width: 767px) {
+  .main-layout.sidebar-hover-expanded .conteudo-wrapper,
+  .conteudo-wrapper {
+    margin-left: 0;
+  }
+  .conteudo { padding: 16px; }
 }
 
 /* Toast */
