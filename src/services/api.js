@@ -60,7 +60,13 @@ api.interceptors.response.use(
     }
 
     if (status === 403) {
-      showToast('Você não tem permissão para realizar esta ação.')
+      // Chamadas que já tratam o próprio erro (ex: analytics no Dashboard,
+      // que esconde o card graciosamente pra quem não é admin) podem pedir
+      // pra não disparar esse toast genérico, passando { silentErrors: true }
+      // na config da chamada axios.
+      if (!error.config?.silentErrors) {
+        showToast('Você não tem permissão para realizar esta ação.')
+      }
       return Promise.reject(error)
     }
 
