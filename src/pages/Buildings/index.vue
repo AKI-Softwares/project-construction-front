@@ -216,7 +216,7 @@
                 @click.stop
               >
                 <FontAwesomeIcon :icon="['fas', 'plus']" />
-                Abrir vistoria
+                Sem vistoria — Atribuir
               </router-link>
             </div>
 
@@ -239,11 +239,12 @@
         <div class="modal-icon"><FontAwesomeIcon :icon="['fas', 'triangle-exclamation']" /></div>
         <h3>Excluir empreendimento</h3>
         <p>Excluir <strong>{{ buildingToDelete.name }}</strong>? Esta ação não pode ser desfeita.</p>
+        <p v-if="buildingDeleteError" class="modal-error">{{ buildingDeleteError }}</p>
         <div class="modal-actions">
           <button class="btn-confirm-delete" :disabled="deletingBuilding" @click="doDeleteBuilding">
             {{ deletingBuilding ? 'Excluindo...' : 'Sim, excluir' }}
           </button>
-          <button class="btn-cancel" @click="buildingToDelete = null">Cancelar</button>
+          <button class="btn-cancel" @click="buildingToDelete = null; buildingDeleteError = ''">Cancelar</button>
         </div>
       </div>
     </div>
@@ -400,22 +401,38 @@ async function saveBuilding() {
 const buildingToDelete = ref(null)
 const deletingBuilding = ref(false)
 
-function confirmDeleteBuilding(building) { buildingToDelete.value = building }
+const buildingDeleteError = ref('')
+
+function confirmDeleteBuilding(building) { buildingToDelete.value = building; buildingDeleteError.value = '' }
 
 async function doDeleteBuilding() {
   if (!buildingToDelete.value) return
   deletingBuilding.value = true
+  buildingDeleteError.value = ''
   try {
     await deleteBuilding(buildingToDelete.value.id)
-  } catch (e) {
-    // Se a API falhar, oculta localmente mesmo assim
-    console.error('Erro ao excluir empreendimento na API:', e)
-  } finally {
-    // Sempre remove da lista local — oculta independente do resultado da API
+    // Só remove da lista local se a API confirmou a exclusão.
     buildings.value = buildings.value.filter(b => b.id !== buildingToDelete.value.id)
     apartments.value = apartments.value.filter(a => a.buildingId !== buildingToDelete.value.id)
     if (selectedBuildingId.value === buildingToDelete.value.id) selectedBuildingId.value = null
     buildingToDelete.value = null
+  } catch (e) {
+    const status = e.response?.status
+    const backendMessage = e.response?.data?.message
+    if (status === 409) {
+      buildingDeleteError.value = backendMessage?.includes('apartment')
+        ? 'Este empreendimento ainda possui apartamentos cadastrados e não pode ser excluído. Exclua os apartamentos primeiro.'
+        : (backendMessage || 'Não foi possível excluir: existem dados vinculados a este empreendimento.')
+    } else if (status === 404) {
+      // Já não existe no back — aí sim é seguro remover da lista local.
+      buildings.value = buildings.value.filter(b => b.id !== buildingToDelete.value.id)
+      if (selectedBuildingId.value === buildingToDelete.value.id) selectedBuildingId.value = null
+      buildingToDelete.value = null
+    } else {
+      buildingDeleteError.value = backendMessage || 'Erro ao excluir empreendimento. Tente novamente.'
+    }
+    console.error('Erro ao excluir empreendimento na API:', e)
+  } finally {
     deletingBuilding.value = false
   }
 }
