@@ -4,8 +4,6 @@
 
   <div
     :class="['sidebar', { expandida: aberta, 'mobile-aberta': mobileOpen }]"
-    @mouseenter="toggleSidebar(true)"
-    @mouseleave="toggleSidebar(false)"
   >
 
     <nav class="menu" @click="onMenuClick">
@@ -123,15 +121,14 @@ import { useAuthStore } from '../../store/auth.js'
 const props = defineProps({
   mobileOpen: { type: Boolean, default: false },
 })
-const emit = defineEmits(['update:aberta', 'close'])
+const emit = defineEmits(['close'])
 const router = useRouter()
 const authStore = useAuthStore()
-const aberta = ref(false)
 
-function toggleSidebar(estado) {
-  aberta.value = estado
-  emit('update:aberta', estado)
-}
+// No desktop, a sidebar fica sempre expandida (não fecha mais sozinha ao
+// tirar o mouse). No mobile, quem controla abrir/fechar é o hambúrguer
+// (mobileOpen), independente disso.
+const aberta = ref(true)
 
 // Quando o menu mobile abre, mantém os rótulos visíveis mesmo sem hover.
 watch(() => props.mobileOpen, (val) => {
