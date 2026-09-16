@@ -1,11 +1,7 @@
 <template>
-  <div class="main-layout" :class="{ 'sidebar-hover-expanded': sidebarHoverExpanded }">
+  <div class="main-layout">
     <Header :titulo="titulo" @toggle-menu="mobileMenuOpen = !mobileMenuOpen" />
-    <Sidebar
-      :mobile-open="mobileMenuOpen"
-      @close="mobileMenuOpen = false"
-      @update:aberta="sidebarHoverExpanded = $event"
-    />
+    <Sidebar :mobile-open="mobileMenuOpen" @close="mobileMenuOpen = false" />
     <div class="conteudo-wrapper">
       <main class="conteudo">
         <slot />
@@ -36,7 +32,6 @@ defineProps({
 
 const toast = ref({ visible: false, message: '', type: 'error' })
 const mobileMenuOpen = ref(false)
-const sidebarHoverExpanded = ref(false)
 let timer = null
 
 function showToast({ detail }) {
@@ -56,32 +51,24 @@ onUnmounted(() => window.removeEventListener('app:toast', showToast))
   overflow: hidden;
 }
 .conteudo-wrapper {
-  margin-left: 60px;
+  /* A sidebar agora fica sempre expandida (260px) no desktop — não muda
+     mais dinamicamente, então o recuo do conteúdo pode ser fixo. */
+  margin-left: 260px;
   margin-top: 60px;
   flex: 1;
   display: flex;
   flex-direction: column;
   background-color: #f4f4f4;
-  transition: margin-left 0.25s ease;
   height: calc(100vh - 60px);
   overflow-y: auto;
 }
 .conteudo {
   padding: 32px;
-  flex: 1;
-}
-
-/* Quando sidebar expande via hover, empurra o conteúdo. Usa uma classe
-   reativa (via evento update:aberta do Sidebar) em vez do seletor CSS
-   :has(), que não é suportado em todos os navegadores. */
-.main-layout.sidebar-hover-expanded .conteudo-wrapper {
-  margin-left: 260px;
 }
 
 /* No mobile a sidebar vira um menu flutuante (drawer) — não deve
    empurrar o conteúdo, que ocupa a largura toda. */
 @media (max-width: 767px) {
-  .main-layout.sidebar-hover-expanded .conteudo-wrapper,
   .conteudo-wrapper {
     margin-left: 0;
   }
