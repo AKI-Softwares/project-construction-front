@@ -157,8 +157,9 @@ async function entrar() {
 
 .main-logo {
   max-width: 420px;
-  width: 100%;
+  width: auto;
   height: auto;
+  object-fit: contain;
   margin-bottom: 2rem;
 }
 
