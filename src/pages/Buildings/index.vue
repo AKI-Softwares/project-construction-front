@@ -31,8 +31,41 @@
         </div>
         <input v-model="buildingForm.name" type="text" placeholder="Nome do Empreendimento" :class="{ invalid: buildingErrors.name }" />
         <span v-if="buildingErrors.name" class="field-error">{{ buildingErrors.name }}</span>
-        <input v-model="buildingForm.address" type="text" placeholder="Endereço" :class="{ invalid: buildingErrors.address }" />
+
+        <div class="form-row">
+          <div class="form-col">
+            <input
+              v-model="cepInput"
+              type="text"
+              placeholder="CEP (ex: 87013-000)"
+              maxlength="9"
+              :class="{ invalid: buildingErrors.address }"
+              @input="onCepInput"
+              @blur="buscarCep"
+            />
+            <span v-if="cepLoading" class="field-hint">Buscando endereço...</span>
+            <span v-if="cepError" class="field-error">{{ cepError }}</span>
+          </div>
+          <div class="form-col">
+            <input v-model="enderecoForm.numero" type="text" placeholder="Número" />
+          </div>
+        </div>
+
+        <input v-model="enderecoForm.rua" type="text" placeholder="Rua / Logradouro (preenchido pelo CEP, editável)" />
+        <div class="form-row">
+          <div class="form-col">
+            <input v-model="enderecoForm.bairro" type="text" placeholder="Bairro" />
+          </div>
+          <div class="form-col">
+            <input v-model="enderecoForm.cidade" type="text" placeholder="Cidade" />
+          </div>
+          <div class="form-col">
+            <input v-model="enderecoForm.uf" type="text" placeholder="UF" maxlength="2" />
+          </div>
+        </div>
+        <input v-model="enderecoForm.complemento" type="text" placeholder="Complemento (opcional)" />
         <span v-if="buildingErrors.address" class="field-error">{{ buildingErrors.address }}</span>
+
         <div class="form-actions">
           <button class="btn-save" :disabled="savingBuilding" @click="saveBuilding">
             {{ savingBuilding ? 'Salvando...' : 'Salvar' }}
@@ -65,101 +98,13 @@
     <!-- ===== TAB: APARTAMENTOS ===== -->
     <div v-if="activeTab === 'apartments'">
 
-      <div class="apt-actions">
-        <button v-if="authStore.hasPermission('apartments:create')" :class="['btn-add', { active: aptMode === 'single' }]" @click="aptMode = aptMode === 'single' ? null : 'single'">
-          + Adicionar Apartamento individual
-        </button>
-        <button v-if="authStore.hasPermission('apartments:create')" :class="['btn-batch', { active: aptMode === 'batch' }]" @click="aptMode = aptMode === 'batch' ? null : 'batch'">
-          Cadastro em Lote
-        </button>
+      <div class="apartments-tab-intro">
+        <FontAwesomeIcon :icon="['fas', 'circle-info']" />
+        Para adicionar apartamentos, abra o empreendimento desejado na aba
+        "Empreendimentos" — o cadastro individual e em lote agora fica lá.
       </div>
 
-      <div v-if="aptMode === 'single'" class="form-card">
-        <h3 class="form-title">Novo Apartamento</h3>
-        <div v-if="aptSuccess" class="alert success"><FontAwesomeIcon :icon="['fas', 'circle-check']" /> Apartamento cadastrado com sucesso!</div>
-        <div v-if="aptError" class="alert error">{{ aptError }}</div>
-        <select v-model="singleApt.buildingId" :class="{ invalid: aptErrors.buildingId }">
-          <option value="" disabled>Selecionar Empreendimento</option>
-          <option v-for="b in buildings" :key="b.id" :value="b.id">{{ b.name }}</option>
-        </select>
-        <span v-if="aptErrors.buildingId" class="field-error">{{ aptErrors.buildingId }}</span>
-        <select v-model="singleApt.apartmentTypeId" :class="{ invalid: aptErrors.apartmentTypeId }">
-          <option value="" disabled>Tipo de Apartamento</option>
-          <option v-for="t in apartmentTypes" :key="t.id" :value="t.id">{{ t.name }}</option>
-        </select>
-        <span v-if="aptErrors.apartmentTypeId" class="field-error">{{ aptErrors.apartmentTypeId }}</span>
-        <div class="form-row">
-          <div class="form-col">
-            <input v-model="singleApt.identifier" type="text" placeholder="Número (ex: 101)" :class="{ invalid: aptErrors.identifier }" />
-            <span v-if="aptErrors.identifier" class="field-error">{{ aptErrors.identifier }}</span>
-          </div>
-          <div class="form-col">
-            <input v-model="singleApt.floor" type="number" placeholder="Andar" min="1" />
-          </div>
-          <div class="form-col">
-            <input v-model="singleApt.block" type="text" placeholder="Bloco (ex: A)" />
-          </div>
-        </div>
-        <div class="form-actions">
-          <button class="btn-save" :disabled="savingApt" @click="saveSingleApt">{{ savingApt ? 'Salvando...' : 'Salvar' }}</button>
-          <button class="btn-cancel" @click="aptMode = null">Voltar</button>
-        </div>
-      </div>
-
-      <div v-if="aptMode === 'batch'" class="form-card">
-        <h3 class="form-title">Cadastrar em Lote - Gerar múltiplos apartamentos</h3>
-        <div class="info-box">
-          <FontAwesomeIcon :icon="['fas', 'circle-exclamation']" class="info-icon" />
-          <div>
-            <strong>Como funciona:</strong>
-            <ul>
-              <li>Bloco B, 4 andares, 3 apts/andar → Gera B101, B102, B103, B201...</li>
-              <li>Formato: BlocoAndarNúmero (ex: B101 = Bloco B, 1º andar, apt 01)</li>
-            </ul>
-          </div>
-        </div>
-        <div v-if="batchSuccess" class="alert success"><FontAwesomeIcon :icon="['fas', 'circle-check']" /> {{ batchSuccess }}</div>
-        <div v-if="batchError" class="alert error">{{ batchError }}</div>
-        <select v-model="batchForm.buildingId" :class="{ invalid: batchErrors.buildingId }">
-          <option value="" disabled>Selecionar Empreendimento</option>
-          <option v-for="b in buildings" :key="b.id" :value="b.id">{{ b.name }}</option>
-        </select>
-        <span v-if="batchErrors.buildingId" class="field-error">{{ batchErrors.buildingId }}</span>
-        <select v-model="batchForm.apartmentTypeId" :class="{ invalid: batchErrors.apartmentTypeId }">
-          <option value="" disabled>Tipo de Apartamento</option>
-          <option v-for="t in apartmentTypes" :key="t.id" :value="t.id">{{ t.name }}</option>
-        </select>
-        <span v-if="batchErrors.apartmentTypeId" class="field-error">{{ batchErrors.apartmentTypeId }}</span>
-        <div class="form-row">
-          <div class="form-col">
-            <input v-model="batchForm.block" type="text" placeholder="Ex: Bloco B" :class="{ invalid: batchErrors.block }" />
-            <span v-if="batchErrors.block" class="field-error">{{ batchErrors.block }}</span>
-          </div>
-          <div class="form-col">
-            <input v-model.number="batchForm.floors" type="number" placeholder="Qtd de andares" min="1" :class="{ invalid: batchErrors.floors }" />
-            <span v-if="batchErrors.floors" class="field-error">{{ batchErrors.floors }}</span>
-          </div>
-          <div class="form-col">
-            <input v-model.number="batchForm.aptsPerFloor" type="number" placeholder="Apts por andar" min="1" :class="{ invalid: batchErrors.aptsPerFloor }" />
-            <span v-if="batchErrors.aptsPerFloor" class="field-error">{{ batchErrors.aptsPerFloor }}</span>
-          </div>
-        </div>
-        <div v-if="batchPreview.length > 0" class="preview">
-          <strong>Preview ({{ batchPreview.length }} apartamentos):</strong>
-          <div class="preview-list">
-            <span v-for="id in batchPreview.slice(0, 20)" :key="id" class="preview-tag">{{ id }}</span>
-            <span v-if="batchPreview.length > 20" class="preview-tag more">+{{ batchPreview.length - 20 }} mais</span>
-          </div>
-        </div>
-        <div class="form-actions">
-          <button class="btn-save" :disabled="savingBatch" @click="saveBatch">
-            {{ savingBatch ? `Salvando... (${batchProgress}/${batchPreview.length})` : 'Salvar' }}
-          </button>
-          <button class="btn-cancel" @click="aptMode = null">Voltar</button>
-        </div>
-      </div>
-
-      <div v-if="!aptMode">
+      <div>
 
         <div v-if="selectedBuildingId" class="back-action-container">
           <button class="btn-back" @click="goBackToBuildings">← Voltar para Empreendimentos</button>
@@ -282,7 +227,7 @@ import { useRouter } from 'vue-router'
 import MainLayout from '../../components/Layout/MainLayout.vue'
 import ChecklistModal from '../../components/Layout/ChecklistModal.vue'
 import { getBuildings, createBuilding, deleteBuilding } from '../../services/buildings.js'
-import { getApartments, createApartment, deleteApartment } from '../../services/apartments.js'
+import { getApartments, deleteApartment } from '../../services/apartments.js'
 import { getChecklistByApartment } from '../../services/checklists.js'
 import { getVisits } from '../../services/visits.js'
 import { getUsers } from '../../services/users.js'
@@ -364,21 +309,81 @@ const showBuildingForm = ref(false)
 const savingBuilding = ref(false)
 const buildingSuccess = ref(false)
 const buildingError = ref('')
-const buildingForm = reactive({ name: '', address: '' })
+const buildingForm = reactive({ name: '' })
 const buildingErrors = reactive({ name: '', address: '' })
+
+// ─── Busca de CEP (ViaCEP — gratuito, sem chave de API) ────────
+const cepInput = ref('')
+const cepLoading = ref(false)
+const cepError = ref('')
+const enderecoForm = reactive({ rua: '', bairro: '', cidade: '', uf: '', numero: '', complemento: '' })
+
+function onCepInput() {
+  let v = cepInput.value.replace(/\D/g, '').slice(0, 8)
+  if (v.length > 5) v = `${v.slice(0, 5)}-${v.slice(5)}`
+  cepInput.value = v
+  cepError.value = ''
+}
+
+async function buscarCep() {
+  const cepLimpo = cepInput.value.replace(/\D/g, '')
+  if (cepLimpo.length !== 8) return
+  cepLoading.value = true
+  cepError.value = ''
+  try {
+    const response = await fetch(`https://viacep.com.br/ws/${cepLimpo}/json/`)
+    const data = await response.json()
+    if (data.erro) {
+      cepError.value = 'CEP não encontrado.'
+      return
+    }
+    enderecoForm.rua = data.logradouro || ''
+    enderecoForm.bairro = data.bairro || ''
+    enderecoForm.cidade = data.localidade || ''
+    enderecoForm.uf = data.uf || ''
+  } catch (e) {
+    cepError.value = 'Erro ao buscar o CEP. Preencha o endereço manualmente.'
+  } finally {
+    cepLoading.value = false
+  }
+}
+
+// Monta a string única "address" que o back espera (só tem uma coluna de
+// texto livre — não há colunas próprias pra rua/cidade/etc).
+function montarEndereco() {
+  const partes = []
+  if (enderecoForm.rua) partes.push(enderecoForm.numero ? `${enderecoForm.rua}, ${enderecoForm.numero}` : enderecoForm.rua)
+  else if (enderecoForm.numero) partes.push(`Nº ${enderecoForm.numero}`)
+  if (enderecoForm.complemento) partes.push(enderecoForm.complemento)
+  if (enderecoForm.bairro) partes.push(enderecoForm.bairro)
+  if (enderecoForm.cidade) partes.push(enderecoForm.uf ? `${enderecoForm.cidade} - ${enderecoForm.uf}` : enderecoForm.cidade)
+  if (cepInput.value) partes.push(`CEP: ${cepInput.value}`)
+  return partes.join(', ')
+}
+
+function limparEnderecoForm() {
+  cepInput.value = ''
+  cepError.value = ''
+  enderecoForm.rua = ''; enderecoForm.bairro = ''; enderecoForm.cidade = ''
+  enderecoForm.uf = ''; enderecoForm.numero = ''; enderecoForm.complemento = ''
+}
 
 function cancelBuilding() {
   showBuildingForm.value = false
-  buildingForm.name = ''; buildingForm.address = ''
+  buildingForm.name = ''
   buildingErrors.name = ''; buildingErrors.address = ''
   buildingSuccess.value = false; buildingError.value = ''
+  limparEnderecoForm()
 }
 
 function validateBuilding() {
   buildingErrors.name = ''; buildingErrors.address = ''
   let valid = true
   if (!buildingForm.name || buildingForm.name.length < 2) { buildingErrors.name = 'Nome deve ter pelo menos 2 caracteres.'; valid = false }
-  if (!buildingForm.address) { buildingErrors.address = 'Endereço é obrigatório.'; valid = false }
+  if (!enderecoForm.rua && !enderecoForm.numero && !enderecoForm.cidade) {
+    buildingErrors.address = 'Informe ao menos o CEP (ou rua/cidade) e o número.'
+    valid = false
+  }
   return valid
 }
 
@@ -386,10 +391,14 @@ async function saveBuilding() {
   if (!validateBuilding()) return
   savingBuilding.value = true; buildingError.value = ''; buildingSuccess.value = false
   try {
-    const created = await createBuilding({ name: buildingForm.name, address: buildingForm.address })
+    const created = await createBuilding({ name: buildingForm.name, address: montarEndereco() })
     buildings.value.push(created)
     buildingSuccess.value = true
-    buildingForm.name = ''; buildingForm.address = ''
+    buildingForm.name = ''
+    limparEnderecoForm()
+    // Próximo passo natural: já leva pra tela do empreendimento pra
+    // cadastrar os apartamentos, em vez de deixar solto na lista.
+    setTimeout(() => router.push(`/buildings/${created.id}`), 800)
   } catch (e) {
     buildingError.value = e.response?.data?.message || 'Erro ao cadastrar empreendimento.'
   } finally {
@@ -497,105 +506,6 @@ function goBackToBuildings() {
   activeTab.value = 'buildings'
 }
 
-const aptMode = ref(null)
-const savingApt = ref(false)
-const aptSuccess = ref(false)
-const aptError = ref('')
-const singleApt = reactive({ buildingId: '', apartmentTypeId: '', identifier: '', floor: '', block: '' })
-const aptErrors = reactive({ buildingId: '', apartmentTypeId: '', identifier: '' })
-
-function validateSingleApt() {
-  aptErrors.buildingId = ''; aptErrors.apartmentTypeId = ''; aptErrors.identifier = ''
-  let valid = true
-  if (!singleApt.buildingId) { aptErrors.buildingId = 'Selecione um empreendimento.'; valid = false }
-  if (!singleApt.apartmentTypeId) { aptErrors.apartmentTypeId = 'Selecione um tipo.'; valid = false }
-  if (!singleApt.identifier) { aptErrors.identifier = 'Número é obrigatório.'; valid = false }
-  return valid
-}
-
-async function saveSingleApt() {
-  if (!validateSingleApt()) return
-  savingApt.value = true; aptError.value = ''; aptSuccess.value = false
-  try {
-    const created = await createApartment({
-      buildingId: Number(singleApt.buildingId),
-      apartmentTypeId: Number(singleApt.apartmentTypeId),
-      identifier: singleApt.identifier,
-      floor: singleApt.floor ? Number(singleApt.floor) : undefined,
-      block: singleApt.block || undefined,
-    })
-    apartments.value.push(created)
-    aptSuccess.value = true
-    singleApt.identifier = ''; singleApt.floor = ''; singleApt.block = ''
-  } catch (e) {
-    if (e.response?.status === 409) aptError.value = 'Número de apartamento já existe.'
-    else aptError.value = e.response?.data?.message || 'Erro ao cadastrar.'
-  } finally {
-    savingApt.value = false
-  }
-}
-
-const savingBatch = ref(false)
-const batchProgress = ref(0)
-const batchSuccess = ref('')
-const batchError = ref('')
-const batchForm = reactive({ buildingId: '', apartmentTypeId: '', block: '', floors: '', aptsPerFloor: '' })
-const batchErrors = reactive({ buildingId: '', apartmentTypeId: '', block: '', floors: '', aptsPerFloor: '' })
-
-const batchPreview = computed(() => {
-  if (!batchForm.block || !batchForm.floors || !batchForm.aptsPerFloor) return []
-  const block = batchForm.block.replace('Bloco ', '').trim()
-  const floors = Number(batchForm.floors)
-  const aptsPerFloor = Number(batchForm.aptsPerFloor)
-  if (!floors || !aptsPerFloor || floors < 1 || aptsPerFloor < 1) return []
-  const identifiers = []
-  for (let floor = 1; floor <= floors; floor++) {
-    for (let apt = 1; apt <= aptsPerFloor; apt++) {
-      identifiers.push(`${block}${floor}${String(apt).padStart(2, '0')}`)
-    }
-  }
-  return identifiers
-})
-
-function validateBatch() {
-  Object.keys(batchErrors).forEach(k => batchErrors[k] = '')
-  let valid = true
-  if (!batchForm.buildingId) { batchErrors.buildingId = 'Selecione.'; valid = false }
-  if (!batchForm.apartmentTypeId) { batchErrors.apartmentTypeId = 'Selecione.'; valid = false }
-  if (!batchForm.block) { batchErrors.block = 'Obrigatório.'; valid = false }
-  if (!batchForm.floors || batchForm.floors < 1) { batchErrors.floors = 'Mínimo 1.'; valid = false }
-  if (!batchForm.aptsPerFloor || batchForm.aptsPerFloor < 1) { batchErrors.aptsPerFloor = 'Mínimo 1.'; valid = false }
-  return valid
-}
-
-async function saveBatch() {
-  if (!validateBatch()) return
-  savingBatch.value = true; batchProgress.value = 0; batchSuccess.value = ''; batchError.value = ''
-  const block = batchForm.block.replace('Bloco ', '').trim()
-  const floors = Number(batchForm.floors)
-  const aptsPerFloor = Number(batchForm.aptsPerFloor)
-  let created = 0; let errors = 0
-  for (let floor = 1; floor <= floors; floor++) {
-    for (let apt = 1; apt <= aptsPerFloor; apt++) {
-      const identifier = `${block}${floor}${String(apt).padStart(2, '0')}`
-      try {
-        const result = await createApartment({
-          buildingId: Number(batchForm.buildingId),
-          apartmentTypeId: Number(batchForm.apartmentTypeId),
-          identifier, floor, block,
-        })
-        apartments.value.push(result)
-        created++
-      } catch { errors++ }
-      batchProgress.value = created + errors
-    }
-  }
-  savingBatch.value = false
-  batchSuccess.value = errors === 0
-    ? `${created} cadastrados!`
-    : `${created} cadastrados. ${errors} falharam.`
-}
-
 function getBuildingName(buildingId) {
   const b = buildings.value.find(b => b.id === buildingId)
   return b ? b.name : '—'
@@ -634,6 +544,7 @@ onMounted(async () => {
 .btn-add, .btn-batch { display: inline-flex; align-items: center; gap: 8px; background: #00e5cc; color: #0b1120; border: none; border-radius: 30px; padding: 12px 24px; font-size: 0.9rem; font-weight: 700; cursor: pointer; transition: opacity 0.2s; }
 .btn-add.active, .btn-batch.active { opacity: 0.7; }
 .apt-actions { display: flex; gap: 16px; margin-bottom: 20px; }
+.apartments-tab-intro { display: flex; align-items: center; gap: 10px; background: #e8f7ff; color: #0d47a1; border: 1px solid #b3e0ff; border-radius: 10px; padding: 14px 18px; font-size: 0.88rem; margin-bottom: 20px; }
 
 .form-card { background: #fff; border-radius: 12px; padding: 28px; border: 1px solid #eee; max-width: 860px; display: flex; flex-direction: column; gap: 16px; margin-bottom: 28px; }
 .form-title { font-size: 1rem; font-weight: 700; color: #1a1a2e; margin: 0; }
@@ -642,6 +553,7 @@ input.invalid, select.invalid { border: 2px solid #c0392b; background: #fff3f0; 
 .form-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
 .form-col { display: flex; flex-direction: column; gap: 4px; }
 .field-error { font-size: 0.78rem; color: #c0392b; padding-left: 8px; }
+.field-hint { font-size: 0.78rem; color: #888; padding-left: 8px; font-style: italic; }
 .form-actions { display: flex; gap: 16px; justify-content: flex-end; }
 .btn-save { padding: 12px 36px; background: #00e5cc; border: none; border-radius: 30px; font-size: 0.95rem; font-weight: bold; color: #0d0d2b; cursor: pointer; }
 .btn-save:disabled { opacity: 0.6; cursor: not-allowed; }
